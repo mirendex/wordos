@@ -1,0 +1,55 @@
+/* пары */
+.pgrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+.pcard {
+  min-height: 64px;
+  border: 2px solid var(--ink);
+  background: var(--blue);
+  color: #fff;
+  font-family: var(--mo);
+  font-size: 13px;
+  padding: 6px 4px;
+  box-shadow: 3px 3px 0 var(--ink);
+  line-height: 1.25;
+  word-break: break-word;
+}
+.pcard.open {
+  background: #f5f0c9;
+  color: var(--ink);
+}
+.pcard.open.ru {
+  background: #e4eddd;
+}
+.pcard.done {
+  background: var(--paper2);
+  color: var(--grey);
+  box-shadow: none;
+  border-style: dotted;
+}
+.pcard:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.sp {
+  font-style: normal;
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+.sp.y {
+  background: #d6e6d2;
+  color: var(--green);
+}
+.sp.m {
+  background: #f7ecd5;
+  color: var(--warn);
+}
+.sp.n {
+  background: #f6e3df;
+  color: var(--del);
+  text-decoration: underline wavy;
+}

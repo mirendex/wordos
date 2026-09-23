@@ -1,0 +1,104 @@
+import './storage';
+import { BKEY, KEY, MKEY } from './keys';
+import { restoreModelsCache } from '../services/models';
+
+export const FRESH = {
+  v: 2,
+  level: 40,
+  words: [] as { en: string; ru: string }[],
+  notes: [] as { wrong: string; right: string; why?: string }[],
+  read: {} as Record<string, unknown>,
+  mt: {} as Record<string, string>,
+  cfg: { key: '', model: 'openai/gpt-4o-mini', haptic: true } as Record<string, unknown>,
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export let S: any = JSON.parse(JSON.stringify(FRESH));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export let BANK: any = {};
+
+let bt: ReturnType<typeof setTimeout> | null = null;
+let bankOk = true;
+let bankFails = 0;
+
+export function scheduleBankSave(): void {
+  if (!bankOk) return;
+  if (bt) clearTimeout(bt);
+  bt = setTimeout(async () => {
+    try {
+      await window.storage!.set(BKEY, JSON.stringify(BANK));
+      bankFails = 0;
+    } catch {
+      bankFails++;
+      if (bankFails < 3) {
+        setTimeout(scheduleBankSave, 2000);
+        return;
+      }
+      bankOk = false; // дальше держим запас только в памяти, без спама в консоль
+    }
+  }, 1200);
+}
+
+export function isBankPersisted(): boolean {
+  return bankOk;
+}
+
+export function bankBytes(): number {
+  try {
+    return JSON.stringify(BANK).length;
+  } catch {
+    return 0;
+  }
+}
+
+let tm: ReturnType<typeof setTimeout> | null = null;
+export function save(): void {
+  if (tm) clearTimeout(tm);
+  tm = setTimeout(async () => {
+    try {
+      await window.storage!.set(KEY, JSON.stringify(S));
+    } catch {
+      /* ignore */
+    }
+  }, 300);
+}
+
+export async function load(): Promise<void> {
+  try {
+    const r = await window.storage!.get(KEY);
+    if (r && r.value) S = Object.assign(JSON.parse(JSON.stringify(FRESH)), JSON.parse(r.value));
+  } catch {
+    /* ignore */
+  }
+  try {
+    const b = await window.storage!.get(BKEY);
+    if (b && b.value) BANK = JSON.parse(b.value);
+  } catch {
+    /* ignore */
+  }
+  if (!S.cfg || typeof S.cfg !== 'object') S.cfg = { key: '', model: 'openai/gpt-4o-mini' };
+  if (!Array.isArray(S.words)) S.words = [];
+  if (!Array.isArray(S.notes)) S.notes = [];
+  if (!S.read || typeof S.read !== 'object') S.read = {};
+  if (!S.icons || typeof S.icons !== 'object') S.icons = {};
+  if (!S.mt || typeof S.mt !== 'object') S.mt = {};
+  if (typeof S.level !== 'number') S.level = 40;
+  if (!BANK || typeof BANK !== 'object') BANK = {};
+  try {
+    const m = await window.storage!.get(MKEY);
+    if (m && m.value) {
+      const j = JSON.parse(m.value);
+      if (j.at && Date.now() - j.at < 86400000 && j.list && j.list.length) restoreModelsCache(j.list);
+    }
+  } catch {
+    /* ignore */
+  }
+  if (S.vocab && S.vocab.bank) {
+    Object.keys(S.vocab.bank).forEach((k) => {
+      if (!BANK[k]) BANK[k] = S.vocab.bank[k];
+    });
+    delete S.vocab.bank;
+    scheduleBankSave();
+    save();
+  }
+}

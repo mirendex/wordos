@@ -1,0 +1,51 @@
+/* порядок слов */
+.oline {
+  border: 2px solid var(--ink);
+  background: #fff;
+  box-shadow: 3px 3px 0 var(--ink);
+  padding: 14px;
+  min-height: 70px;
+  margin-top: 12px;
+  font-family: var(--mo);
+  font-size: 16px;
+  line-height: 1.9;
+}
+.otok {
+  background: #f5f0c9;
+  border: 0;
+  border-bottom: 2px solid var(--ink);
+  padding: 3px 7px;
+  margin: 0 4px 4px 0;
+  font-family: var(--mo);
+  font-size: 16px;
+  color: var(--ink);
+  display: inline-block;
+}
+.otok:active {
+  background: #fff7c9;
+  transform: translateY(1px);
+}
+.oline i {
+  color: var(--grey);
+  font-style: normal;
+  font-size: 13px;
+}
+.obank {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.otile {
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  font-family: var(--mo);
+  font-size: 15px;
+  padding: 9px 12px;
+  box-shadow: 3px 3px 0 var(--ink);
+  min-height: 42px;
+}
+.otile:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}

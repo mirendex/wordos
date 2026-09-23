@@ -1,0 +1,11 @@
+www
+android
+node_modules
+legacy
+.tmp
+*.txt
+package-lock.json
+CLAUDE.md
+capacitor.config.json
+public/manifest.webmanifest
+src/main.ts

@@ -1,0 +1,12 @@
+{
+  "appId": "dev.mirendex.diffen",
+  "appName": "English",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": true
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

@@ -1,0 +1,114 @@
+/* буквы */
+.ltiles {
+  display: grid;
+  gap: 6px;
+  touch-action: none;
+  margin-top: 14px;
+  border: 2px solid var(--ink);
+  background: var(--paper2);
+  padding: 8px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.ltile {
+  aspect-ratio: 1;
+  border: 2px solid var(--ink);
+  background: #fff;
+  font-family: var(--px);
+  font-size: 20px;
+  color: var(--ink);
+  padding: 0;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.ltile:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+.ltile.sel {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue);
+}
+.ltile.used {
+  background: #d6e6d2;
+  color: var(--green);
+  border-color: var(--green);
+  box-shadow: none;
+}
+.ltile.hint {
+  background: #f5f0c9;
+  animation: hintb 0.3s steps(2, end) 4;
+}
+@keyframes hintb {
+  0%,
+  100% {
+    background: #f5f0c9;
+  }
+  50% {
+    background: #e8c44a;
+  }
+}
+.lcur {
+  font-family: var(--mo);
+  font-size: 22px;
+  letter-spacing: 4px;
+  text-align: center;
+  margin: 14px 0 4px;
+  min-height: 30px;
+}
+.lcur i {
+  font-style: normal;
+  font-size: 13px;
+  color: var(--grey);
+  letter-spacing: 0;
+}
+.ltasks {
+  margin-top: 10px;
+}
+.ltask {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 9px 0;
+  border-top: 1px dotted var(--grey);
+}
+.ltask:first-child {
+  border-top: 0;
+}
+.lru {
+  font-size: 14px;
+  min-width: 96px;
+  flex: 1;
+}
+.lslots {
+  display: flex;
+  gap: 3px;
+}
+.lslots i {
+  width: 22px;
+  height: 26px;
+  border: 2px solid var(--ink);
+  background: #fff;
+  font-style: normal;
+  font-family: var(--mo);
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ltask.done .lslots i {
+  background: #d6e6d2;
+  border-color: var(--green);
+  color: var(--green);
+}
+.ltask.done .lru {
+  color: var(--grey);
+  text-decoration: line-through;
+}
+.ltask.hint {
+  background: #f5f0c9;
+}
+.lslots i.hint {
+  background: #f5f0c9;
+  animation: hintb 0.3s steps(2, end) 4;
+}

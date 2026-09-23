@@ -1,0 +1,261 @@
+/* --- отделка --- */
+#os {
+  -webkit-font-smoothing: antialiased;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fc,
+  .pix i,
+  .ear,
+  .scan {
+    animation: none !important;
+  }
+}
+
+h3.h {
+  font-size: 19px;
+  letter-spacing: 0.01em;
+  margin: 0 0 6px;
+}
+h3.h + .sub {
+  margin-top: -2px;
+}
+.sub {
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.rowb {
+  gap: 0;
+  margin-top: 14px;
+}
+.btn {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn.sm {
+  min-height: 32px;
+}
+.btn:hover {
+  background: #f5f0c9;
+}
+.btn.p:hover {
+  background: #4757b5;
+}
+.btn.r:hover {
+  background: #d25340;
+}
+
+/* плитки со статистикой */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.tile {
+  border: 2px solid var(--ink);
+  background: #fff;
+  padding: 10px 11px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.tile b {
+  display: block;
+  font-family: var(--px);
+  font-size: 24px;
+  line-height: 1.1;
+}
+.tile span {
+  font-size: 11.5px;
+  color: var(--grey);
+  display: block;
+  margin-top: 3px;
+  line-height: 1.35;
+}
+.tile.acc {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.tile.acc span {
+  color: #d3d8f0;
+}
+
+/* строки списков */
+.wrow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 10px;
+  align-items: center;
+  border-bottom: 1px dotted var(--grey);
+  padding: 9px 2px;
+  font-size: 13px;
+}
+.wrow b {
+  font-family: var(--mo);
+  font-size: 15px;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wrow span {
+  grid-column: 1/-1;
+  order: 3;
+  font-size: 11.5px;
+  color: var(--grey);
+  font-family: var(--mo);
+}
+.wrow .btn {
+  margin: 0 0 0 6px;
+}
+.wrow .acts {
+  display: flex;
+  gap: 6px;
+}
+.item {
+  align-items: center;
+}
+.item .btn {
+  margin: 0 0 0 6px;
+}
+
+/* заголовок окна чуть мягче */
+.bar {
+  height: 26px;
+}
+.bar .lines span {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+/* всплывающие блоки */
+.note {
+  box-shadow: 3px 3px 0 rgba(22, 21, 26, 0.18);
+}
+.note b {
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* карточка слова */
+.gap {
+  font-size: 17px;
+  line-height: 2;
+  padding: 16px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.gap em {
+  padding: 0 16px;
+  font-weight: 600;
+}
+input.answ {
+  min-height: 46px;
+}
+.verdict {
+  font-size: 17px;
+}
+
+/* игра: переворот букв */
+.frow .fc.y,
+.frow .fc.m,
+.frow .fc.n {
+  animation: flip 0.26s ease-out both;
+}
+.frow .fc:nth-child(2) {
+  animation-delay: 0.05s;
+}
+.frow .fc:nth-child(3) {
+  animation-delay: 0.1s;
+}
+.frow .fc:nth-child(4) {
+  animation-delay: 0.15s;
+}
+.frow .fc:nth-child(5) {
+  animation-delay: 0.2s;
+}
+@keyframes flip {
+  0% {
+    transform: rotateX(0);
+  }
+  50% {
+    transform: rotateX(90deg);
+  }
+  100% {
+    transform: rotateX(0);
+  }
+}
+
+/* ярлыки */
+.ic {
+  border-radius: 6px;
+}
+.ic:active {
+  transform: scale(0.93);
+}
+.ic b {
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+}
+.ic svg {
+  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.45));
+}
+
+/* полоски прогресса */
+.xpbar {
+  border: 2px solid var(--ink);
+  height: 14px;
+  background: #fff;
+  padding: 0;
+}
+.xpbar i {
+  background: repeating-linear-gradient(90deg, var(--blue) 0 6px, #4757b5 6px 12px);
+}
+
+@media (max-width: 760px) {
+  .win {
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    box-shadow: none;
+    border-width: 0;
+  }
+  .resize,
+  .bar .max {
+    display: none;
+  }
+  .body {
+    padding: 12px 12px 22px;
+  }
+  .btn {
+    padding: 9px 15px;
+    font-size: 15px;
+  }
+  .btn.sm {
+    padding: 6px 11px;
+  }
+  h3.h {
+    font-size: 18px;
+  }
+  .tiles {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  textarea.ta,
+  input.answ,
+  input.line {
+    font-size: 16px;
+  }
+  .pas {
+    gap: 6px;
+  }
+  .card {
+    font-size: 12px;
+    padding: 6px 4px;
+  }
+  .term {
+    font-size: 12.5px;
+    min-height: 200px;
+  }
+}
