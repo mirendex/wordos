@@ -1,3 +1,4 @@
+import { hasGapSentence } from '../lib/text';
 import { DAY, PLUS } from '../core/util';
 import { paint } from '../core/paint';
 import { BANK, save, scheduleBankSave } from '../core/persist';
@@ -135,10 +136,12 @@ export async function loadCards(): Promise<void> {
     return;
   }
 
-  const miss = all.filter((w) => !(BANK[w] || []).length);
+  const hasUsable = (w: string) =>
+    (BANK[w] || []).some((c: { sentence?: string }) => hasGapSentence(c.sentence));
+  const miss = all.filter((w) => !hasUsable(w));
   if (miss.length) {
     if (!navigator.onLine) {
-      const have = all.filter((w) => (BANK[w] || []).length);
+      const have = all.filter((w) => hasUsable(w));
       if (!have.length) {
         v.queue = [];
         v.i = 0;
@@ -159,8 +162,10 @@ export async function loadCards(): Promise<void> {
   }
   v.offline = 0;
   v.queue = all
-    .filter((w) => (BANK[w] || []).length)
+    .filter((w) => hasUsable(w))
     .map((w) => {
+      // drop any stale malformed entries so they never reach the queue
+      BANK[w] = (BANK[w] || []).filter((c: { sentence?: string }) => hasGapSentence(c.sentence));
       const card = BANK[w].length > 1 ? BANK[w].shift() : BANK[w][0];
       v.seen[w] = card.sentence;
       return Object.assign({ w, rev: due.indexOf(w) >= 0 }, card);

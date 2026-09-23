@@ -1,4 +1,4 @@
-/* выделение рамкой */
+/* marquee selection */
 #marquee {
   position: absolute;
   display: none;

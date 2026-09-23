@@ -1,5 +1,5 @@
 import { esc, cefr } from '../../lib/scale';
-import { echoScore } from '../../lib/text';
+import { echoScore, hasGapSentence } from '../../lib/text';
 import { paint } from '../../core/paint';
 import { BANK, S, save } from '../../core/persist';
 import { ask } from '../../services/llm';
@@ -15,9 +15,8 @@ export function echoPick(): boolean {
   const out: { en: string; ru: string }[] = [];
   Object.keys(BANK).forEach((w) => {
     (BANK[w] || []).forEach((c: { sentence?: string; ru?: string }) => {
-      const s = String(c.sentence || '')
-        .replace('___', w)
-        .trim();
+      if (!hasGapSentence(c.sentence)) return;
+      const s = String(c.sentence).replace('___', w).trim();
       const n = s.split(/\s+/).length;
       if (n >= lo && n <= hi) out.push({ en: s, ru: c.ru || '' });
     });
@@ -92,7 +91,7 @@ export async function echoSay(): Promise<void> {
       try {
         res = await P.start({ language: 'en-US', maxResults: 5, partialResults: false, popup: false });
       } catch {
-        // первый запуск распознавания на телефоне часто не успевает включиться вовремя — тихо пробуем второй раз
+        // on-device speech recognition often doesn't spin up in time on the first call — quietly retry once
         res = await P.start({ language: 'en-US', maxResults: 5, partialResults: false, popup: false });
       }
       e.rec = false;
@@ -121,7 +120,7 @@ export async function echoSay(): Promise<void> {
       paint(true);
       return;
     }
-    // браузерный путь
+    // browser fallback path
     const rec = new SR();
     rec.lang = 'en-US';
     rec.maxAlternatives = 5;

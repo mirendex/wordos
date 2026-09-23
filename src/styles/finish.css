@@ -1,4 +1,4 @@
-/* --- отделка --- */
+/* --- finishing touches --- */
 #os {
   -webkit-font-smoothing: antialiased;
 }
@@ -46,7 +46,7 @@ h3.h + .sub {
   background: #d25340;
 }
 
-/* плитки со статистикой */
+/* stat tiles */
 .tiles {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
@@ -82,7 +82,7 @@ h3.h + .sub {
   color: #d3d8f0;
 }
 
-/* строки списков */
+/* list rows */
 .wrow {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -121,7 +121,7 @@ h3.h + .sub {
   margin: 0 0 0 6px;
 }
 
-/* заголовок окна чуть мягче */
+/* softer window title bar */
 .bar {
   height: 26px;
 }
@@ -130,7 +130,7 @@ h3.h + .sub {
   letter-spacing: 0.02em;
 }
 
-/* всплывающие блоки */
+/* popup blocks */
 .note {
   box-shadow: 3px 3px 0 rgba(22, 21, 26, 0.18);
 }
@@ -139,7 +139,7 @@ h3.h + .sub {
   margin-bottom: 4px;
 }
 
-/* карточка слова */
+/* word card */
 .gap {
   font-size: 17px;
   line-height: 2;
@@ -157,7 +157,7 @@ input.answ {
   font-size: 17px;
 }
 
-/* игра: переворот букв */
+/* game: letter flip */
 .frow .fc.y,
 .frow .fc.m,
 .frow .fc.n {
@@ -187,7 +187,7 @@ input.answ {
   }
 }
 
-/* ярлыки */
+/* desktop icons */
 .ic {
   border-radius: 6px;
 }
@@ -202,7 +202,7 @@ input.answ {
   filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.45));
 }
 
-/* полоски прогресса */
+/* progress bars */
 .xpbar {
   border: 2px solid var(--ink);
   height: 14px;

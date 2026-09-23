@@ -1,4 +1,5 @@
 import { BANK, S } from '../../core/persist';
+import { hasGapSentence } from '../../lib/text';
 import { freqInit, FREQ, RANK } from '../../domain/frequency';
 import { coursePos, skipWord } from '../../domain/vocab';
 import { diaryState } from '../diary/state';
@@ -62,9 +63,10 @@ export function orderSource(): { en: string; ru: string }[] {
   };
   diarySentences().forEach((s) => push(s, ''));
   Object.keys(BANK).forEach((w) => {
-    (BANK[w] || []).forEach((c: { sentence?: string; ru?: string }) =>
-      push(String(c.sentence || '').replace('___', w), c.ru),
-    );
+    (BANK[w] || []).forEach((c: { sentence?: string; ru?: string }) => {
+      if (!hasGapSentence(c.sentence)) return;
+      push(String(c.sentence).replace('___', w), c.ru);
+    });
   });
   const l = S.listen && S.listen.pool;
   if (Array.isArray(l)) l.forEach((x: { en: string; ru: string }) => push(x.en, x.ru));

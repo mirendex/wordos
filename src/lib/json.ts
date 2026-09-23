@@ -5,7 +5,7 @@ export interface BankCard {
 }
 
 export function objects(s: string): string[] {
-  // все объекты {...} на любом уровне вложенности, даже если хвост обрезан
+  // every {...} object at any nesting level, even if the tail got cut off
   const out: string[] = [];
   const st: number[] = [];
   let q = false;
@@ -53,7 +53,7 @@ export function cutJson(s: string): any {
   try {
     return JSON.parse(body);
   } catch {
-    /* ответ оборвался: собираем то, что успело прийти */
+    /* the response got cut off: salvage whatever made it through */
   }
   const parts = objects(s)
     .map((x) => {
@@ -79,7 +79,7 @@ export function cutJson(s: string): any {
   if (cards.length) return { cards, _partial: true };
   const whole = parts.find((o) => Object.keys(o).length > 1);
   if (whole) return whole;
-  // последний шанс: собираем пары "ключ":"значение" из оборванного объекта
+  // last resort: scrape "key":"value" pairs out of the truncated object
   const pairs: Record<string, string> = {};
   let mm: RegExpExecArray | null;
   const re = /"([A-Za-z_]+)"\s*:\s*"((?:[^"\\]|\\.)*)"/g;

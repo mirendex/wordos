@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkAnswer, diffHtml, echoScore, lev, mask, wordDiff } from './text';
+import { checkAnswer, diffHtml, echoScore, hasGapSentence, lev, mask, wordDiff } from './text';
 
 describe('lev', () => {
   it('is 0 for identical strings', () => {
@@ -69,5 +69,19 @@ describe('echoScore', () => {
   });
   it('scores an empty target at 0 with no words', () => {
     expect(echoScore('anything', '')).toEqual({ pct: 0, words: [] });
+  });
+});
+
+describe('hasGapSentence', () => {
+  it('accepts a sentence with a ___ gap', () => {
+    expect(hasGapSentence('I need to ___ this by Friday.')).toBe(true);
+  });
+  it('rejects a stale card whose "sentence" is really just the bare word', () => {
+    expect(hasGapSentence('finish')).toBe(false);
+  });
+  it('rejects missing or non-string values', () => {
+    expect(hasGapSentence(undefined)).toBe(false);
+    expect(hasGapSentence(null)).toBe(false);
+    expect(hasGapSentence(42)).toBe(false);
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { byWordsLevel, cefr, esc, nToPct, pctToN } from './scale';
+import { byWordsLevel, cefr, esc, median, nToPct, pctToN } from './scale';
 
 describe('esc', () => {
   it('escapes html-significant characters', () => {
@@ -37,5 +37,20 @@ describe('cefr', () => {
     expect(cefr(0)).toBe('A1');
     expect(cefr(50)).toBe('B1');
     expect(cefr(100)).toBe('C1');
+  });
+});
+
+describe('median', () => {
+  it('averages the two middle values for an even-length list', () => {
+    expect(median([1, 2, 3, 4])).toBe(2.5);
+  });
+  it('picks the middle value for an odd-length list', () => {
+    expect(median([5, 1, 3])).toBe(3);
+  });
+  it('is not skewed by a single outlier the way a mean would be', () => {
+    expect(median([40, 42, 41, 95])).toBe(41.5);
+  });
+  it('returns 0 for an empty list', () => {
+    expect(median([])).toBe(0);
   });
 });

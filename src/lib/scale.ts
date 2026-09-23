@@ -4,7 +4,7 @@ export const esc = (s: unknown): string =>
     (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c as '&' | '<' | '>' | '"'],
   );
 
-// плавная шкала: шаг (слов на пиксель) самый крупный слева и постепенно убывает вправо
+// smooth scale: the step (words per pixel) is largest on the left and shrinks going right
 export function nToPct(n: number): number {
   n = Math.max(0, Math.min(5000, n));
   return Math.sqrt(n / 5000);
@@ -16,8 +16,15 @@ export function pctToN(pct: number): number {
 }
 
 export function byWordsLevel(words: number): number {
-  // знание топ-5000 частотных слов само по себе не тянет выше B2 — C1 сюда не входит
+  // knowing the top-5000 frequency words alone doesn't get you past B2 — C1 isn't reachable this way
   return Math.max(10, Math.min(82, Math.round(12 + Math.sqrt(words) * 1.15)));
+}
+
+export function median(nums: number[]): number {
+  if (!nums.length) return 0;
+  const s = nums.slice().sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
 }
 
 export const cefr = (v: number): string =>

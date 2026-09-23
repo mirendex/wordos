@@ -19,7 +19,7 @@ interface FwWordSpot {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fwState(): any {
-  // состояние от старой версии (сетка без плиток с координатами)
+  // state from an older version (a grid without coordinate-aware tiles)
   if (
     S.fw &&
     S.fw.grid &&
@@ -303,8 +303,8 @@ export function fwSubmit(): void {
   const word = fwWord(g);
   const hit = g.words.find((x: FwWordSpot) => x.w === word && g.found.indexOf(x.w) < 0);
   if (hit) {
-    // подводит игрока только если он занял клетку, которая нужна ДРУГОМУ ещё не найденному слову —
-    // если буквы взяты "ничейные", неважно, что путь не тот, которым слово изначально положили
+    // only trips the player up if they took a cell that ANOTHER not-yet-found word actually needs —
+    // if the letters were "unclaimed", it doesn't matter that the path isn't the one it was laid on
     const conflict = g.picked.some((idx: number) =>
       g.words.some(
         (x: FwWordSpot) => x.w !== hit.w && g.found.indexOf(x.w) < 0 && x.path && x.path.indexOf(idx) >= 0,

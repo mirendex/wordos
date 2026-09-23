@@ -6,6 +6,7 @@ import { S, save } from '../core/persist';
 import { haptic, hapticTest } from '../platform/haptics';
 import { listen, speak, ttsVoices } from '../platform/speech';
 import { notifyPlan } from '../platform/notify';
+import { APPVER } from '../platform/appinfo';
 import { fetchFreeTranslation } from '../services/translate';
 import { loadModels, MFREE, setModelFreeOnly } from '../services/models';
 import { cover, FREQ, RANK } from '../domain/frequency';
@@ -539,7 +540,9 @@ export function installActions(): void {
         title: 'система',
         icon: '<svg width="36" height="36" viewBox="0 0 17 17"><rect x="2" y="3" width="13" height="10" fill="#39479E" stroke="#16151A"/><path d="M4 5h9M4 7h6M4 9h7" stroke="#EDE7D8"/></svg>',
         text:
-          'English 1.1\nслов в запасе: ' +
+          'English ' +
+          (APPVER || '—') +
+          '\nслов в запасе: ' +
           myWords() +
           ' (' +
           cover(myWords()).toFixed(1) +

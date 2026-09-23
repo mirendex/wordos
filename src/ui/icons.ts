@@ -135,7 +135,7 @@ export function endIconDrag(): boolean {
     idrag.group.forEach((g) => {
       moving[g.id] = Math.max(0, pos[g.id] + shift);
     });
-    // разводим столкновения: занятые места отдаём тем, кто стоял на целевых
+    // resolve collisions: give a taken slot to whoever was already standing on it
     const busy: Record<number, string> = {};
     Object.keys(moving).forEach((id) => {
       let slot = moving[id];

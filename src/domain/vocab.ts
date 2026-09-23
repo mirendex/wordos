@@ -21,7 +21,7 @@ export function vocabState(): any {
   if (typeof v.n !== 'number') v.n = 0;
   if (typeof v.base !== 'number') v.base = 0;
   if (v.n === undefined) v.n = 0;
-  if (!v.touched && v.n === 800 && !v.base) v.n = 0; // старый дефолт: курс начинался с 800-го слова
+  if (!v.touched && v.n === 800 && !v.base) v.n = 0; // old default: the course used to start at word 800
   if (v.base === undefined) v.base = 0;
   if (!v.known) v.known = {};
   if (!v.srs) v.srs = {};
@@ -53,6 +53,24 @@ export function myWords(): number {
   return v.base + Object.keys(extra).length;
 }
 
+// For the level estimate (not for the coverage stats — myWords() stays as the raw exposure
+// count there): a word barely reviewed once shouldn't count as much as one actually retained.
+export function masteryWeightedWords(): number {
+  freqInit();
+  const v = vocabState();
+  const weight: Record<string, number> = {};
+  const consider = (w: string, ww: number) => {
+    const r = RANK![w];
+    if (!r || r <= v.base) return;
+    if ((weight[w] || 0) < ww) weight[w] = ww;
+  };
+  Object.keys(v.known).forEach((w) => consider(w, 1));
+  Object.keys(v.srs).forEach((w) => consider(w, Math.min(1, (v.srs[w].b + 1) / IV.length)));
+  S.words.forEach((x: { en: string }) => consider(String(x.en).toLowerCase(), 0.4));
+  const total = Object.values(weight).reduce((a, b) => a + b, 0);
+  return v.base + total;
+}
+
 export function nextPct(me: number): number {
   freqInit();
   const target = Math.floor(cover(me)) + 1;
@@ -63,7 +81,7 @@ export function nextPct(me: number): number {
 export function coursePos(): number {
   const v = vocabState();
   freqInit();
-  // старт курса: отмеченный запас, но не дальше реально пройденного
+  // course start: the marked vocabulary size, but never past what was actually covered
   return Math.max(0, Math.min(FREQ!.length - 1, v.base || 0));
 }
 

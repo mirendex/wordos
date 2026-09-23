@@ -131,9 +131,9 @@ const BACKGATE = CAP && CAP.BackGate;
 export function syncBackGate(): void {
   if (!BACKGATE || !BACKGATE.setEnabled) return;
   const isOpen = visibleWindows().length > 0;
-  // родной колбэк @capacitor/app всегда включён и перехватывает жест раньше нашего —
-  // отдаём жест нашему плагину только пока открыто окно, иначе возвращаем управление,
-  // чтобы выход из приложения (и системная анимация) работали как раньше
+  // the native @capacitor/app callback is always on and intercepts the gesture before ours —
+  // we hand the gesture to our plugin only while a window is open, otherwise give control back
+  // so exiting the app (and the system animation) still works as before
   if (CAP && CAP.App && CAP.App.toggleBackButtonHandler)
     CAP.App.toggleBackButtonHandler({ enabled: !isOpen });
   BACKGATE.setEnabled({ enabled: isOpen });
