@@ -1,0 +1,127 @@
+/* пиксельный ползунок */
+.pslider {
+  position: relative;
+  height: 34px;
+  margin: 14px 0 2px;
+  touch-action: none;
+  cursor: pointer;
+}
+.ptrack {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 11px;
+  height: 12px;
+  border: 2px solid var(--ink);
+  background: #fff;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 3px;
+  align-items: center;
+}
+.ptrack i {
+  width: 2px;
+  height: 4px;
+  background: #cfc8b5;
+  display: block;
+}
+.pfill {
+  position: absolute;
+  left: 0;
+  top: 13px;
+  height: 8px;
+  background: repeating-linear-gradient(90deg, var(--blue) 0 4px, #5567c4 4px 8px);
+  margin-left: 2px;
+  max-width: calc(100% - 4px);
+  pointer-events: none;
+}
+.pknob {
+  position: absolute;
+  top: 5px;
+  width: 18px;
+  height: 24px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  transform: translateX(-9px);
+  pointer-events: none;
+}
+.pknob:after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  width: 4px;
+  height: 10px;
+  background: var(--ink);
+  box-shadow: 4px 0 0 var(--ink);
+}
+.pslider.grab .pknob {
+  background: #f5f0c9;
+  transform: translateX(-9px) scale(1.06);
+}
+.pscale {
+  position: relative;
+  height: 16px;
+  margin-bottom: 8px;
+}
+.pscale i {
+  position: absolute;
+  transform: translateX(-50%);
+  font-style: normal;
+  font-family: var(--mo);
+  font-size: 10.5px;
+  color: var(--grey);
+  white-space: nowrap;
+}
+.pscale i:first-child {
+  transform: none;
+}
+.pscale i:last-child {
+  transform: translateX(-100%);
+}
+.demolabel {
+  font-family: var(--mo);
+  font-size: 11px;
+  color: var(--grey);
+  margin: 10px 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.demo {
+  font-family: var(--mo);
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+  padding: 12px 13px;
+  box-shadow: 3px 3px 0 rgba(22, 21, 26, 0.18);
+}
+.demo i {
+  font-style: normal;
+  color: var(--ink);
+}
+.demo u {
+  text-decoration: none;
+  color: transparent;
+  background: var(--blue);
+  border-radius: 2px;
+  padding: 0 2px;
+  box-shadow: 1px 1px 0 rgba(22, 21, 26, 0.25);
+}
+.diff {
+  font-family: var(--mo);
+  font-size: 14px;
+  line-height: 1.9;
+}
+.diff .wrong,
+.sub .wrong {
+  color: var(--red);
+  text-decoration: line-through;
+}
+.diff .right,
+.sub .right {
+  color: var(--green);
+  font-weight: 600;
+}

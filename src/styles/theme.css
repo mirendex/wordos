@@ -1,0 +1,12 @@
+:root {
+  --desk: #3b3560;
+  --paper: #ede7d8;
+  --paper2: #e2dbc8;
+  --ink: #16151a;
+  --blue: #39479e;
+  --red: #c1432c;
+  --green: #2c6b4a;
+  --grey: #7c7566;
+  --px: 'Pixelify Sans', 'IBM Plex Mono', monospace;
+  --mo: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+}

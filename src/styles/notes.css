@@ -1,0 +1,40 @@
+/* блокнот */
+.nrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px dotted var(--grey);
+  padding: 10px 2px;
+}
+.ntext {
+  flex: 1;
+  min-width: 0;
+}
+.ntext .en {
+  display: block;
+  font-family: var(--mo);
+  font-size: 15px;
+  font-weight: 600;
+  word-break: break-word;
+}
+.ntext .en s {
+  color: var(--red);
+}
+.ntext .en em {
+  font-style: normal;
+  color: var(--green);
+}
+.ntext .ru {
+  display: block;
+  font-size: 12px;
+  color: var(--grey);
+  margin-top: 2px;
+}
+.nrow .acts {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+.nrow .btn {
+  margin: 0;
+}

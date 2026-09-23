@@ -1,0 +1,27 @@
+/* диктант */
+.earbox {
+  border: 2px solid var(--ink);
+  background: #fff;
+  box-shadow: 3px 3px 0 var(--ink);
+  padding: 16px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-top: 12px;
+}
+.ear svg {
+  image-rendering: pixelated;
+  shape-rendering: crispEdges;
+}
+.ear {
+  animation: earp 1.6s steps(2, end) infinite;
+}
+@keyframes earp {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+}

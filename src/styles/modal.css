@@ -1,0 +1,33 @@
+/* диалоги */
+.shade {
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(45deg, rgba(22, 21, 26, 0.55) 0 3px, rgba(22, 21, 26, 0.42) 3px 6px);
+  z-index: 80;
+}
+.modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(380px, 92vw);
+  z-index: 81;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.55);
+}
+.mbody {
+  padding: 16px;
+}
+.mtext {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.micon {
+  float: left;
+  margin: 0 12px 8px 0;
+}
+.micon svg {
+  image-rendering: pixelated;
+  shape-rendering: crispEdges;
+}

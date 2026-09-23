@@ -1,0 +1,31 @@
+/* всё остальное системное - своё */
+::selection {
+  background: var(--blue);
+  color: #fff;
+}
+#os ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+#os ::-webkit-scrollbar-track {
+  background: var(--paper2);
+  border-left: 2px solid var(--ink);
+}
+#os ::-webkit-scrollbar-thumb {
+  background: var(--ink);
+  border: 2px solid var(--paper2);
+}
+#os ::-webkit-scrollbar-thumb:active {
+  background: var(--blue);
+}
+#os input::placeholder,
+#os textarea::placeholder {
+  color: #a39b88;
+  font-family: var(--mo);
+}
+#os input:focus,
+#os textarea:focus {
+  border-color: var(--blue);
+  outline: none;
+  box-shadow: 2px 2px 0 var(--blue);
+}

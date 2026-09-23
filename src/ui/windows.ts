@@ -1,0 +1,211 @@
+import { haptic } from '../platform/haptics';
+import { paint } from '../core/paint';
+
+export interface Win {
+  key: string;
+  app: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any;
+  z: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  minimized?: boolean;
+  maximized?: boolean;
+  restore?: { x: number; y: number; w: number; h: number };
+}
+
+export const MIN_WIN_W = 280;
+export const MIN_WIN_H = 200;
+
+let W: Win[] = [];
+let z = 10;
+
+export function windows(): Win[] {
+  return W;
+}
+
+export function visibleWindows(): Win[] {
+  return W.filter((w) => !w.minimized);
+}
+
+export function findWin(pred: (w: Win) => boolean): Win | undefined {
+  return W.find(pred);
+}
+
+export function winByApp(app: string): Win | undefined {
+  return W.find((w) => w.app === app);
+}
+
+export function winByKey(key: string): Win | undefined {
+  return W.find((w) => w.key === key);
+}
+
+export function topWin(): Win | undefined {
+  const vis = visibleWindows();
+  if (!vis.length) return undefined;
+  return vis.reduce((a, b) => (a.z > b.z ? a : b));
+}
+
+export function topZ(): number {
+  return z;
+}
+
+export function bringToFront(w: Win): void {
+  w.z = ++z;
+}
+
+export function toggleMinimize(w: Win): void {
+  w.minimized = !w.minimized;
+  syncBackGate();
+}
+
+export function toggleMaximize(w: Win): void {
+  if (w.maximized) {
+    if (w.restore) {
+      w.x = w.restore.x;
+      w.y = w.restore.y;
+      w.w = w.restore.w;
+      w.h = w.restore.h;
+    }
+    w.maximized = false;
+  } else {
+    w.restore = { x: w.x, y: w.y, w: w.w, h: w.h };
+    w.maximized = true;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function open(app: string, data?: any): void {
+  const ex = W.find((w) => w.app === app && !data);
+  if (ex) {
+    ex.minimized = false;
+    bringToFront(ex);
+    paint();
+    syncBackGate();
+    return;
+  }
+  pushNav();
+  haptic('open');
+  const n = W.length;
+  W.push({
+    key: app + ':' + ((data && data.id) || ''),
+    app,
+    data: data || {},
+    z: ++z,
+    x: 40 + n * 26,
+    y: 24 + n * 22,
+    w: 480,
+    h: app === 'about' ? 320 : 460,
+  });
+  paint();
+  syncBackGate();
+}
+
+export function close(k: string): void {
+  W = W.filter((w) => w.key !== k);
+  haptic('close');
+  paint();
+  syncBackGate();
+}
+
+export function title(w: Win): string {
+  if (w.app === 'read') return 'READER.EXE';
+  if (w.app === 'games') return 'GAMES';
+  if (w.app === 'term') return 'TERMINAL';
+  if (w.app === 'vocab') return 'WORDS.DB';
+  if (w.app === 'setup') return 'SETUP';
+  if (w.app === 'diary') return 'DIARY.TXT';
+  if (w.app === 'listen') return 'LISTEN.EXE';
+  if (w.app === 'echo') return 'ECHO.EXE';
+  if (w.app === 'notes') return 'NOTES.TXT';
+  return 'ABOUT';
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const CAP = (window as any).Capacitor && (window as any).Capacitor.Plugins;
+const NATIVE_BACK = !!(CAP && CAP.App && CAP.App.addListener);
+const BACKGATE = CAP && CAP.BackGate;
+
+export function syncBackGate(): void {
+  if (!BACKGATE || !BACKGATE.setEnabled) return;
+  const isOpen = visibleWindows().length > 0;
+  // родной колбэк @capacitor/app всегда включён и перехватывает жест раньше нашего —
+  // отдаём жест нашему плагину только пока открыто окно, иначе возвращаем управление,
+  // чтобы выход из приложения (и системная анимация) работали как раньше
+  if (CAP && CAP.App && CAP.App.toggleBackButtonHandler)
+    CAP.App.toggleBackButtonHandler({ enabled: !isOpen });
+  BACKGATE.setEnabled({ enabled: isOpen });
+}
+
+export function pushNav(): void {
+  if (NATIVE_BACK) return; // в приложении кнопку назад отдаёт плагин
+  try {
+    history.pushState({ os: 1 }, '');
+  } catch {
+    /* ignore */
+  }
+}
+
+export function backPressed(): boolean {
+  const top = topWin();
+  if (top) {
+    close(top.key);
+    return true;
+  }
+  return false;
+}
+
+window.__appBack = backPressed;
+
+export function topWinEl(): Element | null {
+  const top = topWin();
+  if (!top) return null;
+  return document.querySelector('.win[data-k="' + CSS.escape(top.key) + '"]');
+}
+
+if (BACKGATE && BACKGATE.addListener) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  BACKGATE.addListener('backGesture', (e: any) => {
+    const el = topWinEl() as HTMLElement | null;
+    if (!el) return;
+    if (e.phase === 'start' || e.phase === 'progress') {
+      const p = Math.max(0, Math.min(1, e.progress || 0));
+      const dir = e.swipeEdge === 0 ? 1 : -1;
+      el.style.transition = 'none';
+      el.style.transformOrigin = dir > 0 ? 'left center' : 'right center';
+      el.style.transform = 'translateX(' + dir * p * 26 + 'px) scale(' + (1 - p * 0.06) + ')';
+      el.style.opacity = String(1 - p * 0.35);
+    } else if (e.phase === 'cancel') {
+      el.style.transition = 'transform .18s ease,opacity .18s ease';
+      el.style.transform = '';
+      el.style.opacity = '';
+    } else {
+      el.style.transition = '';
+      el.style.transform = '';
+      el.style.opacity = '';
+    }
+  });
+}
+
+let lastW = window.innerWidth;
+window.addEventListener('resize', () => {
+  if (window.innerWidth === lastW) return; // изменилась только высота: это клавиатура
+  lastW = window.innerWidth;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  clearTimeout((window as any).__rz);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).__rz = setTimeout(paint, 150);
+});
+window.addEventListener('popstate', () => {
+  if (!NATIVE_BACK) backPressed();
+});
+if (NATIVE_BACK) {
+  CAP.App.addListener('backButton', () => {
+    if (!backPressed()) {
+      if (CAP.App.minimizeApp) CAP.App.minimizeApp();
+      else if (CAP.App.exitApp) CAP.App.exitApp();
+    }
+  });
+}

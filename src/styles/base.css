@@ -1,0 +1,18 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #3b3560;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+#os {
+  padding-top: max(env(safe-area-inset-top, 0px), 22px) !important;
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px) !important;
+}

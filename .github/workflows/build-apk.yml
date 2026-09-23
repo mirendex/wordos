@@ -1,0 +1,64 @@
+name: Сборка APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Зависимости
+        run: npm ci
+
+      - name: Линт
+        run: npm run lint
+
+      - name: Тесты
+        run: npm test
+
+      - name: Собрать веб-часть
+        run: npm run build
+
+      - name: Установить Chromium для смоук-теста
+        run: npx playwright install --with-deps chromium
+
+      - name: Смоук-тест
+        run: node scripts/smoke.mjs
+
+      - name: Перенести веб-часть в проект
+        run: npx cap copy android
+
+      - name: Собрать APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Выложить APK как артефакт
+        uses: actions/upload-artifact@v4
+        with:
+          name: english-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - name: Положить APK в релиз
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: English build ${{ github.run_number }}
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
