@@ -1,7 +1,7 @@
 {
   "name": "diffen",
-  "version": "1.0.0",
-  "description": "diff/en - английский для переписки и созвонов",
+  "version": "1.4.0",
+  "description": "diff/en - English for writing and calls",
   "type": "module",
   "scripts": {
     "dev": "vite",

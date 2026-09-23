@@ -2,24 +2,22 @@ import { esc, byWordsLevel, cefr, nToPct } from '../lib/scale';
 import { S } from '../core/persist';
 import { APPVER } from '../platform/appinfo';
 import { cover, freqInit } from '../domain/frequency';
-import { myWords } from '../domain/vocab';
+import { myWords, vocabState } from '../domain/vocab';
 import { chartSvg, demoHtml } from '../domain/progress';
-import { vocabState } from '../domain/vocab';
+import { ICONS } from '../ui/icons';
 
-export function aboutView(): string {
-  const first = !S.seenIntro;
-  const eggs = S.egg || {};
-  if (first) {
-    freqInit();
-    const v = vocabState();
-    const n = v.n || 0;
-    return `<h3 class="h">Привет!</h3>
-      <p class="sub">Это приложение помогает учить английский на своём материале: слова, тексты, дневник и игры собраны вокруг одного словаря, который растёт вместе с тобой.</p>
+function introView(): string {
+  freqInit();
+  const v = vocabState();
+  const n = v.n || 0;
+  return `<h3 class="h">Привет!</h3>
+      <p class="sub">Один словарь на всё приложение: WORDS.DB, READER, LISTEN, ECHO, DIARY и GAMES
+      растут вместе с ним, и прогресс в любом из них виден везде.</p>
       <div class="note" style="margin-top:12px">
-        <div class="l"><b>Как это работает</b><p>ты учишь слова по частоте языка, а WORDS.DB, READER, LISTEN, ECHO, DIARY и GAMES все опираются на один и тот же список — прогресс в одном месте виден везде</p></div>
-      </div>
-      <div class="note" style="margin-top:12px">
-        <div class="l"><b>С чего начнём?</b><p>потяни ползунок вправо, пока в тексте ниже не начнут появляться незнакомые слова (они спрятаны под плашками). Остановись прямо перед первым непонятным словом — это не экзамен, точку старта всегда можно сдвинуть потом в WORDS.DB → Диаграмма</p></div>
+        <div class="l"><b>Шаг 1 · где ты сейчас</b>
+          <p>подвигай ползунок, пока в примере ниже не начнут появляться подчёркнутые (незнакомые) слова.
+          Останови прямо перед первым непонятным — это не экзамен, точку старта всегда можно сдвинуть
+          позже в WORDS.DB → Диаграмма.</p></div>
         <div class="chart" style="margin-top:8px">${chartSvg(n)}</div>
         <div class="pslider" data-slider>
           <div class="ptrack">${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(() => '<i></i>').join('')}</div>
@@ -34,23 +32,33 @@ export function aboutView(): string {
         ${S.onboardedLevel ? `<p class="sub" style="margin-top:8px">записал: уровень ${cefr(S.level)}, начали с #${vocabState().base + 1}</p>` : ''}
       </div>
       <div class="note" style="margin-top:12px">
-        <div class="l"><b>Про переводы и тексты</b><p>их придумывает ИИ, а для этого нужен свой бесплатный ключ OpenRouter — без него работают только слова и игры без перевода. Ключ вводится один раз и хранится только на телефоне</p></div>
+        <div class="l"><b>Шаг 2 · бесплатный ключ для ИИ</b>
+          <p>тексты, переводы и разборы придумывает языковая модель через OpenRouter — у них есть
+          бесплатные модели. Без ключа всё равно работают слова, карточки и игры, просто без перевода
+          и без генерации новых текстов. Ключ вводится один раз и хранится только на телефоне.</p></div>
       </div>
       <div class="rowb" style="margin-top:12px">
         <button class="btn" data-app="setup">Ключ и модель</button>
         <button class="btn p" data-intro="1">Понятно, начнём</button>
       </div>`;
-  }
+}
+
+const APP_LIST: { id: string; name: string; desc: string }[] = [
+  { id: 'vocab', name: 'WORDS.DB', desc: 'словарь, карточки, диаграмма запаса' },
+  { id: 'read', name: 'READER', desc: 'тексты под твой уровень, слово по тапу' },
+  { id: 'listen', name: 'LISTEN', desc: 'диктант на слух' },
+  { id: 'echo', name: 'ECHO', desc: 'повтори вслух, проверка произношения' },
+  { id: 'diary', name: 'DIARY', desc: 'три строки о дне, с разбором ошибок' },
+  { id: 'games', name: 'GAMES', desc: 'пять игр на твоих же словах' },
+  { id: 'term', name: 'TERMINAL', desc: 'чужие компьютеры, чтение по-английски' },
+];
+
+function homeView(): string {
+  const eggs = S.egg || {};
   return `<h3 class="h">Английский</h3>
-    <p class="sub">Слова, тексты, дневник и игры на одном словаре.</p>
-    <div class="note" style="margin-top:12px">
-      <div class="l"><b>WORDS.DB</b><p>словарь, карточки, диаграмма</p></div>
-      <div class="l"><b>READER</b><p>тексты под уровень</p></div>
-      <div class="l"><b>LISTEN</b><p>диктант на слух</p></div>
-      <div class="l"><b>ECHO</b><p>повтори вслух, проверка произношения</p></div>
-      <div class="l"><b>DIARY</b><p>три строки о дне</p></div>
-      <div class="l"><b>GAMES</b><p>пять игр на твоих словах</p></div>
-      <div class="l"><b>TERMINAL</b><p>чужие машины, чтение по-английски</p></div>
+    <p class="sub">Слова, тексты, дневник и игры — всё растёт из одного словаря.</p>
+    <div class="note applist" style="margin-top:12px">
+      ${APP_LIST.map((a) => `<div class="l approw">${ICONS[a.id] || ''}<span><b>${a.name}</b><p>${a.desc}</p></span></div>`).join('')}
     </div>
     <div class="note" style="margin-top:12px">
       <div class="l">уровень: <b>${cefr(S.level)}</b> (${Math.round(S.level)}/100)</div>
@@ -76,4 +84,8 @@ export function aboutView(): string {
         : ''
     }
     <p class="sub" style="margin-top:12px">Версия ${esc(APPVER || '—')}</p>`;
+}
+
+export function aboutView(): string {
+  return S.seenIntro ? homeView() : introView();
 }

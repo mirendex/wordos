@@ -5,9 +5,9 @@ const FWN: [number, number][] = [
   [0, 1],
 ];
 
-// кладём слово цепочкой соседних клеток, путь может изгибаться.
-// клетки, занятые путём другого слова, не трогаем — иначе найденное слово
-// заблокирует единственный путь для ещё не найденного
+// lay the word as a chain of adjacent cells; the path can bend.
+// leave cells claimed by another word's path alone — otherwise a found word
+// would block the only remaining path for one not yet found
 export function fwPlace(
   grid: (string | undefined)[][],
   size: number,

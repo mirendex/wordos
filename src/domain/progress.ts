@@ -1,20 +1,18 @@
-import { esc } from '../lib/scale';
-import { byWordsLevel } from '../lib/scale';
-import { nToPct } from '../lib/scale';
+import { byWordsLevel, esc, median, nToPct } from '../lib/scale';
 import { S } from '../core/persist';
 import { cover, DEMO, freqInit, FREQ, RANK } from './frequency';
-import { myWords } from './vocab';
+import { masteryWeightedWords, myWords } from './vocab';
 
 export function recalcLevel(): number {
   freqInit();
-  const words = myWords();
-  const byWords = byWordsLevel(words);
+  // vocabulary-based estimate: weighted by how well each word is actually retained,
+  // not just how many words were ever touched
+  const byWords = byWordsLevel(masteryWeightedWords());
   const items = ((S.diary && S.diary.items) || [])
     .filter((x: { level: unknown }) => typeof x.level === 'number')
     .slice(-5);
-  const byText = items.length
-    ? items.reduce((a: number, x: { level: number }) => a + x.level, 0) / items.length
-    : null;
+  // median rather than mean: one odd LLM score on a single diary entry shouldn't swing the level
+  const byText = items.length ? median(items.map((x: { level: number }) => x.level)) : null;
   const textWeight = 0.45 * Math.min(1, items.length / 5);
   S.level = Math.max(
     0,

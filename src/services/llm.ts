@@ -48,7 +48,7 @@ export async function ask(p: string, tries?: number): Promise<any> {
     } catch {
       /* ignore */
     }
-    // модель не умеет json_object - повторяем без него
+    // the model doesn't support json_object mode - retry without it
     if (!cfg.noJsonMode && /json|response_format|schema/i.test(t)) {
       S.cfg.noJsonMode = true;
       save();

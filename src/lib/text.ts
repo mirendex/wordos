@@ -1,5 +1,11 @@
 import { esc } from './scale';
 
+// guards against stale/malformed BANK cards (e.g. saved by an older card schema) whose
+// "sentence" never actually had a ___ gap to fill in, so it's really just the bare word
+export function hasGapSentence(sentence: unknown): boolean {
+  return typeof sentence === 'string' && sentence.indexOf('___') >= 0;
+}
+
 export function lev(a: string, b: string): number {
   const m = a.length;
   const n = b.length;

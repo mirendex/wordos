@@ -98,7 +98,7 @@ function moveWindowResize(cx: number, cy: number): void {
   }
 }
 
-/* --- выделение рамкой на столе --- */
+/* --- marquee selection on the desktop --- */
 function marqStart(x: number, y: number): void {
   marq = { x0: x, y0: y, x1: x, y1: y };
   const el = document.getElementById('marquee');

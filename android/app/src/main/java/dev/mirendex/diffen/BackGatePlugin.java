@@ -16,13 +16,14 @@ import java.util.ArrayDeque;
 import java.util.Iterator;
 
 /**
- * Управление жестом назад.
+ * Controls the back gesture.
  *
- * Открыто окно  -> наш колбэк включён, жест закрывает окно, а во время самого
- *                  свайпа мы шлём в JS прогресс предиктивной анимации (start/progress/cancel/commit),
- *                  чтобы окно на экране могло анимироваться в такт жесту.
- * Окон нет      -> все колбэки выключены, жест обрабатывает система,
- *                  поэтому Android рисует предиктивную анимацию выхода.
+ * A window is open -> our callback is enabled, the gesture closes the window, and while the
+ *                      swipe itself is in progress we forward the predictive-animation phases
+ *                      (start/progress/cancel/commit) to JS so the on-screen window can animate
+ *                      in step with the gesture.
+ * No windows open   -> all callbacks are disabled, the system handles the gesture, so Android
+ *                      draws its own predictive exit animation.
  */
 @CapacitorPlugin(name = "BackGate")
 public class BackGatePlugin extends Plugin {
@@ -80,8 +81,8 @@ public class BackGatePlugin extends Plugin {
         notifyListeners("back", new JSObject());
     }
 
-    /** Выключает чужие колбэки (в первую очередь встроенный в Capacitor),
-     *  чтобы система могла показывать предиктивную анимацию, когда мы жест не перехватываем. */
+    /** Disables other callbacks (chiefly Capacitor's own built-in one) so the system can show
+     *  its predictive animation when we're not intercepting the gesture ourselves. */
     @PluginMethod
     public void takeOver(final PluginCall call) {
         final JSObject res = new JSObject();

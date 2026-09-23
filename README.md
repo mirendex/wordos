@@ -1,94 +1,104 @@
 # diff/en
 
-Android-приложение для изучения английского на своём материале: словарь по частоте языка,
-тексты и переводы через LLM, игры на слова, диктовка и повтор вслух, дневник на английском.
-Работает как отдельная «псевдо-ОС» внутри одного WebView-окна — со своими окнами, иконками
-на столе и панелью задач.
+An Android app for learning English on your own material: a frequency-based vocabulary,
+LLM-generated texts and translations, word games, listening dictation and read-aloud practice,
+and an English-language diary. It runs as its own little "desktop OS" inside a single WebView —
+with its own windows, desktop icons, and a taskbar.
 
-Собрано на [Capacitor](https://capacitorjs.com/): веб-часть на TypeScript без фреймворка,
-нативная обёртка — Android.
+Built on [Capacitor](https://capacitorjs.com/): the web part is framework-free TypeScript,
+wrapped in a native Android shell.
 
-## Возможности
+## Features
 
-- **WORDS.DB** — обучение по 5000 самых частотных слов языка, с интервальным повторением (SRS)
-  и карточками, которые генерирует LLM (пример, перевод, разбор форм).
-- **READER** — тексты на заданную тему и уровень (CEFR), с разбором слов по тапу.
-- **DIARY** — свой текст на английском с проверкой и разбором ошибок.
-- **LISTEN / ECHO** — диктовка на слух и повтор вслух с распознаванием речи.
-- **GAMES** — виселица, поиск пар, сборка предложения, поиск слов на сетке, wordle-игра «пять букв».
-- **TERM** — текстовый квест: файловая система «чужого компьютера», которую генерирует LLM,
-  и который нужно исследовать командами `cd`/`ls`/`cat`, чтобы найти код.
-- Жест «назад» с предиктивной анимацией через собственный Capacitor-плагин (`BackGate`),
-  вибрация, синтез и распознавание речи, локальные уведомления о повторении слов.
-- Окна двигаются, разворачиваются на весь экран и обратно, ресайзятся за угол и сворачиваются
-  в панель задач — мышью и тапом; на ширине ≤760px (телефон) окно всегда во весь экран.
+- **WORDS.DB** — learning the 5000 most frequent words of the language, with spaced repetition
+  (SRS) and LLM-generated flashcards (example sentence, translation, word forms).
+- **READER** — texts on a chosen topic and level (CEFR), with a tap-to-translate word lookup.
+- **DIARY** — write your own English text and get it checked and corrected.
+- **LISTEN / ECHO** — listening dictation and read-aloud practice with speech recognition.
+- **GAMES** — hangman, word-pair matching, sentence ordering, a word-search grid, and a
+  wordle-style "five letters" game.
+- **TERM** — a text adventure: an LLM-generated filesystem on "someone else's computer" that you
+  explore with `cd`/`ls`/`cat` to find the code.
+- A predictive-animation back gesture through a custom Capacitor plugin (`BackGate`), haptics,
+  text-to-speech and speech recognition, and local reminders to review words.
+- Windows drag, maximize/restore, resize from the corner, and minimize to the taskbar — with
+  both mouse and touch; on screens ≤760px wide (phones) a window is always fullscreen.
 
-## Стек
+## Stack
 
-- **Vite + TypeScript** — сборка веб-части (без UI-фреймворка, рендер через шаблонные строки).
-- **Vitest** — юнит-тесты на чистую логику (SRS, диффы, парсинг JSON от LLM, генерация уровней).
-- **ESLint + Prettier** — статическая проверка и единый стиль кода.
-- **Capacitor 8** — Android-обёртка и доступ к нативным API (Haptics, TTS/STT, уведомления).
-- Хранение — `localStorage` через небольшой асинхронный shim (`window.storage`, `src/core/storage.ts`).
-- LLM — [OpenRouter](https://openrouter.ai/) (ключ пользователь указывает сам в настройках приложения).
-- Playwright — сквозной дымовой прогон приложения в headless-браузере (`scripts/smoke.mjs`).
+- **Vite + TypeScript** — builds the web part (no UI framework, rendering is template strings).
+- **Vitest** — unit tests for the pure logic (SRS, diffing, parsing JSON from the LLM, level
+  estimation).
+- **ESLint + Prettier** — static checks and a single code style.
+- **Capacitor 8** — the Android wrapper and access to native APIs (haptics, TTS/STT,
+  notifications).
+- Storage — `localStorage` behind a small async shim (`window.storage`, `src/core/storage.ts`).
+- LLM — [OpenRouter](https://openrouter.ai/) (the user supplies their own key in the app's
+  settings).
+- Playwright — an end-to-end smoke run of the app in a headless browser (`scripts/smoke.mjs`).
 
-## Архитектура
+## Architecture
 
-Рендер — набор шаблонных строк, без виртуального DOM: `paint()` перерисовывает окна и стол при
-каждом изменении состояния. Циклическая зависимость «всё вызывает paint, paint вызывает всё»
-разорвана через `core/paint.ts` — этот модуль ничего не знает про экраны, а только хранит
-текущую функцию отрисовки (`setPainter`), которую подставляет `ui/render.ts` при старте.
+Rendering is a set of template strings, no virtual DOM: `paint()` redraws the windows and desktop
+on every state change. The circular "everything calls paint, paint calls everything" dependency
+is broken by `core/paint.ts` — this module knows nothing about the screens, it just holds the
+current render function (`setPainter`), which `ui/render.ts` supplies at startup.
 
 ```
-index.html              точка входа, разметка десктопа
+index.html              entry point, desktop markup
 src/
-  main.ts                bootstrap: подписка на жесты/клавиатуру/клики, load() → boot()
-  types.ts, env.d.ts      глобальные декларации (window.storage, *.txt?raw)
-  styles/                 CSS, поделённый по разделам интерфейса
-  lib/                    чистые функции без побочных эффектов — то, что покрыто тестами:
-                          json.ts (разбор частично оборванного JSON от LLM), scale.ts (шкала уровня, CEFR),
-                          text.ts (расстояние Левенштейна, сверка ответов, дифф текста), five.ts (wordle),
-                          termfs.ts (сборка файловой системы квеста), grid.ts (укладка слов в сетку)
-  data/                   словарь частоты (freq.txt, 5000 слов)
-  core/                   state.ts/persist.ts (S, BANK, load/save), paint.ts (лист дерева зависимостей),
-                          storage.ts (localStorage-шим), util.ts, keys.ts
-  platform/               обёртки над Capacitor: haptics.ts, speech.ts (TTS/STT), appinfo.ts, notify.ts
-  services/               llm.ts (запросы к OpenRouter), models.ts (список моделей), translate.ts
-  domain/                 бизнес-логика словаря: frequency.ts, vocab.ts (SRS), progress.ts, cards.ts
-  ui/                     windows.ts (мини-менеджер окон + жест «назад»), render.ts (paint + роутер экранов),
-                          icons.ts, modal.ts, gestures.ts (drag/marquee/slider), keyboard.ts, actions.ts (клики)
-  apps/                   каждое приложение — свой модуль: about, reader, notes, setup,
-                          diary/, echo/, listen/, terminal/, vocab/, games/{hangman,pairs,order,letters,five}
+  main.ts                bootstrap: wires up gestures/keyboard/clicks, load() → boot()
+  types.ts, env.d.ts      global declarations (window.storage, *.txt?raw)
+  styles/                 CSS, split by interface section
+  lib/                    pure functions with no side effects — what the tests cover:
+                          json.ts (parsing partially cut-off JSON from the LLM), scale.ts (level
+                          scale, CEFR), text.ts (Levenshtein distance, answer checking, text diff),
+                          five.ts (wordle), termfs.ts (building the quest filesystem),
+                          grid.ts (laying words out on a grid)
+  data/                   the frequency dictionary (freq.txt, 5000 words)
+  core/                   state.ts/persist.ts (S, BANK, load/save), paint.ts (a leaf of the
+                          dependency tree), storage.ts (the localStorage shim), util.ts, keys.ts
+  platform/               wrappers over Capacitor: haptics.ts, speech.ts (TTS/STT), appinfo.ts,
+                          notify.ts
+  services/               llm.ts (OpenRouter requests), models.ts (the model list), translate.ts
+  domain/                 vocabulary business logic: frequency.ts, vocab.ts (SRS), progress.ts,
+                          cards.ts
+  ui/                     windows.ts (a small window manager + the back gesture), render.ts
+                          (paint + the screen router), icons.ts, modal.ts, gestures.ts
+                          (drag/marquee/slider), keyboard.ts, actions.ts (clicks)
+  apps/                   each app is its own module: about, reader, notes, setup,
+                          diary/, echo/, listen/, terminal/, vocab/, games/{hangman,pairs,order,
+                          letters,five}
 scripts/
-  smoke.mjs               headless-прогон: открывает каждое окно, играет во все игры, проверяет
-                          persistence в localStorage и управление окнами (maximize/restore/resize/
-                          minimize) на планшетной ширине — запускается вручную и в CI
-android/                  нативный Android-проект (Capacitor)
+  smoke.mjs               a headless run: opens every window, plays every game, checks
+                          persistence in localStorage and window management (maximize/restore/
+                          resize/minimize) at a tablet width — run manually and in CI
+android/                  the native Android project (Capacitor)
   app/src/main/java/dev/mirendex/diffen/
-    MainActivity.java      регистрация нативных плагинов
-    BackGatePlugin.java     предиктивный жест «назад», синхронизированный с состоянием окон в JS
+    MainActivity.java      registers the native plugins
+    BackGatePlugin.java     the predictive back gesture, kept in sync with window state in JS
 ```
 
-## Разработка
+## Development
 
 ```bash
 npm install
-npm run dev          # локальный сервер с горячей перезагрузкой
-npm run typecheck    # проверка типов (строгий tsconfig)
+npm run dev          # local dev server with hot reload
+npm run typecheck    # type checking (strict tsconfig)
 npm run lint         # ESLint
 npm test             # Vitest
-npm run build        # сборка веб-части в www/
-node scripts/smoke.mjs  # сквозной прогон в headless-браузере
+npm run build        # build the web part into www/
+node scripts/smoke.mjs  # end-to-end run in a headless browser
 ```
 
-## Сборка APK
+## Building the APK
 
 ```bash
-npm run copy         # сборка веб-части + npx cap copy android
-npm run open         # открыть проект в Android Studio
-npm run apk          # copy + сборка debug-APK через gradlew
+npm run copy         # build the web part + npx cap copy android
+npm run open         # open the project in Android Studio
+npm run apk          # copy + build a debug APK via gradlew
 ```
 
-CI (`.github/workflows/build-apk.yml`) на каждый push в `main`/`master` прогоняет линт, тесты и
-`scripts/smoke.mjs`, собирает веб-часть и debug-APK, и выкладывает его как артефакт и в релиз.
+CI (`.github/workflows/build-apk.yml`) runs on every push to `main`/`master`: lint, tests, and
+`scripts/smoke.mjs`, then builds the web part and a debug APK and uploads it as an artifact and
+to a release.
