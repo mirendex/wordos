@@ -5,6 +5,10 @@ on:
   push:
     branches: [main, master]
 
+concurrency:
+  group: build-apk
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -69,11 +73,20 @@ jobs:
           path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
 
-      - name: Attach APK to release
+      - name: Move the latest tag to this commit
+        run: |
+          git tag -f latest
+          git push -f origin refs/tags/latest
+          cp android/app/build/outputs/apk/release/app-release.apk wordos.apk
+
+      - name: Replace the APK in the latest release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ github.run_number }}
-          name: English build ${{ github.run_number }}
-          files: android/app/build/outputs/apk/release/app-release.apk
+          tag_name: latest
+          name: WordOS
+          body: Build ${{ github.run_number }} from ${{ github.sha }}
+          files: wordos.apk
+          overwrite_files: true
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
