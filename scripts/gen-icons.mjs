@@ -8,7 +8,6 @@ const PAPER = '#EDE7D8';
 const PAPER2 = '#E2DBC8';
 const BLUE = '#39479E';
 const RED = '#C1432C';
-const RED_HI = '#E0674F';
 
 // 36×36 grid = the 108dp adaptive canvas; the book stays inside the 66dp safe zone
 const box = (x, y, w, h, fill) => [
@@ -21,26 +20,22 @@ const lines = [
   [10, 16, 5, 1],
   [10, 18, 5, 1],
   [10, 20, 3, 1],
-  [19, 21, 6, 1],
-  [19, 23, 4, 1],
+  [19, 14, 3, 1],
+  [19, 16, 3, 1],
+  [19, 18, 3, 1],
+  [19, 22, 6, 1],
+  [19, 24, 4, 1],
 ];
 const underline = [10, 22, 6, 1];
 const spine = [17, 11, 1, 15];
 
-// ribbon sticks out above the page and ends in a swallowtail notch on it
-const ribbonInk = [
-  [20, 7, 7, 1],
-  [20, 8, 1, 3],
-  [26, 8, 1, 3],
+// ribbon runs down from the top edge of the page and ends in a swallowtail notch
+const ribbon = [
+  [23, 11, 3, 9],
+  [23, 20, 1, 1],
+  [25, 20, 1, 1],
 ];
-const ribbonCore = [
-  [21, 8, 5, 9],
-  [21, 17, 2, 1],
-  [24, 17, 2, 1],
-  [21, 18, 1, 1],
-  [25, 18, 1, 1],
-];
-const ribbonBounds = [20, 7, 7, 13];
+const ribbonBounds = [22, 11, 5, 10];
 
 const BOOK = [
   ...box(7, 13, 22, 15, BLUE),
@@ -48,21 +43,22 @@ const BOOK = [
   ...box(17, 11, 11, 15, PAPER),
   ...lines.map((l) => [...l, BLUE]),
   [...underline, RED],
-  ...ribbonInk.map((r) => [...r, INK]),
-  ...ribbonCore.map((r) => [...r, RED]),
-  [21, 8, 1, 8, RED_HI],
+  ...ribbon.map((r) => [...r, RED]),
 ];
 
 const rects = (px) =>
   px.map(([x, y, w, h, c]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`).join('');
 
-const book = () => rects(BOOK);
+// the cover sticks out below the pages, so the book spans y 11..28; centre it on 18
+const lift = (body) => `<g transform="translate(0 -1.5)">${body}</g>`;
+
+const book = () => lift(rects(BOOK));
 
 function monochrome() {
   const white = BOOK.map(([x, y, w, h]) => [x, y, w, h, '#fff']);
   const cut = [...lines, underline, spine, ribbonBounds].map(([x, y, w, h]) => [x, y, w, h, '#000']);
-  const core = ribbonCore.map(([x, y, w, h]) => [x, y, w, h, '#fff']);
-  const mask = rects([...white, ...cut, ...core]);
+  const core = ribbon.map(([x, y, w, h]) => [x, y, w, h, '#fff']);
+  const mask = lift(rects([...white, ...cut, ...core]));
   return `<mask id="m">${mask}</mask><rect width="36" height="36" fill="#fff" mask="url(#m)"/>`;
 }
 

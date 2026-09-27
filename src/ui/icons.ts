@@ -13,7 +13,6 @@ const PAPER2 = '#E2DBC8';
 const BLUE = '#39479E';
 const BLUE_HI = '#8C98E0';
 const RED = '#C1432C';
-const RED_HI = '#E0674F';
 const GREEN = '#2C6B4A';
 const YELLOW = '#D9A404';
 const YELLOW_HI = '#F0C94A';
@@ -58,17 +57,13 @@ export const ICONS: Record<string, string> = {
     [3, 9, 5, 1, BLUE],
     [3, 11, 5, 1, BLUE],
     [3, 13, 4, 1, RED],
-    [11, 7, 2, 1, BLUE],
-    [11, 10, 6, 1, BLUE],
+    [11, 7, 1, 1, BLUE],
+    [11, 9, 1, 1, BLUE],
     [11, 12, 6, 1, BLUE],
     [11, 14, 4, 1, BLUE],
-    [13, 1, 5, 1, INK],
-    [13, 2, 1, 2, INK],
-    [17, 2, 1, 2, INK],
-    [14, 2, 3, 5, RED],
-    [14, 7, 1, 2, RED],
-    [16, 7, 1, 2, RED],
-    [14, 2, 1, 4, RED_HI],
+    [13, 4, 3, 5, RED],
+    [13, 9, 1, 1, RED],
+    [15, 9, 1, 1, RED],
   ]),
   diary: pixelIcon([
     ...box(2, 2, 12, 16, RED),
