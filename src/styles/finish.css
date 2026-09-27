@@ -198,9 +198,6 @@ input.answ {
   font-size: 12.5px;
   letter-spacing: 0.02em;
 }
-.ic svg {
-  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.45));
-}
 
 /* progress bars */
 .xpbar {

@@ -10,7 +10,6 @@ const BLUE = '#39479E';
 const RED = '#C1432C';
 const YELLOW = '#D9A404';
 const YELLOW_HI = '#F0C94A';
-const SHADOW = 'rgba(0,0,0,0.35)';
 
 // 36×36 grid = the 108dp adaptive canvas; the book stays inside the 66dp safe zone
 const box = (x, y, w, h, fill) => [
@@ -46,10 +45,7 @@ const BOOK = [
 const rects = (px) =>
   px.map(([x, y, w, h, c]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`).join('');
 
-function book() {
-  const shadow = BOOK.filter((p) => p[4] === INK).map(([x, y, w, h]) => [x + 1, y + 1, w, h, SHADOW]);
-  return rects([...shadow, ...BOOK]);
-}
+const book = () => rects(BOOK);
 
 function monochrome() {
   const white = BOOK.map(([x, y, w, h]) => [x, y, w, h, '#fff']);
