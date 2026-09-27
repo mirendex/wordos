@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
-    "copy": "npm run build && cap copy android",
+    "copy": "npm run build && cap sync android",
     "open": "cap open android",
     "apk": "npm run copy && cd android && ./gradlew assembleDebug"
   },
