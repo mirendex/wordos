@@ -8,8 +8,7 @@ const PAPER = '#EDE7D8';
 const PAPER2 = '#E2DBC8';
 const BLUE = '#39479E';
 const RED = '#C1432C';
-const YELLOW = '#D9A404';
-const YELLOW_HI = '#F0C94A';
+const RED_HI = '#E0674F';
 
 // 36×36 grid = the 108dp adaptive canvas; the book stays inside the 66dp safe zone
 const box = (x, y, w, h, fill) => [
@@ -22,15 +21,26 @@ const lines = [
   [10, 16, 5, 1],
   [10, 18, 5, 1],
   [10, 20, 3, 1],
-  [19, 14, 2, 1],
-  [19, 16, 2, 1],
-  [19, 19, 6, 1],
   [19, 21, 6, 1],
   [19, 23, 4, 1],
 ];
 const underline = [10, 22, 6, 1];
 const spine = [17, 11, 1, 15];
-const ribbon = [22, 8, 4, 9];
+
+// ribbon sticks out above the page and ends in a swallowtail notch on it
+const ribbonInk = [
+  [20, 7, 7, 1],
+  [20, 8, 1, 3],
+  [26, 8, 1, 3],
+];
+const ribbonCore = [
+  [21, 8, 5, 9],
+  [21, 17, 2, 1],
+  [24, 17, 2, 1],
+  [21, 18, 1, 1],
+  [25, 18, 1, 1],
+];
+const ribbonBounds = [20, 7, 7, 13];
 
 const BOOK = [
   ...box(7, 13, 22, 15, BLUE),
@@ -38,8 +48,9 @@ const BOOK = [
   ...box(17, 11, 11, 15, PAPER),
   ...lines.map((l) => [...l, BLUE]),
   [...underline, RED],
-  ...box(...ribbon, YELLOW),
-  [23, 9, 1, 7, YELLOW_HI],
+  ...ribbonInk.map((r) => [...r, INK]),
+  ...ribbonCore.map((r) => [...r, RED]),
+  [21, 8, 1, 8, RED_HI],
 ];
 
 const rects = (px) =>
@@ -49,9 +60,9 @@ const book = () => rects(BOOK);
 
 function monochrome() {
   const white = BOOK.map(([x, y, w, h]) => [x, y, w, h, '#fff']);
-  const cut = [...lines, underline, spine, ribbon].map(([x, y, w, h]) => [x, y, w, h, '#000']);
-  const [rx, ry, rw, rh] = ribbon;
-  const mask = rects([...white, ...cut, [rx + 1, ry + 1, rw - 2, rh - 2, '#fff']]);
+  const cut = [...lines, underline, spine, ribbonBounds].map(([x, y, w, h]) => [x, y, w, h, '#000']);
+  const core = ribbonCore.map(([x, y, w, h]) => [x, y, w, h, '#fff']);
+  const mask = rects([...white, ...cut, ...core]);
   return `<mask id="m">${mask}</mask><rect width="36" height="36" fill="#fff" mask="url(#m)"/>`;
 }
 
