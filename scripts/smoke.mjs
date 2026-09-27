@@ -27,6 +27,7 @@ async function main() {
   const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], {
     stdio: ['ignore', 'pipe', 'pipe'],
     shell: true,
+    detached: true,
   });
   let serverOut = '';
   server.stdout.on('data', (d) => (serverOut += d));
@@ -227,7 +228,7 @@ async function main() {
     await tablet.close();
     await browser.close();
   } finally {
-    server.kill();
+    process.kill(-server.pid);
   }
 
   if (errors.length) {
