@@ -5,18 +5,187 @@ import { S, save } from '../core/persist';
 import { paint } from '../core/paint';
 import { haptic } from '../platform/haptics';
 
+type Px = [number, number, number, number, string];
+
+const INK = '#16151A';
+const PAPER = '#EDE7D8';
+const PAPER2 = '#E2DBC8';
+const BLUE = '#39479E';
+const BLUE_HI = '#8C98E0';
+const RED = '#C1432C';
+const GREEN = '#2C6B4A';
+const YELLOW = '#D9A404';
+const YELLOW_HI = '#F0C94A';
+const GREY = '#7C7566';
+const GREY_LO = '#B9B3A4';
+const STICKY = '#F5F0C9';
+const STICKY_LO = '#D8CF8E';
+const AMBER = '#F0B84A';
+const SHADOW = 'rgba(0,0,0,0.35)';
+
+function box(x: number, y: number, w: number, h: number, fill: string): Px[] {
+  return [
+    [x, y, w, h, INK],
+    [x + 1, y + 1, w - 2, h - 2, fill],
+  ];
+}
+
+// 20×20 pixel grid; every ink pixel also casts a 1px shadow down-right
+function pixelIcon(px: Px[]): string {
+  const shadow = px.filter((p) => p[4] === INK).map(([x, y, w, h]): Px => [x + 1, y + 1, w, h, SHADOW]);
+  const rects = [...shadow, ...px]
+    .map(([x, y, w, h, c]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`)
+    .join('');
+  return `<svg width="40" height="40" viewBox="0 0 20 20" shape-rendering="crispEdges">${rects}</svg>`;
+}
+
 export const ICONS: Record<string, string> = {
-  mail: `<svg width="34" height="34" viewBox="0 0 17 17"><rect x="1" y="3" width="15" height="11" fill="#EDE7D8" stroke="#16151A"/><path d="M1 3l7.5 6L16 3" stroke="#16151A" fill="none"/><rect x="12" y="9" width="4" height="4" fill="#C1432C" stroke="#16151A"/></svg>`,
-  read: `<svg width="34" height="34" viewBox="0 0 17 17"><rect x="2" y="2" width="13" height="13" fill="#EDE7D8" stroke="#16151A"/><path d="M4 5h9M4 7h9M4 9h6M4 11h8" stroke="#39479E"/></svg>`,
-  notes: `<svg width="34" height="34" viewBox="0 0 17 17"><rect x="3" y="1" width="11" height="15" fill="#F5F0C9" stroke="#16151A"/><path d="M5 4h7M5 6h7M5 8h5" stroke="#7C7566"/><rect x="3" y="1" width="11" height="2" fill="#2C6B4A" stroke="#16151A"/></svg>`,
-  about: `<svg width="34" height="34" viewBox="0 0 17 17"><rect x="2" y="3" width="13" height="10" fill="#39479E" stroke="#16151A"/><rect x="6" y="13" width="5" height="2" fill="#EDE7D8" stroke="#16151A"/><path d="M4 5h9M4 7h6" stroke="#EDE7D8"/></svg>`,
-  games: `<svg width="34" height="34" viewBox="0 0 17 17"><rect x="1" y="3" width="15" height="11" fill="#EDE7D8" stroke="#16151A"/><rect x="2" y="4" width="4" height="4" fill="#2C6B4A"/><rect x="7" y="4" width="4" height="4" fill="#D9A404"/><rect x="12" y="4" width="3" height="4" fill="#B9B3A4"/><path d="M2 10h13M2 12h9" stroke="#7C7566"/></svg>`,
-  setup: `<svg width="34" height="34" viewBox="0 0 17 17"><rect x="2" y="2" width="13" height="13" fill="#EDE7D8" stroke="#16151A"/><rect x="6" y="6" width="5" height="5" fill="#C1432C" stroke="#16151A"/><path d="M8.5 2v3M8.5 12v3M2 8.5h3M12 8.5h3" stroke="#16151A"/></svg>`,
-  echo: `<svg width="34" height="34" viewBox="0 0 17 17"><path d="M6 2h5v7a2.5 2.5 0 0 1-5 0z" fill="#EDE7D8" stroke="#16151A"/><path d="M3.5 8a5 5 0 0 0 10 0" stroke="#C1432C" fill="none"/><path d="M8.5 13v2M6 15h5" stroke="#16151A"/></svg>`,
-  listen: `<svg width="34" height="34" viewBox="0 0 17 17"><path d="M3 6h3l4-3v11l-4-3H3z" fill="#EDE7D8" stroke="#16151A"/><path d="M12 6c1 1 1 4 0 5M14 4c2 2 2 7 0 9" stroke="#39479E" fill="none"/></svg>`,
-  diary: `<svg width="34" height="34" viewBox="0 0 17 17"><rect x="3" y="1" width="11" height="15" fill="#fff" stroke="#16151A"/><path d="M5 5h7M5 8h7M5 11h4" stroke="#39479E"/><rect x="2" y="1" width="2" height="15" fill="#C1432C" stroke="#16151A"/></svg>`,
-  vocab: `<svg width="34" height="34" viewBox="0 0 17 17"><rect x="2" y="2" width="13" height="13" fill="#EDE7D8" stroke="#16151A"/><path d="M4 12l2-3 2 2 3-5 2 3" stroke="#39479E" fill="none"/><path d="M4 4v9h9" stroke="#16151A" fill="none"/></svg>`,
-  term: `<svg width="34" height="34" viewBox="0 0 17 17"><rect x="1" y="2" width="15" height="12" fill="#17140F" stroke="#16151A"/><path d="M3 5l2 2-2 2M7 9h5" stroke="#F0B84A"/></svg>`,
+  vocab: pixelIcon([
+    ...box(5, 1, 13, 10, GREY_LO),
+    [7, 3, 5, 1, GREEN],
+    ...box(2, 5, 14, 12, PAPER),
+    [6, 7, 3, 1, BLUE],
+    [5, 8, 1, 5, BLUE],
+    [9, 8, 1, 5, BLUE],
+    [6, 10, 3, 1, BLUE],
+    [11, 8, 3, 1, GREY],
+    [11, 10, 3, 1, GREY],
+    [11, 12, 2, 1, GREY],
+    [5, 14, 9, 1, RED],
+  ]),
+  read: pixelIcon([
+    ...box(1, 4, 9, 13, PAPER2),
+    ...box(9, 4, 10, 13, PAPER),
+    [3, 7, 5, 1, BLUE],
+    [3, 9, 5, 1, BLUE],
+    [3, 11, 5, 1, BLUE],
+    [3, 13, 4, 1, RED],
+    [11, 7, 2, 1, BLUE],
+    [11, 10, 6, 1, BLUE],
+    [11, 12, 6, 1, BLUE],
+    [11, 14, 4, 1, BLUE],
+    ...box(13, 2, 4, 7, YELLOW),
+    [14, 3, 1, 5, YELLOW_HI],
+  ]),
+  diary: pixelIcon([
+    ...box(2, 2, 12, 16, RED),
+    [4, 3, 1, 14, INK],
+    ...box(6, 5, 6, 5, PAPER),
+    [7, 7, 4, 1, GREY],
+    ...box(15, 3, 3, 12, YELLOW),
+    [16, 4, 1, 3, YELLOW_HI],
+    [16, 15, 1, 2, INK],
+  ]),
+  listen: pixelIcon([
+    [6, 2, 8, 3, INK],
+    [4, 3, 3, 3, INK],
+    [13, 3, 3, 3, INK],
+    [3, 5, 3, 6, INK],
+    [14, 5, 3, 6, INK],
+    [6, 3, 8, 1, PAPER],
+    [5, 4, 1, 1, PAPER],
+    [14, 4, 1, 1, PAPER],
+    [4, 5, 1, 5, PAPER],
+    [15, 5, 1, 5, PAPER],
+    ...box(2, 10, 5, 8, BLUE),
+    [3, 11, 1, 3, BLUE_HI],
+    ...box(13, 10, 5, 8, BLUE),
+    [14, 11, 1, 3, BLUE_HI],
+  ]),
+  echo: pixelIcon([
+    [4, 7, 3, 5, INK],
+    [13, 7, 3, 5, INK],
+    [5, 11, 10, 3, INK],
+    [5, 7, 1, 5, RED],
+    [14, 7, 1, 5, RED],
+    [6, 12, 8, 1, RED],
+    [8, 1, 4, 1, INK],
+    [7, 2, 6, 8, INK],
+    [8, 10, 4, 1, INK],
+    [8, 2, 4, 8, PAPER],
+    [8, 4, 4, 1, GREY],
+    [8, 6, 4, 1, GREY],
+    [8, 8, 4, 1, GREY],
+    [9, 14, 2, 2, INK],
+    ...box(6, 16, 8, 3, PAPER),
+  ]),
+  games: pixelIcon([
+    [3, 5, 14, 9, INK],
+    [2, 6, 16, 7, INK],
+    [2, 12, 5, 5, INK],
+    [13, 12, 5, 5, INK],
+    [3, 6, 14, 7, PAPER],
+    [3, 12, 3, 4, PAPER],
+    [14, 12, 3, 4, PAPER],
+    [5, 8, 1, 3, INK],
+    [4, 9, 3, 1, INK],
+    [14, 7, 2, 2, RED],
+    [12, 9, 2, 2, GREEN],
+    [8, 8, 3, 1, GREY],
+  ]),
+  term: pixelIcon([
+    ...box(1, 2, 18, 15, '#17140F'),
+    [2, 3, 16, 2, PAPER],
+    [2, 5, 16, 1, INK],
+    [15, 3, 2, 2, RED],
+    [4, 7, 2, 1, AMBER],
+    [5, 8, 2, 1, AMBER],
+    [6, 9, 2, 1, AMBER],
+    [5, 10, 2, 1, AMBER],
+    [4, 11, 2, 1, AMBER],
+    [9, 11, 5, 1, AMBER],
+    [4, 14, 9, 1, GREY],
+  ]),
+  notes: pixelIcon([
+    ...box(2, 2, 16, 16, STICKY),
+    [7, 1, 6, 3, GREY_LO],
+    [5, 7, 10, 1, GREY],
+    [5, 10, 10, 1, GREY],
+    [5, 13, 6, 1, GREY],
+    [15, 16, 2, 1, STICKY_LO],
+    [16, 15, 1, 1, STICKY_LO],
+    [14, 16, 1, 1, INK],
+    [15, 15, 1, 1, INK],
+    [16, 14, 1, 1, INK],
+  ]),
+  setup: pixelIcon([
+    [8, 1, 4, 3, INK],
+    [8, 16, 4, 3, INK],
+    [1, 8, 3, 4, INK],
+    [16, 8, 3, 4, INK],
+    [3, 3, 3, 3, INK],
+    [14, 3, 3, 3, INK],
+    [3, 14, 3, 3, INK],
+    [14, 14, 3, 3, INK],
+    [5, 4, 10, 12, INK],
+    [4, 5, 12, 10, INK],
+    [9, 2, 2, 3, PAPER],
+    [9, 15, 2, 3, PAPER],
+    [2, 9, 3, 2, PAPER],
+    [15, 9, 3, 2, PAPER],
+    [4, 4, 2, 2, PAPER],
+    [14, 4, 2, 2, PAPER],
+    [4, 14, 2, 2, PAPER],
+    [14, 14, 2, 2, PAPER],
+    [6, 5, 8, 10, PAPER],
+    [5, 6, 10, 8, PAPER],
+    [8, 8, 4, 4, INK],
+    [9, 9, 2, 2, RED],
+  ]),
+  about: pixelIcon([
+    [2, 2, 16, 13, INK],
+    [4, 14, 4, 1, INK],
+    [4, 15, 3, 1, INK],
+    [4, 16, 2, 1, INK],
+    [4, 17, 1, 1, INK],
+    [3, 3, 14, 11, BLUE],
+    [5, 14, 2, 1, BLUE],
+    [5, 15, 1, 1, BLUE],
+    [9, 5, 2, 2, PAPER],
+    [8, 8, 3, 1, PAPER],
+    [9, 9, 2, 3, PAPER],
+    [8, 11, 4, 1, PAPER],
+  ]),
 };
 
 export const APPS = [

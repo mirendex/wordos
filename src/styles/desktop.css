@@ -349,8 +349,8 @@ textarea.ta {
 }
 .approw svg {
   flex: none;
-  width: 26px;
-  height: 26px;
+  width: 40px;
+  height: 40px;
 }
 .approw b {
   font-family: var(--px);
