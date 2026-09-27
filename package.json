@@ -1,7 +1,7 @@
 {
-  "name": "diffen",
+  "name": "wordos",
   "version": "1.4.0",
-  "description": "diff/en - English for writing and calls",
+  "description": "WordOS - English for writing and calls",
   "type": "module",
   "scripts": {
     "dev": "vite",
