@@ -9,3 +9,5 @@ coverage/
 .tmp/
 legacy/
 scripts/smoke.png
+*.jks
+*.keystore
