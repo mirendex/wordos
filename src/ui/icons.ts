@@ -21,7 +21,6 @@ const GREY_LO = '#B9B3A4';
 const STICKY = '#F5F0C9';
 const STICKY_LO = '#D8CF8E';
 const AMBER = '#F0B84A';
-const SHADOW = 'rgba(0,0,0,0.35)';
 
 function box(x: number, y: number, w: number, h: number, fill: string): Px[] {
   return [
@@ -30,10 +29,8 @@ function box(x: number, y: number, w: number, h: number, fill: string): Px[] {
   ];
 }
 
-// 20×20 pixel grid; every ink pixel also casts a 1px shadow down-right
 function pixelIcon(px: Px[]): string {
-  const shadow = px.filter((p) => p[4] === INK).map(([x, y, w, h]): Px => [x + 1, y + 1, w, h, SHADOW]);
-  const rects = [...shadow, ...px]
+  const rects = px
     .map(([x, y, w, h, c]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`)
     .join('');
   return `<svg width="40" height="40" viewBox="0 0 20 20" shape-rendering="crispEdges">${rects}</svg>`;
