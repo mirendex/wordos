@@ -1,4 +1,4 @@
-# diff/en
+# WordOS
 
 An Android app for learning English on your own material: a frequency-based vocabulary,
 LLM-generated texts and translations, word games, listening dictation and read-aloud practice,

@@ -30,7 +30,7 @@ export async function ask(p: string, tries?: number): Promise<any> {
     headers: {
       'Content-Type': 'application/json',
       Authorization: 'Bearer ' + cfg.key,
-      'HTTP-Referer': 'https://diffen.app',
+      'HTTP-Referer': 'https://wordos.app',
       'X-Title': 'Angliyskiy',
     },
     body: JSON.stringify(body),
