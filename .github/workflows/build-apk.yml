@@ -39,7 +39,7 @@ jobs:
         run: node scripts/smoke.mjs
 
       - name: Copy the web part into the project
-        run: npx cap copy android
+        run: npx cap sync android
 
       - name: Build APK
         run: |
