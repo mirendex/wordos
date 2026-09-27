@@ -23,8 +23,8 @@ const lines = [
   [19, 14, 3, 1],
   [19, 16, 3, 1],
   [19, 18, 3, 1],
+  [19, 20, 3, 1],
   [19, 22, 6, 1],
-  [19, 24, 4, 1],
 ];
 const underline = [10, 22, 6, 1];
 const spine = [17, 11, 1, 15];
@@ -35,7 +35,6 @@ const ribbon = [
   [23, 20, 1, 1],
   [25, 20, 1, 1],
 ];
-const ribbonBounds = [22, 11, 5, 10];
 
 const BOOK = [
   ...box(7, 13, 22, 15, BLUE),
@@ -56,9 +55,10 @@ const book = () => lift(rects(BOOK));
 
 function monochrome() {
   const white = BOOK.map(([x, y, w, h]) => [x, y, w, h, '#fff']);
-  const cut = [...lines, underline, spine, ribbonBounds].map(([x, y, w, h]) => [x, y, w, h, '#000']);
-  const core = ribbon.map(([x, y, w, h]) => [x, y, w, h, '#fff']);
-  const mask = lift(rects([...white, ...cut, ...core]));
+  // the ribbon becomes a bookmark-shaped hole below the page's top edge
+  const hole = ribbon.map(([x, y, w, h]) => (y === 11 ? [x, 12, w, h - 1] : [x, y, w, h]));
+  const cut = [...lines, underline, spine, ...hole].map(([x, y, w, h]) => [x, y, w, h, '#000']);
+  const mask = lift(rects([...white, ...cut]));
   return `<mask id="m">${mask}</mask><rect width="36" height="36" fill="#fff" mask="url(#m)"/>`;
 }
 
