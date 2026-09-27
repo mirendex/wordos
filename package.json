@@ -13,7 +13,8 @@
     "test": "vitest run",
     "copy": "npm run build && cap sync android",
     "open": "cap open android",
-    "apk": "npm run copy && cd android && ./gradlew assembleDebug"
+    "apk": "npm run copy && cd android && ./gradlew assembleDebug",
+    "icons": "node scripts/gen-icons.mjs"
   },
   "keywords": [],
   "author": "",
