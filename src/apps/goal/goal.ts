@@ -10,6 +10,9 @@ import { dictView, pronView } from './practice';
 
 function planView(): string {
   const g = goalState();
+  if (g.busy)
+    return `<div class="loadbox"><div class="pix"><i></i><i></i><i></i><i></i><i></i></div>
+    <b>составляю план</b><span>подбираю сценарии</span><div class="scan"></div></div>`;
   if (!g.cur) {
     return `<h3 class="h">Цель</h3>
       <p class="sub">Опиши, к чему готовишься, и дату. Появятся сценарии, слова и фразы под них, и можно потренировать разговор.</p>
@@ -32,9 +35,6 @@ function planView(): string {
           : ''
       }`;
   }
-  if (g.busy)
-    return `<div class="loadbox"><div class="pix"><i></i><i></i><i></i><i></i><i></i></div>
-    <b>составляю план</b><span>подбираю сценарии</span><div class="scan"></div></div>`;
   const left = daysLeft(DAY(), g.cur.until);
   const prog = goalProgress(g.cur.items, g.cur.srs);
   const pct = prog.total ? Math.round((prog.learned / prog.total) * 100) : 0;
