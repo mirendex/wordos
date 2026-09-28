@@ -93,6 +93,14 @@ export async function load(): Promise<void> {
   } catch {
     /* ignore */
   }
+  // in-flight flags never mean anything after a reload — the request that set them died
+  // with the old page, so a leftover `true` here would just wedge the UI in a loading state
+  // forever with nothing left running to ever clear it
+  if (S.vocab && typeof S.vocab === 'object') S.vocab.loading = false;
+  if (S.goal && typeof S.goal === 'object') {
+    S.goal.busy = false;
+    if (S.goal.pron && typeof S.goal.pron === 'object') S.goal.pron.rec = false;
+  }
   if (S.vocab && S.vocab.bank) {
     Object.keys(S.vocab.bank).forEach((k) => {
       if (!BANK[k]) BANK[k] = S.vocab.bank[k];
