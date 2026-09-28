@@ -57,6 +57,7 @@ export interface GoalChat {
   summary?: string;
   fixes?: { wrong: string; right: string; why: string }[];
   phrases?: { en: string; ru: string }[];
+  added?: Record<string, boolean>;
 }
 
 export interface GoalPhrase {

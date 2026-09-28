@@ -473,7 +473,10 @@ export function installActions(): void {
     }
     if (d.gaddphrase) {
       const [scene, en, ru] = d.gaddphrase.split('|');
+      const g = goalState();
       addGoalPhrase(scene, en, ru);
+      if (g.chat) g.chat.added = Object.assign({}, g.chat.added, { [en]: true });
+      haptic('ok');
       paint();
       return;
     }

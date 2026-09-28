@@ -45,11 +45,15 @@ export function talkView(): string {
             )
             .join('')}
           ${(g.chat.phrases || [])
-            .map(
-              (p: { en: string; ru: string }) =>
-                `<div class="wrow"><b>${esc(p.en)}</b><span>${esc(p.ru)}</span>
-              <button class="btn sm" data-gaddphrase="${esc(scene ? scene.id : '')}|${esc(p.en)}|${esc(p.ru)}">в карточки</button></div>`,
-            )
+            .map((p: { en: string; ru: string }) => {
+              const added = !!(g.chat.added && g.chat.added[p.en]);
+              return `<div class="wrow"><b>${esc(p.en)}</b><span>${esc(p.ru)}</span>
+              ${
+                added
+                  ? `<button class="btn sm" disabled>в карточках ✓</button>`
+                  : `<button class="btn sm" data-gaddphrase="${esc(scene ? scene.id : '')}|${esc(p.en)}|${esc(p.ru)}">в карточки</button>`
+              }</div>`;
+            })
             .join('')}
           <div class="rowb" style="margin-top:8px"><button class="btn p" data-gtalk="${esc(scene ? scene.id : '')}">ещё раз</button>
             <button class="btn" data-gtalkclose="1">К списку</button></div></div>`

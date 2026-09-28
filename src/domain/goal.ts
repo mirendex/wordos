@@ -261,6 +261,10 @@ export function startTalk(sceneId: string): void {
 export function addGoalPhrase(scene: string, en: string, ru: string): void {
   const g = goalState();
   if (!g.cur) return;
+  const exists = Object.values(g.cur.items as Record<string, GoalItem>).some(
+    (i) => i.scene === scene && i.en === en,
+  );
+  if (exists) return;
   const id = uid('i');
   g.cur.items[id] = {
     id,
