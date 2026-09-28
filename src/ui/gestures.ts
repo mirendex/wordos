@@ -187,7 +187,7 @@ export function installGestures(): void {
         haptic('grab');
       }, 380);
     },
-    { passive: true },
+    { passive: false },
   );
 
   document.addEventListener(
