@@ -50,6 +50,8 @@ export async function makeGoal(desc: string, until: string): Promise<void> {
     g.queue = [];
     g.i = 0;
     g.tab = 'plan';
+    g.draft = '';
+    g.draftUntil = '';
     save();
   } catch (e) {
     g.err = (e as Error).message;

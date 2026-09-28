@@ -13,8 +13,9 @@ function planView(): string {
   if (!g.cur) {
     return `<h3 class="h">Цель</h3>
       <p class="sub">Опиши, к чему готовишься, и дату. Появятся сценарии, слова и фразы под них, и можно потренировать разговор.</p>
-      <textarea class="ta" id="gdesc" placeholder="К чему готовишься?">${esc(g.draft || '')}</textarea>
-      <div class="rowb" style="margin-top:8px"><input type="date" class="answ" id="guntil" value="${esc(g.draftUntil || '')}" min="${DAY()}"></div>
+      <textarea class="ta" id="gdesc" data-gdesc placeholder="К чему готовишься?">${esc(g.draft || '')}</textarea>
+      ${g.draft ? '<p class="sub">черновик сохранён — если выйдешь из приложения, текст никуда не денется</p>' : ''}
+      <div class="rowb" style="margin-top:8px"><input type="date" class="answ" id="guntil" data-guntil value="${esc(g.draftUntil || '')}" min="${DAY()}"></div>
       <div class="rowb" style="margin-top:8px"><button class="btn p" data-gmake="1">Составить план</button></div>
       ${g.err ? `<div class="note"><div class="l">${esc(g.err)}</div>${errHint(g.err) ? `<div class="l" style="color:var(--grey)">${esc(errHint(g.err))}</div>` : ''}</div>` : ''}
       ${

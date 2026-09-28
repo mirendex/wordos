@@ -23,6 +23,14 @@ describe('errHint', () => {
   it('falls back to a generic hint', () => {
     expect(errHint('boom')).toMatch(/другую модель/);
   });
+  it('blames the network, not the model, on a fetch failure', () => {
+    expect(errHint('Failed to fetch')).toMatch(/интернет/);
+    expect(errHint('Failed to fetch')).not.toMatch(/другую модель/);
+  });
+  it('gives no hint for a plain form-validation message', () => {
+    expect(errHint('Опиши, к чему готовишься.')).toBe('');
+    expect(errHint('Выбери дату.')).toBe('');
+  });
 });
 
 describe('cutJson', () => {

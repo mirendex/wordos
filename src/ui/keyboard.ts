@@ -3,6 +3,7 @@ import { save } from '../core/persist';
 import { setModelQuery } from '../services/models';
 import { vocabState } from '../domain/vocab';
 import { diaryState } from '../apps/diary/state';
+import { goalState } from '../apps/goal/state';
 import { termRun } from '../apps/terminal/terminal';
 
 export function installKeyboard(): void {
@@ -51,6 +52,14 @@ export function installKeyboard(): void {
     }
     if (target.matches('[data-diary]')) {
       diaryState().draft = target.value;
+      save();
+    }
+    if (target.matches('[data-gdesc]')) {
+      goalState().draft = target.value;
+      save();
+    }
+    if (target.matches('[data-guntil]')) {
+      goalState().draftUntil = target.value;
       save();
     }
   });

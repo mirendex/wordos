@@ -33,11 +33,14 @@ export function objects(s: string): string[] {
 
 export function errHint(msg: unknown): string {
   msg = String(msg || '');
+  if (/failed to fetch|network ?error|load failed|networkrequest/i.test(msg as string))
+    return 'Не получилось подключиться к OpenRouter — проверь интернет-соединение и попробуй ещё раз. Дело не в модели.';
   if (/batch api|only available through/i.test(msg as string))
     return 'Эта модель работает только через пакетную обработку (Batch API) и не годится для обычных запросов. Выбери другую модель в SETUP.';
   if (/json|response_format|schema|пустой ответ|не JSON/i.test(msg as string))
     return 'Обычно виновата модель: мелкие не держат формат. Смени её в SETUP.';
-  if (/ключ не принят|нет средств|слишком часто|нет ключа/i.test(msg as string)) return '';
+  if (/ключ не принят|нет средств|слишком часто|нет ключа|опиши, к чему|выбери дату/i.test(msg as string))
+    return '';
   return 'Если это повторяется — попробуй другую модель в SETUP.';
 }
 

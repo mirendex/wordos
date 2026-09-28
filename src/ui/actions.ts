@@ -385,11 +385,21 @@ export function installActions(): void {
       return;
     }
     if (d.gmake) {
+      const g = goalState();
       const ta = document.getElementById('gdesc') as HTMLTextAreaElement | null;
       const di = document.getElementById('guntil') as HTMLInputElement | null;
       const desc = (ta ? ta.value : '').trim();
       const until = di ? di.value : '';
-      if (!desc || !until) return;
+      if (!desc) {
+        g.err = 'Опиши, к чему готовишься.';
+        paint();
+        return;
+      }
+      if (!until) {
+        g.err = 'Выбери дату.';
+        paint();
+        return;
+      }
       makeGoal(desc, until);
       return;
     }
