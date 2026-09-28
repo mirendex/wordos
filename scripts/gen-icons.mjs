@@ -5,24 +5,28 @@ import { resolve } from 'node:path';
 const DESK = '#3B3560';
 
 // the logo is pixel art, so it's kept as a pixel map: an open laptop whose lid is a hardcover
-// book — blue cover, each page dipping slightly into the spine and rounded at its outer
-// edge, blue text lines, a red highlighted line and a red swallowtail bookmark —
-// sitting on a keyboard deck that widens towards the front
+// book — blue cover, a Cyrillic Я and text lines on the pages, one of them highlighted in red —
+// with a red speech bubble saying "Hi" breaking out of the lid's corner: a book in your own
+// language that speaks a foreign one. It sits on a keyboard deck that widens towards the front
 const LOGO = `
-...KKKKKKKKKKKKKKKKKKKKKKKKKK...
-...KbbbbbbbbbbbbbbbbbbbbbbbbK...
-...KBBBBBBBBBBBBBBBBBBRRRBBBK...
-...KBBBpppppppBBBBPPPPRRRBBBK...
-...KBBpppppppppfPPPPPPRRRPBBK...
-...KBBpppppppppfPPPPPPRRRPBBK...
-...KBBpLLLLLLLpfPLLLLLRRRPBBK...
-...KBBpppppppppfPPPPPPRRRPBBK...
-...KBBpLLLLLLLpfPLLLLLRRRPBBK...
-...KBBpppppppppfPPPPPPRPRPBBK...
-...KBBpLLLLLLLpfPLLLLLPPPPBBK...
+..................KKKKKKKKKKK...
+.................KRRRRRRRRRRRK..
+.................KRhhRRhhRhhRK..
+.................KRhhRRhhRRRRK..
+...KKKKKKKKKKKKKKKRhhhhhhRhhRK..
+...KbbbbbbbbbbbbbKRhhRRhhRhhRK..
+...KBBBBBBBBBBBBBKRhhRRhhRhhRK..
+...KBBBpppppppBBBKRhhRRhhRhhRK..
+...KBBpppppppppfPKRRRRRRRRRRRK..
+...KBBppLLLLLppfPPKKRRKKKKKKKK..
+...KBBpLLppLLppfPPPKRKPPPPBBK...
+...KBBpLLppLLppfPPPKKPPPPPBBK...
+...KBBppLLLLLppfPPPPPPPPPPBBK...
+...KBBpppLLLLppfPLLLLLLPPPBBK...
+...KBBppLLpLLppfPPPPPPPPPPBBK...
+...KBBpLLppLLppfPLLLLLLPPPBBK...
 ...KBBpppppppppfPPPPPPPPPPBBK...
-...KBBpRRRRRRppfPLLLLLLLPPBBK...
-...KBBpppppppppfPPPPPPPPPPBBK...
+...KBBpRRRRRRppfPLLLLLLPPPBBK...
 ...KBBpppppppppfPPPPPPPPPPBBK...
 ...KBBpBBBBBBBpfPPBBBBBBBPBBK...
 ...KBBBBBBBBBBBBBBBBBBBBBBBBK...
@@ -47,17 +51,18 @@ const PALETTE = {
   P: '#EDE7D8', // right page
   f: '#CBC3AD', // the fold into the spine
   L: '#39479E', // text lines
-  R: '#C1432C', // bookmark and highlighted line
+  R: '#C1432C', // speech bubble and highlighted line
+  h: '#F4F0E6', // lettering in the bubble
   D: '#E2DBC8', // deck
   d: '#BDB6A4', // deck front edge
   G: '#8F887A', // keys and trackpad
   S: '#2C2750', // shadow under the laptop
 };
 
-// the themed (monochrome) icon has no colours to tell parts apart, so only the outline, the
-// pages and the deck stay solid: the cover becomes a gap framing the pages, and the lines,
-// the bookmark and the keys become holes
-const MONO = 'KpPfDd';
+// the themed (monochrome) icon has no colours to tell parts apart, so only the outlines, the
+// pages, the bubble's lettering and the deck stay solid: the cover and the bubble's fill become
+// gaps, and the letters, lines and keys become holes
+const MONO = 'KpPfDdh';
 
 const W = LOGO[0].length;
 const H = LOGO.length;
@@ -106,21 +111,21 @@ const mono = (c) => (MONO.includes(c) ? '#fff' : null);
 // adaptive icons: 108dp canvas, launchers show the inner 72dp, the 66dp circle is always safe
 const adaptive = (s, fill) => place(s, (s * 33) / 108, (s * 36.5) / 108, fill);
 
-// the status-bar icon is a white silhouette on the 24dp grid, and the book is what it's about:
-// the lid is only a 1dp outline, the open book fills it — two pages with three lines each, their
-// bottom edges sagging into the spine — and the deck runs the full width underneath with a
-// notch for the trackpad. The bookmark doesn't survive at this size and is left out
+// the status-bar icon is a white silhouette on the 24dp grid: the lid as a 1dp outline with the
+// open book filling it — two pages with three lines each, sagging into the spine — the deck
+// the full width underneath, and the logo's "Hi" bubble cut into the lid's corner with a 1dp
+// clear halo so it reads as sitting on top
 const STAT = `
-........................
-........................
-........................
-........................
-..####################..
-..#..................#..
-..#.#######..#######.#..
-..#.#######..#######.#..
-..#.#.....#..#.....#.#..
-..#.#######..#######.#..
+................#######.
+...............##.#.#.##
+...............##.#.####
+...............##...#.##
+..############.##.#.#.##
+..#............##.#.#.##
+..#.#######..#..#######.
+..#.#######..##.##......
+..#.#.....#..#..#..#.#..
+..#.#######..##...##.#..
 ..#.#.....#..#.....#.#..
 ..#.#######..#######.#..
 ..#.#.....#..#.....#.#..
