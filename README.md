@@ -12,6 +12,9 @@ wrapped in a native Android shell.
 
 - **WORDS.DB** — learning the 5000 most frequent words of the language, with spaced repetition
   (SRS) and LLM-generated flashcards (example sentence, translation, word forms).
+- **GOAL** — preparing for a specific event by a date: scenario-based vocabulary and phrases
+  (a trip, an interview, a move) with its own SRS and progress, plus a role-play dialogue with
+  the LLM for each scenario.
 - **READER** — texts on a chosen topic and level (CEFR), with a tap-to-translate word lookup.
 - **DIARY** — write your own English text and get it checked and corrected.
 - **LISTEN / ECHO** — listening dictation and read-aloud practice with speech recognition.
@@ -54,7 +57,9 @@ src/
                           json.ts (parsing partially cut-off JSON from the LLM), scale.ts (level
                           scale, CEFR), text.ts (Levenshtein distance, answer checking, text diff),
                           five.ts (wordle), termfs.ts (building the quest filesystem),
-                          grid.ts (laying words out on a grid)
+                          grid.ts (laying words out on a grid), srs.ts (the spaced-repetition
+                          ladder, shared by WORDS.DB and GOAL), plan.ts (countdown, daily quota,
+                          goal progress)
   data/                   the frequency dictionary (freq.txt, 5000 words)
   core/                   state.ts/persist.ts (S, BANK, load/save), paint.ts (a leaf of the
                           dependency tree), storage.ts (the localStorage shim), util.ts, keys.ts
@@ -62,13 +67,13 @@ src/
                           notify.ts
   services/               llm.ts (OpenRouter requests), models.ts (the model list), translate.ts
   domain/                 vocabulary business logic: frequency.ts, vocab.ts (SRS), progress.ts,
-                          cards.ts
+                          cards.ts, goal.ts (GOAL: scenarios, cards, dialogue)
   ui/                     windows.ts (a small window manager + the back gesture), render.ts
                           (paint + the screen router), icons.ts, modal.ts, gestures.ts
                           (drag/marquee/slider), keyboard.ts, actions.ts (clicks)
   apps/                   each app is its own module: about, reader, notes, setup,
-                          diary/, echo/, listen/, terminal/, vocab/, games/{hangman,pairs,order,
-                          letters,five}
+                          diary/, echo/, listen/, terminal/, vocab/, goal/, games/{hangman,pairs,
+                          order,letters,five}
 scripts/
   smoke.mjs               a headless run: opens every window, plays every game, checks
                           persistence in localStorage and window management (maximize/restore/

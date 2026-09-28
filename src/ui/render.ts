@@ -13,12 +13,14 @@ import { echoView } from '../apps/echo/echo';
 import { setupView } from '../apps/setup';
 import { termView } from '../apps/terminal/terminal';
 import { vocabView } from '../apps/vocab/vocab';
+import { goalView } from '../apps/goal/goal';
 import { gamesView } from '../apps/games/games';
 import { MLOAD, MODELS, loadModels } from '../services/models';
 
 function content(w: Win): string {
   if (w.app === 'games') return gamesView(w);
   if (w.app === 'vocab') return vocabView(w);
+  if (w.app === 'goal') return goalView(w);
   if (w.app === 'diary') return diaryView(w);
   if (w.app === 'listen') return listenView(w);
   if (w.app === 'echo') return echoView(w);

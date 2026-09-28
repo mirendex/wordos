@@ -4,7 +4,7 @@ import { DAY } from '../core/util';
 import { paint } from '../core/paint';
 import { S, save } from '../core/persist';
 import { haptic, hapticTest } from '../platform/haptics';
-import { listen, speak, ttsVoices } from '../platform/speech';
+import { listen, listenFree, speak, ttsVoices } from '../platform/speech';
 import { notifyPlan } from '../platform/notify';
 import { APPVER } from '../platform/appinfo';
 import { fetchFreeTranslation } from '../services/translate';
@@ -45,8 +45,20 @@ import { termRun, termTranslate } from '../apps/terminal/terminal';
 
 import { getText, lookup, textWords } from '../apps/reader';
 
+import {
+  addGoalPhrase,
+  archiveGoal,
+  dropScene,
+  gradeGoal,
+  loadGoalCards,
+  makeGoal,
+  startTalk,
+  talkTurn,
+} from '../domain/goal';
+import { goalState } from '../apps/goal/state';
+
 const SELECTOR =
-  '[data-app],[data-close],[data-winmin],[data-winmax],[data-mclose],[data-mok],[data-shade],[data-focus],[data-topic],[data-newtext],[data-harvest],[data-hpick],[data-hall],[data-hclose],[data-hadd],[data-again],[data-w],[data-saveword],[data-tab],[data-del],[data-speak],[data-gtab],[data-fwnew],[data-fwhint],[data-fwtap],[data-fwclear],[data-otap],[data-oback],[data-onew],[data-ogen],[data-oclear],[data-hkey],[data-hnew],[data-hru],[data-ptap],[data-pnew],[data-fkey],[data-fnew],[data-fru],[data-fsave],[data-tcmd],[data-tr],[data-reset],[data-echogen],[data-echosay],[data-echonext],[data-echoslow],[data-lnext],[data-lsay],[data-lslow],[data-lcheck],[data-lskip],[data-lsave],[data-sys],[data-dcheck],[data-dnew],[data-dsave],[data-intro],[data-notify],[data-nhour],[data-haptic],[data-haptest],[data-hapdef],[data-rate],[data-voices],[data-pickvoice],[data-savekey],[data-clearkey],[data-pickmodel],[data-mfree],[data-mreload],[data-setbase],[data-tome],[data-fixpos],[data-learn],[data-more],[data-back],[data-vcheck],[data-vskip],[data-vnext],[data-vpeek],[data-vnotknow],[data-vtab],[data-vhint],[data-know],[data-vknow],[data-prefetch],[data-vpick],[data-vmode],[data-say],[data-voice],[data-jump],[data-vsearch],[data-go],[data-vtranslate],[data-fgiveup],[data-owntopic],[data-vskipstop],[data-onboardlevel]';
+  '[data-app],[data-close],[data-winmin],[data-winmax],[data-mclose],[data-mok],[data-shade],[data-focus],[data-topic],[data-newtext],[data-harvest],[data-hpick],[data-hall],[data-hclose],[data-hadd],[data-again],[data-w],[data-saveword],[data-tab],[data-del],[data-speak],[data-gtab],[data-fwnew],[data-fwhint],[data-fwtap],[data-fwclear],[data-otap],[data-oback],[data-onew],[data-ogen],[data-oclear],[data-hkey],[data-hnew],[data-hru],[data-ptap],[data-pnew],[data-fkey],[data-fnew],[data-fru],[data-fsave],[data-tcmd],[data-tr],[data-reset],[data-echogen],[data-echosay],[data-echonext],[data-echoslow],[data-lnext],[data-lsay],[data-lslow],[data-lcheck],[data-lskip],[data-lsave],[data-sys],[data-dcheck],[data-dnew],[data-dsave],[data-intro],[data-notify],[data-nhour],[data-haptic],[data-haptest],[data-hapdef],[data-rate],[data-voices],[data-pickvoice],[data-savekey],[data-clearkey],[data-pickmodel],[data-mfree],[data-mreload],[data-setbase],[data-tome],[data-fixpos],[data-learn],[data-more],[data-back],[data-vcheck],[data-vskip],[data-vnext],[data-vpeek],[data-vnotknow],[data-vtab],[data-vhint],[data-know],[data-vknow],[data-prefetch],[data-vpick],[data-vmode],[data-say],[data-voice],[data-jump],[data-vsearch],[data-go],[data-vtranslate],[data-fgiveup],[data-owntopic],[data-vskipstop],[data-onboardlevel],[data-gtab2],[data-gmake],[data-gscenedel],[data-garchive],[data-glearn],[data-ghint],[data-gcheck],[data-gskip],[data-gnext],[data-gtalk],[data-gtalkclose],[data-gsend],[data-gvoice],[data-gaddphrase]';
 
 export function installActions(): void {
   document.addEventListener('click', (e) => {
@@ -56,7 +68,7 @@ export function installActions(): void {
     haptic(
       el.classList.contains('key') || el.classList.contains('chip')
         ? 'soft'
-        : d.vtab || d.gtab || d.tab || d.vmode || d.haptic || d.notify
+        : d.vtab || d.gtab || d.gtab2 || d.tab || d.vmode || d.haptic || d.notify
           ? 'toggle'
           : 'tap',
     );
@@ -358,6 +370,96 @@ export function installActions(): void {
         if (last.length) v.base = Math.min(FREQ!.length, Math.max(v.base || 0, Math.max.apply(null, last)));
       }
       save();
+      paint();
+      return;
+    }
+    if (d.gtab2) {
+      const g = goalState();
+      g.tab = d.gtab2;
+      save();
+      paint();
+      return;
+    }
+    if (d.gmake) {
+      const ta = document.getElementById('gdesc') as HTMLTextAreaElement | null;
+      const di = document.getElementById('guntil') as HTMLInputElement | null;
+      const desc = (ta ? ta.value : '').trim();
+      const until = di ? di.value : '';
+      if (!desc || !until) return;
+      makeGoal(desc, until);
+      return;
+    }
+    if (d.gscenedel) {
+      dropScene(d.gscenedel);
+      return;
+    }
+    if (d.garchive) {
+      archiveGoal();
+      return;
+    }
+    if (d.glearn) {
+      loadGoalCards();
+      return;
+    }
+    if (d.ghint) {
+      const g = goalState();
+      const c = g.queue[g.i];
+      g.hint = Math.min(String(c.gap).length - 1, (g.hint || 0) + 1);
+      paint();
+      const i = document.getElementById('gans');
+      if (i) (i as HTMLInputElement).focus();
+      return;
+    }
+    if (d.gcheck || d.gskip) {
+      const g = goalState();
+      const c = g.queue[g.i];
+      const inp = document.getElementById('gans') as HTMLInputElement | null;
+      g.res = d.gskip ? 'no' : checkAnswer(inp ? inp.value : '', c.gap);
+      g.shown = true;
+      if (inp) inp.blur();
+      gradeGoal(c.id, g.res);
+      haptic(g.res === 'no' ? 'no' : 'ok');
+      save();
+      paint();
+      return;
+    }
+    if (d.gnext) {
+      const g = goalState();
+      g.i++;
+      g.shown = false;
+      g.hint = 0;
+      g.res = null;
+      requestAutoFocus();
+      save();
+      paint();
+      return;
+    }
+    if (d.gtalk) {
+      startTalk(d.gtalk);
+      return;
+    }
+    if (d.gtalkclose) {
+      const g = goalState();
+      g.chat = null;
+      save();
+      paint();
+      return;
+    }
+    if (d.gsend) {
+      const i = document.getElementById('gtalkin') as HTMLInputElement | null;
+      const text = (i ? i.value : '').trim();
+      if (!text) return;
+      if (i) i.value = '';
+      talkTurn(text);
+      return;
+    }
+    if (d.gvoice) {
+      listenFree('gtalkin', '[data-gsend]');
+      return;
+    }
+    if (d.gaddphrase) {
+      const [scene, en, ru] = d.gaddphrase.split('|');
+      addGoalPhrase(scene, en, ru);
       paint();
       return;
     }

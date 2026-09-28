@@ -1,9 +1,10 @@
 import { DAY, PLUS } from '../core/util';
 import { S, save } from '../core/persist';
+import { IV, srsStep } from '../lib/srs';
 import { cover, freqInit, FREQ, RANK, STOP } from './frequency';
 import { recalcLevel } from './progress';
 
-export const IV = [1, 3, 7, 16, 35, 75, 150];
+export { IV };
 
 export function skipWord(w: string): boolean {
   const v = vocabState();
@@ -138,20 +139,8 @@ export function srsGrade(w: string, res: 'ok' | 'typo' | 'no'): void {
   if (myWords() >= 100) S.egg = Object.assign({}, S.egg || {}, { hundred: 1 });
   const v = vocabState();
   const s = v.srs[w] || (v.srs[w] = { b: 0, due: DAY(), reps: 0, lapses: 0, first: DAY() });
-  const was = s.reps === 0;
-  s.reps++;
-  if (res === 'ok') {
-    s.b = Math.min(IV.length - 1, s.b + 1);
-    s.due = PLUS(IV[s.b]);
-    logDay('ok');
-  } else if (res === 'typo') {
-    s.due = PLUS(IV[Math.max(0, s.b)]);
-    logDay('ok');
-  } else {
-    s.b = Math.max(0, s.b - 2);
-    s.lapses++;
-    s.due = DAY();
-  }
+  const was = srsStep(s, res, DAY(), PLUS);
+  if (res !== 'no') logDay('ok');
   logDay(was ? 'n' : 'r');
   save();
 }

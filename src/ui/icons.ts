@@ -1,4 +1,4 @@
-import { $ } from '../core/util';
+import { $, DAY } from '../core/util';
 import { dueWords } from '../domain/vocab';
 import { freqReady } from '../domain/frequency';
 import { S, save } from '../core/persist';
@@ -170,6 +170,12 @@ export const ICONS: Record<string, string> = {
     [8, 8, 4, 4, INK],
     [9, 9, 2, 2, RED],
   ]),
+  goal: pixelIcon([
+    ...box(8, 1, 3, 17, GREY_LO),
+    ...box(10, 2, 9, 7, RED),
+    [12, 4, 5, 3, PAPER],
+    ...box(4, 16, 11, 3, GREY),
+  ]),
   about: pixelIcon([
     [2, 2, 16, 13, INK],
     [4, 14, 4, 1, INK],
@@ -188,6 +194,7 @@ export const ICONS: Record<string, string> = {
 
 export const APPS = [
   { id: 'vocab', t: 'WORDS.DB' },
+  { id: 'goal', t: 'GOAL' },
   { id: 'read', t: 'READER' },
   { id: 'diary', t: 'DIARY' },
   { id: 'listen', t: 'LISTEN' },
@@ -202,6 +209,18 @@ export const APPS = [
 export function dueCount(): number {
   try {
     return dueWords().length;
+  } catch {
+    return 0;
+  }
+}
+
+export function goalDueCount(): number {
+  try {
+    const g = S.goal;
+    if (!g || !g.cur) return 0;
+    const t = DAY();
+    return Object.keys(g.cur.srs).filter((id: string) => g.cur.srs[id].due <= t && !g.cur.srs[id].skip)
+      .length;
   } catch {
     return 0;
   }
@@ -232,7 +251,7 @@ export function renderIcons(): void {
     const idx = p === undefined ? i : p;
     const x = (idx % cols) * cw + (cw - 78) / 2;
     const y = Math.floor(idx / cols) * rh + 10;
-    const n = a.id === 'vocab' && freqReady() ? dueCount() : 0;
+    const n = a.id === 'vocab' && freqReady() ? dueCount() : a.id === 'goal' ? goalDueCount() : 0;
     const badge = n ? '<b style="color:#FFD9A0">' + n + '</b>' : '';
     return `<button class="ic" data-app="${a.id}" data-icon="${a.id}" style="left:${x}px;top:${y}px">${ICONS[a.id]}<b>${a.t}</b>${badge}</button>`;
   }).join('');

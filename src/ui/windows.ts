@@ -115,6 +115,7 @@ export function title(w: Win): string {
   if (w.app === 'games') return 'GAMES';
   if (w.app === 'term') return 'TERMINAL';
   if (w.app === 'vocab') return 'WORDS.DB';
+  if (w.app === 'goal') return 'GOAL.EXE';
   if (w.app === 'setup') return 'SETUP';
   if (w.app === 'diary') return 'DIARY.TXT';
   if (w.app === 'listen') return 'LISTEN.EXE';

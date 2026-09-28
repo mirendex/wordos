@@ -108,6 +108,57 @@ export async function listen(): Promise<void> {
   }
 }
 
+export async function listenFree(inputId: string, submitSelector: string): Promise<void> {
+  const P = CAPSR();
+  const fill = (text: string) => {
+    const inp = document.getElementById(inputId) as HTMLInputElement | null;
+    if (inp && text) {
+      inp.value = text;
+      const b = document.querySelector(submitSelector) as HTMLElement | null;
+      if (b) b.click();
+    }
+  };
+  if (P) {
+    try {
+      const av = await P.available();
+      if (!(av && (av.available || av.speechRecognition))) {
+        dialog({ title: 'голос', text: 'На этом телефоне распознавание речи не работает.' });
+        return;
+      }
+      const perm = await P.requestPermissions();
+      if (perm && perm.speechRecognition && perm.speechRecognition !== 'granted') {
+        dialog({ title: 'голос', text: 'Нужно разрешение на микрофон.' });
+        return;
+      }
+      const res = await P.start({ language: 'en-US', maxResults: 1, partialResults: false, popup: false });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const alts: any[] = (res && res.matches) || [];
+      fill(String(alts[0] || '').trim());
+    } catch (e) {
+      dialog({
+        title: 'голос',
+        text: 'Не расслышал: ' + (((e as Error) && (e as Error).message) || 'ошибка'),
+      });
+    }
+    return;
+  }
+  if (!SR) {
+    dialog({ title: 'голос', text: 'Этот браузер не умеет распознавать речь.' });
+    return;
+  }
+  try {
+    const rec = new SR();
+    rec.lang = 'en-US';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (e: any) => fill(String(e.results[0][0].transcript || '').trim());
+    rec.start();
+  } catch {
+    /* ignore */
+  }
+}
+
 interface Voice {
   name?: string;
   voiceURI?: string;

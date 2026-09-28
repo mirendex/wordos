@@ -1,0 +1,22 @@
+.chatlog {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bubble {
+  max-width: 88%;
+  padding: 8px 10px;
+  border: 1px solid var(--ink);
+  border-radius: 6px;
+}
+
+.bubble.them {
+  align-self: flex-start;
+  background: var(--paper2);
+}
+
+.bubble.me {
+  align-self: flex-end;
+  background: #f5f0c9;
+}
