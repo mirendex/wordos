@@ -62,6 +62,31 @@ function monochrome() {
   return `<mask id="m">${mask}</mask><rect width="36" height="36" fill="#fff" mask="url(#m)"/>`;
 }
 
+// the status-bar icon gets its own 24dp grid: the launcher book's 1-unit lines would shrink
+// below a pixel at mdpi, so this is the same book redrawn with gaps wide enough to survive
+const STAT_BOOK = [
+  [3, 5, 9, 13],
+  [13, 5, 9, 13],
+  [2, 18, 21, 2],
+];
+const STAT_CUT = [
+  [5, 8, 5, 1],
+  [5, 11, 5, 1],
+  [5, 14, 3, 1],
+  [14, 8, 3, 1],
+  [14, 11, 3, 1],
+  [14, 14, 5, 1],
+  [18, 6, 3, 4],
+  [18, 10, 1, 1],
+  [20, 10, 1, 1],
+];
+
+function stat() {
+  const white = STAT_BOOK.map(([x, y, w, h]) => [x, y, w, h, '#fff']);
+  const cut = STAT_CUT.map(([x, y, w, h]) => [x, y, w, h, '#000']);
+  return `<mask id="m">${rects([...white, ...cut])}</mask><rect width="24" height="24" fill="#fff" mask="url(#m)"/>`;
+}
+
 const svg = (size, view, body) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="${view}" shape-rendering="crispEdges">${body}</svg>`;
 
@@ -72,6 +97,7 @@ const variants = {
     svg(s, '1 1 34 34', `<rect x="2" y="2" width="32" height="32" rx="6" fill="${DESK}"/>${book()}`),
   round: (s) => svg(s, '1 1 34 34', `<circle cx="18" cy="18" r="16" fill="${DESK}"/>${book()}`),
   full: (s) => svg(s, '-1 -1 38 38', `<rect x="-1" y="-1" width="38" height="38" fill="${DESK}"/>${book()}`),
+  stat: (s) => svg(s, '0 0 24 24', stat()),
 };
 
 const RES = 'android/app/src/main/res';
@@ -83,6 +109,7 @@ for (const [d, k] of Object.entries(DENSITIES)) {
   jobs.push([`${RES}/mipmap-${d}/ic_launcher_round.png`, 'round', 48 * k]);
   jobs.push([`${RES}/mipmap-${d}/ic_launcher_foreground.png`, 'foreground', 108 * k]);
   jobs.push([`${RES}/mipmap-${d}/ic_launcher_monochrome.png`, 'monochrome', 108 * k]);
+  jobs.push([`${RES}/drawable-${d}/ic_stat_en.png`, 'stat', 24 * k]);
 }
 jobs.push(['public/icon-192.png', 'full', 192]);
 jobs.push(['public/icon-512.png', 'full', 512]);
@@ -91,7 +118,10 @@ const browser = await chromium.launch(
   process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {},
 );
 const page = await browser.newPage();
+// `node scripts/gen-icons.mjs stat` redraws just the given kinds
+const only = process.argv.slice(2);
 for (const [out, kind, size] of jobs) {
+  if (only.length && !only.includes(kind)) continue;
   await page.setViewportSize({ width: size, height: size });
   await page.setContent(`<body style="margin:0;background:transparent">${variants[kind](size)}</body>`);
   writeFileSync(resolve(out), await page.locator('svg').screenshot({ omitBackground: true }));
