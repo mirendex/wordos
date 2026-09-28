@@ -143,6 +143,7 @@ export async function loadGoalCards(): Promise<void> {
   const g = goalState();
   if (!g.cur) return;
   g.err = '';
+  g.tab = 'cards';
   const due = dueGoalIds();
   const unseen = Object.keys(g.cur.items).filter((id) => !g.cur.srs[id]).length;
   const quota = dailyQuota(unseen, Math.max(1, goalDaysLeft()));
@@ -152,16 +153,21 @@ export async function loadGoalCards(): Promise<void> {
   if (!due.length && !fresh.length && emptyScenes.length) {
     g.busy = true;
     paint();
+    let filled = false;
     try {
       await fillScene(emptyScenes[0]);
+      filled = true;
     } catch (e) {
       g.err = (e as Error).message;
     }
     g.busy = false;
     g.queue = [];
     g.i = 0;
+    // only chain into the next scene on success — a failure (bad response, rate limit,
+    // no network) must stop here and show the error, not retry itself forever
+    if (filled) return loadGoalCards();
     paint();
-    return loadGoalCards();
+    return;
   }
 
   g.queue = due.concat(fresh).map((id) => Object.assign({ rev: due.indexOf(id) >= 0 }, g.cur.items[id]));
@@ -169,7 +175,6 @@ export async function loadGoalCards(): Promise<void> {
   g.shown = false;
   g.hint = 0;
   g.res = null;
-  g.tab = 'cards';
   save();
   paint();
 }
