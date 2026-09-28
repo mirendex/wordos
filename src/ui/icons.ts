@@ -230,6 +230,26 @@ export function iconPos(): Record<string, number> {
   if (!S.icons) S.icons = {};
   return S.icons;
 }
+
+// slots explicitly saved in S.icons are fixed; everything else gets the next free
+// slot after its place in APPS, so inserting a new app can't collide with a
+// dragged-elsewhere icon
+export function resolveIconPositions(): Record<string, number> {
+  const pos = iconPos();
+  const busy = new Set(Object.values(pos));
+  const out: Record<string, number> = {};
+  APPS.forEach((a, i) => {
+    if (pos[a.id] !== undefined) {
+      out[a.id] = pos[a.id];
+      return;
+    }
+    let slot = i;
+    while (busy.has(slot)) slot++;
+    busy.add(slot);
+    out[a.id] = slot;
+  });
+  return out;
+}
 export function iconCols(): number {
   const w = window.innerWidth;
   return Math.max(3, Math.min(8, Math.floor(w / 92)));
@@ -242,13 +262,12 @@ export function iconRowH(): number {
 }
 
 export function renderIcons(): void {
-  const pos = iconPos();
+  const pos = resolveIconPositions();
   const cols = iconCols();
   const cw = iconCellW();
   const rh = iconRowH();
-  $('#icons')!.innerHTML = APPS.map((a, i) => {
-    const p = pos[a.id];
-    const idx = p === undefined ? i : p;
+  $('#icons')!.innerHTML = APPS.map((a) => {
+    const idx = pos[a.id];
     const x = (idx % cols) * cw + (cw - 78) / 2;
     const y = Math.floor(idx / cols) * rh + 10;
     const n = a.id === 'vocab' && freqReady() ? dueCount() : a.id === 'goal' ? goalDueCount() : 0;
@@ -311,8 +330,9 @@ export function endIconDrag(): boolean {
   idrag.group.forEach((g) => g.el.classList.remove('moving'));
   if (idrag.moved) {
     const pos = iconPos();
-    APPS.forEach((a, i) => {
-      if (pos[a.id] === undefined) pos[a.id] = i;
+    const resolved = resolveIconPositions();
+    APPS.forEach((a) => {
+      if (pos[a.id] === undefined) pos[a.id] = resolved[a.id];
     });
     const base = iconAt(idrag.el.offsetLeft + 39, idrag.el.offsetTop + 44);
     const from = pos[idrag.id];
