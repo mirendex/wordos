@@ -1,6 +1,6 @@
 import { esc } from '../../lib/scale';
 import { errHint } from '../../lib/json';
-import { mask } from '../../lib/text';
+import { maskPhrase } from '../../lib/text';
 import { daysLeft, goalProgress } from '../../lib/plan';
 import { DAY } from '../../core/util';
 import { GoalScene, goalState } from './state';
@@ -99,7 +99,7 @@ function cardsView(w: Win): string {
     g.shown
       ? `<em>${esc(c.gap)}</em>`
       : `<input class="inline" id="gans" size="${Math.max(4, c.gap.length)}" style="width:${Math.max(4, c.gap.length) + 1}ch"
-        placeholder="${esc(mask(c.gap, g.hint || 0).replace(/ /g, ''))}" autocomplete="off" spellcheck="false"
+        placeholder="${esc(maskPhrase(c.gap, g.hint || 0))}" autocomplete="off" spellcheck="false"
         autocapitalize="off" autocorrect="off" enterkeyhint="done">`
   }${esc(parts[1] || '')}</div>
   <div class="trans">${esc(c.ru || '')}</div>

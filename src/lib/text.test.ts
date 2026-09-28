@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkAnswer, diffHtml, echoScore, hasGapSentence, lev, mask, wordDiff } from './text';
+import { checkAnswer, diffHtml, echoScore, hasGapSentence, lev, mask, maskPhrase, wordDiff } from './text';
 
 describe('lev', () => {
   it('is 0 for identical strings', () => {
@@ -35,6 +35,18 @@ describe('checkAnswer', () => {
 describe('mask', () => {
   it('reveals the first `hint` letters', () => {
     expect(mask('hello', 2)).toBe('h e · · ·');
+  });
+});
+
+describe('maskPhrase', () => {
+  it('keeps word-boundary spaces so a phrase does not look like one word', () => {
+    expect(maskPhrase('How often', 0)).toBe('··· ·····');
+  });
+  it('reveals the first `hint` letters, not counting spaces', () => {
+    expect(maskPhrase('How often', 5)).toBe('How of···');
+  });
+  it('matches plain mask() for a single word', () => {
+    expect(maskPhrase('hello', 2).replace(/ /g, '')).toBe(mask('hello', 2).replace(/ /g, ''));
   });
 });
 

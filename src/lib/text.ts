@@ -51,6 +51,21 @@ export function mask(word: string, hint: number): string {
     .join(' ');
 }
 
+// like mask(), but for a gap that can be several words (GOAL's phrase cards) — keeps the
+// real spaces between words so a multi-word answer doesn't look like one solid blob of dots
+export function maskPhrase(text: string, hint: number): string {
+  let seen = 0;
+  return String(text)
+    .split('')
+    .map((ch) => {
+      if (ch === ' ') return ' ';
+      const out = seen < hint ? ch : '·';
+      seen++;
+      return out;
+    })
+    .join('');
+}
+
 export interface DiffToken {
   t: '=' | '-' | '+';
   w: string;
