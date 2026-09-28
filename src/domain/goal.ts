@@ -10,6 +10,13 @@ import { haptic } from '../platform/haptics';
 import { dialog } from '../ui/modal';
 import { goalState, Goal, GoalItem, GoalScene, GoalChat, GoalPhrase } from '../apps/goal/state';
 
+// a card in the fill-in-the-blank queue needs real text around the gap, not just the gap
+// itself — a bare "___" has nothing to show, so a whole-phrase item (e.g. one pulled off
+// a finished dialogue) belongs in Слух/Произношение instead, never in Карточки
+function hasRealGapContext(sentence: unknown): boolean {
+  return hasGapSentence(sentence) && String(sentence).replace('___', '').trim().length >= 4;
+}
+
 function uid(prefix: string): string {
   return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
@@ -90,15 +97,20 @@ export async function fillScene(scene: GoalScene): Promise<void> {
   if (!g.cur) return;
   const r =
     await ask(`Сценарий подготовки к событию: "${scene.en}" (${scene.ru}). Собеседник: ${scene.role}. Задача: ${scene.task}.
-Дай 8 отдельных слов и 6 разговорных фраз-шаблонов, которые реально пригодятся именно в этой ситуации. Слова и фразы должны быть теми, что говорит или слышит сам ученик.
-Для каждого — предложение на английском (6-14 слов), где нужное слово или блок заменён на ___ (три подчёркивания), и оно должно однозначно подходить в пропуск.
+Дай 8 отдельных слов и 6 разговорных фраз-шаблонов длиной 2-4 слова (не целое предложение!), которые реально пригодятся именно в этой ситуации. Слова и фразы должны быть теми, что говорит или слышит сам ученик.
+Для каждого — предложение-носитель на английском (6-14 слов), где это слово или короткий блок заменены на ___ (три подчёркивания). До и после ___ должен остаться настоящий текст предложения с обеих сторон (кроме случая, когда пропуск стоит в самом начале или в самом конце). Никогда не заменяй на ___ предложение целиком.
+Пример: {"kind":"phrase","en":"the bill","sentence":"Could I get ___, please?","ru":"Можно мне счёт, пожалуйста?","word_ru":"счёт"}
 Формат ответа:
-{"items":[{"kind":"word","en":"слово или фраза для пропуска","sentence":"текст с ___","ru":"перевод предложения","word_ru":"перевод слова или фразы","ipa":"транскрипция или пустая строка","tip":"заметка по-русски или пустая строка"}]}`);
+{"items":[{"kind":"word","en":"слово или фраза для пропуска (2-4 слова)","sentence":"текст с ___","ru":"перевод предложения","word_ru":"перевод слова или фразы","ipa":"транскрипция или пустая строка","tip":"заметка по-русски или пустая строка"}]}`);
   const items = Array.isArray(r.items) ? r.items : [];
   items.forEach((c: Record<string, string>) => {
     if (!c || typeof c !== 'object') return;
     const en = String(c.en || '').trim();
     if (!en || !c.sentence || String(c.sentence).indexOf('___') < 0) return;
+    // the gap must leave real surrounding text, or the card is just the whole answer with
+    // no context to fill in — reject rather than store an unusable blank-only "sentence"
+    const context = String(c.sentence).replace('___', '').trim();
+    if (context.length < 4) return;
     const id = uid('i');
     const item: GoalItem = {
       id,
@@ -135,7 +147,7 @@ function newGoalIds(limit: number): string[] {
   const g = goalState();
   if (!g.cur) return [];
   return Object.keys(g.cur.items)
-    .filter((id) => !g.cur.srs[id] && hasGapSentence(g.cur.items[id].sentence))
+    .filter((id) => !g.cur.srs[id] && hasRealGapContext(g.cur.items[id].sentence))
     .slice(0, limit);
 }
 
