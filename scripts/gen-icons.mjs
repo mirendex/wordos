@@ -9,37 +9,46 @@ const PAPER2 = '#E2DBC8';
 const BLUE = '#39479E';
 const RED = '#C1432C';
 
-// 36×36 grid = the 108dp adaptive canvas; the book stays inside the 66dp safe zone
+// 36×36 grid = the 108dp adaptive canvas; the laptop stays inside the 66dp safe zone
 const box = (x, y, w, h, fill) => [
   [x, y, w, h, INK],
   [x + 1, y + 1, w - 2, h - 2, fill],
 ];
 
+// an open laptop whose screen is the open book: the lid's ink bezel frames the two pages
+// the way the old blue cover did, and the base underneath nods at the app being its own OS
 const lines = [
-  [10, 14, 5, 1],
-  [10, 16, 5, 1],
-  [10, 18, 5, 1],
-  [10, 20, 3, 1],
-  [19, 14, 3, 1],
-  [19, 16, 3, 1],
-  [19, 18, 3, 1],
-  [19, 20, 3, 1],
-  [19, 22, 6, 1],
+  [11, 10, 4, 1],
+  [11, 12, 4, 1],
+  [11, 14, 4, 1],
+  [11, 16, 3, 1],
+  [19, 10, 2, 1],
+  [19, 12, 2, 1],
+  [19, 14, 2, 1],
+  [19, 16, 2, 1],
+  [19, 18, 5, 1],
 ];
-const underline = [10, 22, 6, 1];
-const spine = [17, 11, 1, 15];
+const underline = [11, 18, 5, 1];
+const spine = [17, 8, 1, 13];
 
-// ribbon runs down from the top edge of the page and ends in a swallowtail notch
+// ribbon hangs from the top edge of the screen and ends in a swallowtail notch
 const ribbon = [
-  [23, 11, 3, 9],
-  [23, 20, 1, 1],
-  [25, 20, 1, 1],
+  [22, 8, 3, 7],
+  [22, 15, 1, 1],
+  [24, 15, 1, 1],
 ];
 
-const BOOK = [
-  ...box(7, 13, 22, 15, BLUE),
-  ...box(8, 11, 10, 15, PAPER2),
-  ...box(17, 11, 11, 15, PAPER),
+// the bezel is one unit thick except for a two-unit chin above the hinge
+const lid = [9, 7, 18, 16];
+const deck = [6, 22, 24, 4];
+const groove = [15, 24, 6, 1];
+
+const LAPTOP = [
+  ...box(...deck, PAPER2),
+  [...groove, INK],
+  [...lid, INK],
+  [10, 8, 7, 13, PAPER2],
+  [18, 8, 8, 13, PAPER],
   ...lines.map((l) => [...l, BLUE]),
   [...underline, RED],
   ...ribbon.map((r) => [...r, RED]),
@@ -48,17 +57,19 @@ const BOOK = [
 const rects = (px) =>
   px.map(([x, y, w, h, c]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`).join('');
 
-// the cover sticks out below the pages, so the book spans y 11..28; centre it on 18
-const lift = (body) => `<g transform="translate(0 -1.5)">${body}</g>`;
+// the laptop spans y 7..25; centre it on 18
+const lift = (body) => `<g transform="translate(0 1.5)">${body}</g>`;
 
-const book = () => lift(rects(BOOK));
+const book = () => lift(rects(LAPTOP));
 
 function monochrome() {
-  const white = BOOK.map(([x, y, w, h]) => [x, y, w, h, '#fff']);
-  // the ribbon becomes a bookmark-shaped hole below the page's top edge
-  const hole = ribbon.map(([x, y, w, h]) => (y === 11 ? [x, 12, w, h - 1] : [x, y, w, h]));
-  const cut = [...lines, underline, spine, ...hole].map(([x, y, w, h]) => [x, y, w, h, '#000']);
-  const mask = lift(rects([...white, ...cut]));
+  const white = LAPTOP.map(([x, y, w, h]) => [x, y, w, h, '#fff']);
+  // with no colours to tell them apart, a gap at the hinge keeps the lid and the base
+  // reading as two parts, and the ribbon becomes a bookmark-shaped hole in the page
+  const hinge = [lid[0], 22, lid[2], 1];
+  const hole = ribbon.map(([x, y, w, h]) => (y === 8 ? [x, 9, w, h - 1] : [x, y, w, h]));
+  const cut = [...lines, underline, spine, hinge, groove, ...hole];
+  const mask = lift(rects([...white, ...cut.map(([x, y, w, h]) => [x, y, w, h, '#000'])]));
   return `<mask id="m">${mask}</mask><rect width="36" height="36" fill="#fff" mask="url(#m)"/>`;
 }
 
