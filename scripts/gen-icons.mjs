@@ -3,111 +3,170 @@ import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const DESK = '#3B3560';
-const INK = '#16151A';
-const PAPER = '#EDE7D8';
-const PAPER2 = '#E2DBC8';
-const BLUE = '#39479E';
-const RED = '#C1432C';
 
-// 36×36 grid = the 108dp adaptive canvas; the laptop stays inside the 66dp safe zone
-const box = (x, y, w, h, fill) => [
-  [x, y, w, h, INK],
-  [x + 1, y + 1, w - 2, h - 2, fill],
-];
+// the logo is pixel art, so it's kept as a pixel map: an open laptop whose lid is a hardcover
+// book — blue cover, each page dipping slightly into the spine and rounded at its outer
+// edge, blue text lines, a red highlighted line and a red swallowtail bookmark —
+// sitting on a keyboard deck that widens towards the front
+const LOGO = `
+...KKKKKKKKKKKKKKKKKKKKKKKKKK...
+...KbbbbbbbbbbbbbbbbbbbbbbbbK...
+...KBBBBBBBBBBBBBBBBBBRRRBBBK...
+...KBBBpppppppBBBBPPPPRRRBBBK...
+...KBBpppppppppfPPPPPPRRRPBBK...
+...KBBpppppppppfPPPPPPRRRPBBK...
+...KBBpLLLLLLLpfPLLLLLRRRPBBK...
+...KBBpppppppppfPPPPPPRRRPBBK...
+...KBBpLLLLLLLpfPLLLLLRRRPBBK...
+...KBBpppppppppfPPPPPPRPRPBBK...
+...KBBpLLLLLLLpfPLLLLLPPPPBBK...
+...KBBpppppppppfPPPPPPPPPPBBK...
+...KBBpRRRRRRppfPLLLLLLLPPBBK...
+...KBBpppppppppfPPPPPPPPPPBBK...
+...KBBpppppppppfPPPPPPPPPPBBK...
+...KBBpBBBBBBBpfPPBBBBBBBPBBK...
+...KBBBBBBBBBBBBBBBBBBBBBBBBK...
+...KNNNNNNNNNNNNNNNNNNNNNNNNK...
+...KKKKKKKKKKKKKKKKKKKKKKKKKK...
+..KDGGDGGDGGDGGDGGDGGDGGDGGDDK..
+.KDGGDGGDGGDGGDGGDGGDGGDGGDGGDK.
+.KDDDDDDDDDDGGGGGGGGDDDDDDDDDDK.
+.KddddddddddddddddddddddddddddK.
+..KKKKKKKKKKKKKKKKKKKKKKKKKKKK..
+...SSSSSSSSSSSSSSSSSSSSSSSSSS...
+`
+  .trim()
+  .split('\n');
 
-// an open laptop whose screen is the open book: the lid's ink bezel frames the two pages
-// the way the old blue cover did, and the base underneath nods at the app being its own OS
-const lines = [
-  [11, 10, 4, 1],
-  [11, 12, 4, 1],
-  [11, 14, 4, 1],
-  [11, 16, 3, 1],
-  [19, 10, 2, 1],
-  [19, 12, 2, 1],
-  [19, 14, 2, 1],
-  [19, 16, 2, 1],
-  [19, 18, 5, 1],
-];
-const underline = [11, 18, 5, 1];
-const spine = [17, 8, 1, 13];
+const PALETTE = {
+  K: '#16151A', // ink outline
+  b: '#5563BE', // light catching the top edge of the cover
+  B: '#39479E', // cover
+  N: '#2D3880', // cover in shadow above the hinge
+  p: '#E2DBC8', // left page
+  P: '#EDE7D8', // right page
+  f: '#CBC3AD', // the fold into the spine
+  L: '#39479E', // text lines
+  R: '#C1432C', // bookmark and highlighted line
+  D: '#E2DBC8', // deck
+  d: '#BDB6A4', // deck front edge
+  G: '#8F887A', // keys and trackpad
+  S: '#2C2750', // shadow under the laptop
+};
 
-// ribbon hangs from the top edge of the screen and ends in a swallowtail notch
-const ribbon = [
-  [22, 8, 3, 7],
-  [22, 15, 1, 1],
-  [24, 15, 1, 1],
-];
+// the themed (monochrome) icon has no colours to tell parts apart, so only the outline, the
+// pages and the deck stay solid: the cover becomes a gap framing the pages, and the lines,
+// the bookmark and the keys become holes
+const MONO = 'KpPfDd';
 
-// the bezel is one unit thick except for a two-unit chin above the hinge
-const lid = [9, 7, 18, 16];
-const deck = [6, 22, 24, 4];
-const groove = [15, 24, 6, 1];
+const W = LOGO[0].length;
+const H = LOGO.length;
 
-const LAPTOP = [
-  ...box(...deck, PAPER2),
-  [...groove, INK],
-  [...lid, INK],
-  [10, 8, 7, 13, PAPER2],
-  [18, 8, 8, 13, PAPER],
-  ...lines.map((l) => [...l, BLUE]),
-  [...underline, RED],
-  ...ribbon.map((r) => [...r, RED]),
-];
+// farthest corner of any drawn pixel from the centre, in pixels of the map; the shadow is soft
+// enough to be allowed past the safe zone, so it doesn't count
+const REACH = Math.max(
+  ...LOGO.flatMap((row, y) =>
+    [...row].flatMap((c, x) =>
+      c === '.' || c === 'S'
+        ? []
+        : [0, 1].flatMap((dx) => [0, 1].map((dy) => Math.hypot(x + dx - W / 2, y + dy - H / 2))),
+    ),
+  ),
+);
 
-const rects = (px) =>
-  px.map(([x, y, w, h, c]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`).join('');
-
-// the laptop spans y 7..25; centre it on 18
-const lift = (body) => `<g transform="translate(0 1.5)">${body}</g>`;
-
-const book = () => lift(rects(LAPTOP));
-
-function monochrome() {
-  const white = LAPTOP.map(([x, y, w, h]) => [x, y, w, h, '#fff']);
-  // with no colours to tell them apart, a gap at the hinge keeps the lid and the base
-  // reading as two parts, and the ribbon becomes a bookmark-shaped hole in the page
-  const hinge = [lid[0], 22, lid[2], 1];
-  const hole = ribbon.map(([x, y, w, h]) => (y === 8 ? [x, 9, w, h - 1] : [x, y, w, h]));
-  const cut = [...lines, underline, spine, hinge, groove, ...hole];
-  const mask = lift(rects([...white, ...cut.map(([x, y, w, h]) => [x, y, w, h, '#000'])]));
-  return `<mask id="m">${mask}</mask><rect width="36" height="36" fill="#fff" mask="url(#m)"/>`;
+// scale the map so its reach lands on `safe` (px), centred in a `size` px square. From three
+// device pixels per map pixel up, snap to a whole number so every line keeps the same width —
+// as long as the snapped size still fits inside `limit`
+function place(size, safe, limit, fill) {
+  let k = safe / REACH;
+  if (k >= 3) {
+    k = Math.round(k);
+    if (k * REACH > limit) k = Math.floor(limit / REACH);
+  }
+  const x0 = Math.round((size - W * k) / 2);
+  const y0 = Math.round((size - H * k) / 2);
+  let out = '';
+  LOGO.forEach((row, y) => {
+    for (let x = 0; x < W;) {
+      const c = row[x];
+      let n = 1;
+      while (row[x + n] === c) n++;
+      const colour = fill(c);
+      if (c !== '.' && colour)
+        out += `<rect x="${x0 + x * k}" y="${y0 + y * k}" width="${n * k}" height="${k}" fill="${colour}"/>`;
+      x += n;
+    }
+  });
+  return out;
 }
 
-// the status-bar icon gets its own 24dp grid: the launcher book's 1-unit lines would shrink
-// below a pixel at mdpi, so this is the same book redrawn with gaps wide enough to survive
-const STAT_BOOK = [
-  [3, 5, 9, 13],
-  [13, 5, 9, 13],
-  [2, 18, 21, 2],
-];
-const STAT_CUT = [
-  [5, 8, 5, 1],
-  [5, 11, 5, 1],
-  [5, 14, 3, 1],
-  [14, 8, 3, 1],
-  [14, 11, 3, 1],
-  [14, 14, 5, 1],
-  [18, 6, 3, 4],
-  [18, 10, 1, 1],
-  [20, 10, 1, 1],
-];
+const colour = (c) => PALETTE[c];
+const mono = (c) => (MONO.includes(c) ? '#fff' : null);
 
-function stat() {
-  const white = STAT_BOOK.map(([x, y, w, h]) => [x, y, w, h, '#fff']);
-  const cut = STAT_CUT.map(([x, y, w, h]) => [x, y, w, h, '#000']);
-  return `<mask id="m">${rects([...white, ...cut])}</mask><rect width="24" height="24" fill="#fff" mask="url(#m)"/>`;
-}
+// adaptive icons: 108dp canvas, launchers show the inner 72dp, the 66dp circle is always safe
+const adaptive = (s, fill) => place(s, (s * 33) / 108, (s * 36.5) / 108, fill);
+
+// the status-bar icon is a white silhouette on the 24dp grid, and the book is what it's about:
+// the lid is only a 1dp outline, the open book fills it — two pages with three lines each, their
+// bottom edges sagging into the spine — and the deck runs the full width underneath with a
+// notch for the trackpad. The bookmark doesn't survive at this size and is left out
+const STAT = `
+........................
+........................
+........................
+........................
+..####################..
+..#..................#..
+..#.#######..#######.#..
+..#.#######..#######.#..
+..#.#.....#..#.....#.#..
+..#.#######..#######.#..
+..#.#.....#..#.....#.#..
+..#.#######..#######.#..
+..#.#.....#..#.....#.#..
+..#.#######..#######.#..
+..#.#######..#######.#..
+..#......##..##......#..
+..#..................#..
+..####################..
+##########....##########
+.######################.
+........................
+........................
+........................
+........................
+`
+  .slice(1, -1)
+  .split('\n');
+
+const stat = () =>
+  STAT.flatMap((row, y) =>
+    [...row].map((c, x) => (c === '#' ? `<rect x="${x}" y="${y}" width="1" height="1" fill="#fff"/>` : '')),
+  ).join('');
 
 const svg = (size, view, body) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="${view}" shape-rendering="crispEdges">${body}</svg>`;
 
+const px = (s, body) => svg(s, `0 0 ${s} ${s}`, body);
+
 const variants = {
-  foreground: (s) => svg(s, '-4 -4 44 44', book()),
-  monochrome: (s) => svg(s, '-4 -4 44 44', monochrome()),
+  foreground: (s) => px(s, adaptive(s, colour)),
+  monochrome: (s) => px(s, adaptive(s, mono)),
   legacy: (s) =>
-    svg(s, '1 1 34 34', `<rect x="2" y="2" width="32" height="32" rx="6" fill="${DESK}"/>${book()}`),
-  round: (s) => svg(s, '1 1 34 34', `<circle cx="18" cy="18" r="16" fill="${DESK}"/>${book()}`),
-  full: (s) => svg(s, '-1 -1 38 38', `<rect x="-1" y="-1" width="38" height="38" fill="${DESK}"/>${book()}`),
+    px(
+      s,
+      `<rect x="${s / 34}" y="${s / 34}" width="${(s * 32) / 34}" height="${(s * 32) / 34}" rx="${(s * 6) / 34}" fill="${DESK}"/>` +
+        place(s, s * 0.4, s * 0.42, colour),
+    ),
+  round: (s) =>
+    px(
+      s,
+      `<circle cx="${s / 2}" cy="${s / 2}" r="${(s * 16) / 34}" fill="${DESK}"/>` +
+        place(s, s * 0.39, s * 0.41, colour),
+    ),
+  // the 512px web icon doubles as the maskable one, so it keeps to the 40% safe radius too
+  full: (s) =>
+    px(s, `<rect width="${s}" height="${s}" fill="${DESK}"/>` + place(s, s * 0.36, s * 0.4, colour)),
   stat: (s) => svg(s, '0 0 24 24', stat()),
 };
 
