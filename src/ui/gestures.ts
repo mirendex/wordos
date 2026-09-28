@@ -71,7 +71,10 @@ let lastX = 0;
 function startWindowDrag(w: Win, cx: number, cy: number): void {
   bringToFront(w);
   drag = { w, dx: cx - w.x, dy: cy - w.y };
-  paint();
+  // a full paint() here would replace the titlebar element mid-gesture, detaching it from
+  // the document and silently dropping the rest of this touch's move/end events
+  const el = document.querySelector<HTMLElement>('.win[data-k="' + CSS.escape(w.key) + '"]');
+  if (el) el.style.zIndex = String(w.z);
 }
 function moveWindowDrag(cx: number, cy: number): void {
   if (!drag) return;
@@ -255,10 +258,12 @@ export function installGestures(): void {
     }
     if (resize) {
       resize = null;
+      paint();
       return;
     }
     if (drag) {
       drag = null;
+      paint();
       return;
     }
     if (marq) {
@@ -290,10 +295,12 @@ export function installGestures(): void {
     }
     if (resize) {
       resize = null;
+      paint();
       return;
     }
     if (drag) {
       drag = null;
+      paint();
       return;
     }
     if (marq) {
@@ -403,6 +410,7 @@ export function installGestures(): void {
       sliderSet(lastX, sdrag, true);
       sdrag = null;
     }
+    if (drag || resize) paint();
     drag = null;
     resize = null;
     if (ipress) {
