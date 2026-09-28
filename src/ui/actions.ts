@@ -48,17 +48,21 @@ import { getText, lookup, textWords } from '../apps/reader';
 import {
   addGoalPhrase,
   archiveGoal,
+  dictCheck,
+  dictPick,
   dropScene,
   gradeGoal,
   loadGoalCards,
   makeGoal,
+  pronPick,
+  pronSay,
   startTalk,
   talkTurn,
 } from '../domain/goal';
 import { goalState } from '../apps/goal/state';
 
 const SELECTOR =
-  '[data-app],[data-close],[data-winmin],[data-winmax],[data-mclose],[data-mok],[data-shade],[data-focus],[data-topic],[data-newtext],[data-harvest],[data-hpick],[data-hall],[data-hclose],[data-hadd],[data-again],[data-w],[data-saveword],[data-tab],[data-del],[data-speak],[data-gtab],[data-fwnew],[data-fwhint],[data-fwtap],[data-fwclear],[data-otap],[data-oback],[data-onew],[data-ogen],[data-oclear],[data-hkey],[data-hnew],[data-hru],[data-ptap],[data-pnew],[data-fkey],[data-fnew],[data-fru],[data-fsave],[data-tcmd],[data-tr],[data-reset],[data-echogen],[data-echosay],[data-echonext],[data-echoslow],[data-lnext],[data-lsay],[data-lslow],[data-lcheck],[data-lskip],[data-lsave],[data-sys],[data-dcheck],[data-dnew],[data-dsave],[data-intro],[data-notify],[data-nhour],[data-haptic],[data-haptest],[data-hapdef],[data-rate],[data-voices],[data-pickvoice],[data-savekey],[data-clearkey],[data-pickmodel],[data-mfree],[data-mreload],[data-setbase],[data-tome],[data-fixpos],[data-learn],[data-more],[data-back],[data-vcheck],[data-vskip],[data-vnext],[data-vpeek],[data-vnotknow],[data-vtab],[data-vhint],[data-know],[data-vknow],[data-prefetch],[data-vpick],[data-vmode],[data-say],[data-voice],[data-jump],[data-vsearch],[data-go],[data-vtranslate],[data-fgiveup],[data-owntopic],[data-vskipstop],[data-onboardlevel],[data-gtab2],[data-gmake],[data-gscenedel],[data-garchive],[data-glearn],[data-ghint],[data-gcheck],[data-gskip],[data-gnext],[data-gtalk],[data-gtalkclose],[data-gsend],[data-gvoice],[data-gaddphrase]';
+  '[data-app],[data-close],[data-winmin],[data-winmax],[data-mclose],[data-mok],[data-shade],[data-focus],[data-topic],[data-newtext],[data-harvest],[data-hpick],[data-hall],[data-hclose],[data-hadd],[data-again],[data-w],[data-saveword],[data-tab],[data-del],[data-speak],[data-gtab],[data-fwnew],[data-fwhint],[data-fwtap],[data-fwclear],[data-otap],[data-oback],[data-onew],[data-ogen],[data-oclear],[data-hkey],[data-hnew],[data-hru],[data-ptap],[data-pnew],[data-fkey],[data-fnew],[data-fru],[data-fsave],[data-tcmd],[data-tr],[data-reset],[data-echogen],[data-echosay],[data-echonext],[data-echoslow],[data-lnext],[data-lsay],[data-lslow],[data-lcheck],[data-lskip],[data-lsave],[data-sys],[data-dcheck],[data-dnew],[data-dsave],[data-intro],[data-notify],[data-nhour],[data-haptic],[data-haptest],[data-hapdef],[data-rate],[data-voices],[data-pickvoice],[data-savekey],[data-clearkey],[data-pickmodel],[data-mfree],[data-mreload],[data-setbase],[data-tome],[data-fixpos],[data-learn],[data-more],[data-back],[data-vcheck],[data-vskip],[data-vnext],[data-vpeek],[data-vnotknow],[data-vtab],[data-vhint],[data-know],[data-vknow],[data-prefetch],[data-vpick],[data-vmode],[data-say],[data-voice],[data-jump],[data-vsearch],[data-go],[data-vtranslate],[data-fgiveup],[data-owntopic],[data-vskipstop],[data-onboardlevel],[data-gtab2],[data-gmake],[data-gscenedel],[data-garchive],[data-glearn],[data-ghint],[data-gcheck],[data-gskip],[data-gnext],[data-gtalk],[data-gtalkclose],[data-gsend],[data-gvoice],[data-gaddphrase],[data-gdictnext],[data-gdictslow],[data-gdictcheck],[data-gdictskip],[data-gpronnext],[data-gpronsay],[data-gpronslow]';
 
 export function installActions(): void {
   document.addEventListener('click', (e) => {
@@ -461,6 +465,60 @@ export function installActions(): void {
       const [scene, en, ru] = d.gaddphrase.split('|');
       addGoalPhrase(scene, en, ru);
       paint();
+      return;
+    }
+    if (d.gdictnext) {
+      const g = goalState();
+      if (dictPick()) {
+        paint();
+        setTimeout(() => speak(g.dict.cur.en), 200);
+      }
+      return;
+    }
+    if (d.gdictslow) {
+      const g = goalState();
+      if (g.dict.cur) {
+        const r = (S.cfg && S.cfg.rate) || 1;
+        S.cfg.rate = 0.6;
+        speak(g.dict.cur.en);
+        S.cfg.rate = r;
+      }
+      return;
+    }
+    if (d.gdictcheck) {
+      const ta = document.querySelector('textarea[data-gdict]') as HTMLTextAreaElement | null;
+      if (ta) ta.blur();
+      dictCheck(ta ? ta.value : '');
+      return;
+    }
+    if (d.gdictskip) {
+      const g = goalState();
+      g.dict.text = '';
+      g.dict.shown = true;
+      g.dict.last = 0;
+      paint();
+      return;
+    }
+    if (d.gpronnext) {
+      const g = goalState();
+      if (pronPick()) {
+        paint();
+        setTimeout(() => speak(g.pron.cur.en), 250);
+      }
+      return;
+    }
+    if (d.gpronsay) {
+      pronSay();
+      return;
+    }
+    if (d.gpronslow) {
+      const g = goalState();
+      if (g.pron.cur) {
+        const r = (S.cfg && S.cfg.rate) || 1;
+        S.cfg.rate = 0.7;
+        speak(g.pron.cur.en);
+        S.cfg.rate = r;
+      }
       return;
     }
     if (d.savekey) {

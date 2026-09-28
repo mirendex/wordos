@@ -59,6 +59,11 @@ export interface GoalChat {
   phrases?: { en: string; ru: string }[];
 }
 
+export interface GoalPhrase {
+  en: string;
+  ru: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function goalState(): any {
   if (!S.goal || typeof S.goal !== 'object') S.goal = {};
@@ -69,5 +74,11 @@ export function goalState(): any {
   if (typeof g.i !== 'number') g.i = 0;
   if (g.chat === undefined) g.chat = null;
   if (!Array.isArray(g.archive)) g.archive = [];
+  if (!g.dict || typeof g.dict !== 'object')
+    g.dict = { cur: null, shown: false, text: '', err: '', done: 0, acc: [] };
+  if (!Array.isArray(g.dict.acc)) g.dict.acc = [];
+  if (!g.pron || typeof g.pron !== 'object')
+    g.pron = { cur: null, rec: false, last: null, heard: '', err: '', done: 0, acc: [] };
+  if (!Array.isArray(g.pron.acc)) g.pron.acc = [];
   return g;
 }

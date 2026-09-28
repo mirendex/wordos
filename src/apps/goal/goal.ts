@@ -6,13 +6,14 @@ import { DAY } from '../../core/util';
 import { GoalScene, goalState } from './state';
 import { Win } from '../../ui/windows';
 import { talkView } from './talk';
+import { dictView, pronView } from './practice';
 
 function planView(): string {
   const g = goalState();
   if (!g.cur) {
     return `<h3 class="h">Цель</h3>
       <p class="sub">Опиши, к чему готовишься, и дату. Появятся сценарии, слова и фразы под них, и можно потренировать разговор.</p>
-      <textarea class="ta" id="gdesc" placeholder="Например: лечу на Шри-Ланку с пересадкой в Дубае, хочу спокойно общаться, спрашивать и понимать ответы">${esc(g.draft || '')}</textarea>
+      <textarea class="ta" id="gdesc" placeholder="К чему готовишься?">${esc(g.draft || '')}</textarea>
       <div class="rowb" style="margin-top:8px"><input type="date" class="answ" id="guntil" value="${esc(g.draftUntil || '')}" min="${DAY()}"></div>
       <div class="rowb" style="margin-top:8px"><button class="btn p" data-gmake="1">Составить план</button></div>
       ${g.err ? `<div class="note"><div class="l">${esc(g.err)}</div>${errHint(g.err) ? `<div class="l" style="color:var(--grey)">${esc(errHint(g.err))}</div>` : ''}</div>` : ''}
@@ -128,8 +129,12 @@ export function goalView(w: Win): string {
   const tabs = `<div class="rowb" style="margin:0 0 10px">
     <button class="btn sm ${g.tab === 'plan' ? 'p' : ''}" data-gtab2="plan">План</button>
     <button class="btn sm ${g.tab === 'cards' ? 'p' : ''}" data-gtab2="cards">Карточки</button>
-    <button class="btn sm ${g.tab === 'talk' ? 'p' : ''}" data-gtab2="talk">Диалог</button></div>`;
+    <button class="btn sm ${g.tab === 'talk' ? 'p' : ''}" data-gtab2="talk">Диалог</button>
+    <button class="btn sm ${g.tab === 'dict' ? 'p' : ''}" data-gtab2="dict">Слух</button>
+    <button class="btn sm ${g.tab === 'pron' ? 'p' : ''}" data-gtab2="pron">Произношение</button></div>`;
   if (g.tab === 'cards') return tabs + cardsView(w);
   if (g.tab === 'talk') return tabs + talkView();
+  if (g.tab === 'dict') return tabs + dictView();
+  if (g.tab === 'pron') return tabs + pronView();
   return tabs + planView();
 }

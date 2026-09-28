@@ -1,11 +1,14 @@
-import { hasGapSentence } from '../lib/text';
+import { hasGapSentence, echoScore } from '../lib/text';
 import { newSrsCard, srsStep } from '../lib/srs';
 import { daysLeft, dailyQuota } from '../lib/plan';
 import { DAY, PLUS } from '../core/util';
 import { paint } from '../core/paint';
 import { save } from '../core/persist';
 import { ask } from '../services/llm';
-import { goalState, Goal, GoalItem, GoalScene, GoalChat } from '../apps/goal/state';
+import { CAPSR, SR } from '../platform/speech';
+import { haptic } from '../platform/haptics';
+import { dialog } from '../ui/modal';
+import { goalState, Goal, GoalItem, GoalScene, GoalChat, GoalPhrase } from '../apps/goal/state';
 
 function uid(prefix: string): string {
   return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -251,4 +254,180 @@ export function addGoalPhrase(scene: string, en: string, ru: string): void {
     word_ru: ru,
   };
   save();
+}
+
+// listening/pronunciation drills draw straight from the goal's own scenario sentences —
+// no separate generation, no mixing with LISTEN/ECHO's pools
+export function goalPracticePool(): GoalPhrase[] {
+  const g = goalState();
+  if (!g.cur) return [];
+  return Object.values(g.cur.items as Record<string, GoalItem>)
+    .filter((i) => hasGapSentence(i.sentence))
+    .map((i) => ({ en: String(i.sentence).replace('___', i.gap), ru: i.ru || '' }));
+}
+
+function pickPhrase(pool: GoalPhrase[], avoid?: GoalPhrase | null): GoalPhrase {
+  let next = pool[Math.floor(Math.random() * pool.length)];
+  if (pool.length > 1 && avoid && next.en === avoid.en) {
+    const rest = pool.filter((x) => x.en !== avoid.en);
+    next = rest[Math.floor(Math.random() * rest.length)];
+  }
+  return next;
+}
+
+export function dictPick(): boolean {
+  const g = goalState();
+  const pool = goalPracticePool();
+  if (!pool.length) return false;
+  g.dict.cur = pickPhrase(pool, g.dict.cur);
+  g.dict.shown = false;
+  g.dict.text = '';
+  g.dict.err = '';
+  return true;
+}
+
+const dictNorm = (s: unknown): string[] =>
+  String(s || '')
+    .toLowerCase()
+    .replace(/[^a-z' ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .filter(Boolean);
+
+export function dictCheck(said: string): void {
+  const g = goalState();
+  if (!g.dict.cur) return;
+  const s = said.trim();
+  if (!s) {
+    g.dict.err = 'Напиши, что услышал.';
+    paint();
+    return;
+  }
+  g.dict.text = s;
+  g.dict.shown = true;
+  g.dict.err = '';
+  const a = dictNorm(s);
+  const b = dictNorm(g.dict.cur.en);
+  let hit = 0;
+  b.forEach((x, i) => {
+    if (a[i] === x) hit++;
+  });
+  const pct = Math.round((hit / Math.max(1, b.length)) * 100);
+  g.dict.last = pct;
+  g.dict.acc.push(pct);
+  if (g.dict.acc.length > 50) g.dict.acc = g.dict.acc.slice(-50);
+  g.dict.done++;
+  save();
+  paint();
+}
+
+export function pronPick(): boolean {
+  const g = goalState();
+  const pool = goalPracticePool();
+  if (!pool.length) return false;
+  g.pron.cur = pickPhrase(pool, g.pron.cur);
+  g.pron.last = null;
+  g.pron.heard = '';
+  g.pron.err = '';
+  return true;
+}
+
+export async function pronSay(): Promise<void> {
+  const g = goalState();
+  if (g.pron.rec || !g.pron.cur) return;
+  const P = CAPSR();
+  if (!P && !SR) {
+    dialog({ title: 'голос', text: 'На этом телефоне распознавание речи не работает.' });
+    return;
+  }
+  g.pron.err = '';
+  try {
+    if (P) {
+      const av = await P.available();
+      if (!(av && (av.available || av.speechRecognition))) {
+        dialog({ title: 'голос', text: 'Не вышло включить распознавание речи.' });
+        return;
+      }
+      const perm = await P.requestPermissions();
+      if (perm && perm.speechRecognition && perm.speechRecognition !== 'granted') {
+        dialog({ title: 'голос', text: 'Нужно разрешение на микрофон.' });
+        return;
+      }
+      g.pron.rec = true;
+      paint(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let res: any;
+      try {
+        res = await P.start({ language: 'en-US', maxResults: 5, partialResults: false, popup: false });
+      } catch {
+        res = await P.start({ language: 'en-US', maxResults: 5, partialResults: false, popup: false });
+      }
+      g.pron.rec = false;
+      const alts: string[] = (res && res.matches) || [];
+      let best = { pct: -1, words: [] as unknown[] };
+      let heard = '';
+      alts.forEach((a) => {
+        const s = echoScore(a, g.pron.cur.en);
+        if (s.pct > best.pct) {
+          best = s;
+          heard = a;
+        }
+      });
+      g.pron.heard = heard;
+      g.pron.last = best;
+      g.pron.acc.push(best.pct);
+      if (g.pron.acc.length > 50) g.pron.acc = g.pron.acc.slice(-50);
+      if (best.pct >= 85) {
+        g.pron.done++;
+        haptic('win');
+      } else haptic(best.pct >= 60 ? 'ok' : 'no');
+      save();
+      paint(true);
+      return;
+    }
+    const rec = new SR();
+    rec.lang = 'en-US';
+    rec.maxAlternatives = 5;
+    rec.interimResults = false;
+    g.pron.rec = true;
+    paint(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (ev: any) => {
+      const alts: string[] = [];
+      for (let i = 0; i < ev.results[0].length; i++) alts.push(ev.results[0][i].transcript);
+      let best = { pct: -1, words: [] as unknown[] };
+      let heard = '';
+      alts.forEach((a) => {
+        const s = echoScore(a, g.pron.cur.en);
+        if (s.pct > best.pct) {
+          best = s;
+          heard = a;
+        }
+      });
+      g.pron.rec = false;
+      g.pron.heard = heard;
+      g.pron.last = best;
+      g.pron.acc.push(best.pct);
+      if (best.pct >= 85) g.pron.done++;
+      save();
+      paint(true);
+    };
+    rec.onerror = () => {
+      g.pron.rec = false;
+      g.pron.err = 'не расслышал';
+      paint(true);
+    };
+    rec.onend = () => {
+      if (g.pron.rec) {
+        g.pron.rec = false;
+        paint(true);
+      }
+    };
+    rec.start();
+  } catch (e) {
+    g.pron.rec = false;
+    g.pron.err = (e as Error)?.message || 'ошибка';
+    paint(true);
+  }
 }
