@@ -96,6 +96,7 @@ export function fwNew(): boolean {
       g.used = [];
       g.picked = [];
       g.msg = '';
+      g.msgWord = '';
       g.miss = false;
       g.hint = {};
       save();
@@ -125,7 +126,6 @@ export function fwTap(i: number): void {
     haptic('no');
     return;
   }
-  if (!g.picked.length) g.msg = '';
   g.picked.push(i);
   haptic('type');
   const word = fwWord(g);
@@ -153,6 +153,8 @@ export function fwView(): string {
     <div class="rowb"><button class="btn p" data-go="vocab">К словам</button></div>`;
   const cur = fwWord(g);
   const win = g.found.length === g.words.length;
+  // the message sits right under the grid, where the eyes are, not below a long word list
+  const msg = win ? g.msg || 'Готово' : g.msg;
   return `<div class="rowsplit"><h3 class="h">Буквы</h3>
       <span class="sub">${g.found.length} из ${g.words.length}${g.solved ? ' · полей ' + g.solved : ''}</span></div>
 
@@ -163,6 +165,8 @@ export function fwView(): string {
         return `<button class="ltile ${used ? 'used' : ''} ${sel ? 'sel' : ''}" data-fwtap="${i}">${esc(t.ch.toUpperCase())}</button>`;
       })
       .join('')}</div>
+
+    ${msg ? `<div class="note"><div class="l">${esc(msg)}</div></div>` : ''}
 
     <div class="lcur">${cur ? esc(cur.toUpperCase()) : '<i>веди пальцем по буквам</i>'}</div>
 
@@ -187,10 +191,8 @@ export function fwView(): string {
 
     ${
       win
-        ? `<div class="note"><div class="l">${esc(g.msg || 'Готово')}</div>
-      <div class="rowb"><button class="btn p sm" data-fwnew="1">Ещё набор</button></div></div>`
-        : `${g.msg ? `<div class="note"><div class="l">${esc(g.msg)}</div></div>` : ''}
-      <div class="rowb"><button class="btn sm" data-fwclear="1">Сбросить</button>
+        ? `<div class="rowb"><button class="btn p sm" data-fwnew="1">Ещё набор</button></div>`
+        : `<div class="rowb"><button class="btn sm" data-fwclear="1">Сбросить</button>
       <button class="btn sm" data-fwhint="1">Подсказка</button>
       <button class="btn sm" data-fwnew="1">Новые слова</button></div>`
     }`;
@@ -317,16 +319,23 @@ export function fwSubmit(): void {
       if (g.found.length === g.words.length) {
         g.solved++;
         g.msg = 'Все слова собраны';
+        g.msgWord = '';
         haptic('win');
         if (!g.miss) S.egg = Object.assign({}, S.egg || {}, { letters: 1 });
       } else {
-        g.msg = '';
+        // "right word, wrong letters" stays until that very word is found; anything else
+        // found in the meantime doesn't clear it
+        if (!g.msgWord || g.msgWord === hit.w) {
+          g.msg = '';
+          g.msgWord = '';
+        }
         haptic('ok');
       }
     } else {
       g.picked = [];
       haptic('ok');
       g.msg = 'Слово верное — «' + hit.w.toUpperCase() + '», но собери его по другим буквам на поле';
+      g.msgWord = hit.w;
     }
     save();
     paint();
