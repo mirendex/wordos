@@ -9,6 +9,7 @@ import { installActions } from './ui/actions';
 import { loadAppVersion } from './platform/appinfo';
 import { notifyPlan } from './platform/notify';
 import { $, clockTxt } from './core/util';
+import { haptic, withoutHaptics } from './platform/haptics';
 
 installGestures();
 installKeyboard();
@@ -18,8 +19,8 @@ function boot(): void {
   if (!S.cfg) S.cfg = { key: '', model: 'openai/gpt-4o-mini' };
   recalcLevel();
   paint();
-  if (!S.seenIntro) open('about');
-  else open('vocab');
+  withoutHaptics(() => (S.seenIntro ? open('vocab') : open('about')));
+  haptic('boot');
   notifyPlan();
   loadAppVersion();
 }
