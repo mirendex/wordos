@@ -1,5 +1,37 @@
 import { describe, expect, it } from 'vitest';
-import { checkAnswer, diffHtml, echoScore, hasGapSentence, lev, mask, maskPhrase, wordDiff } from './text';
+import {
+  checkAnswer,
+  diffHtml,
+  echoScore,
+  hasGapSentence,
+  lev,
+  mask,
+  maskPhrase,
+  normaliseGap,
+  wordDiff,
+} from './text';
+
+describe('normaliseGap', () => {
+  it('keeps a sentence that already has a ___ gap', () => {
+    expect(normaliseGap('Could I get ___, please?', 'the bill')).toBe('Could I get ___, please?');
+  });
+  it('brings longer underscore runs and [blank] to ___', () => {
+    expect(normaliseGap('Could I get _____, please?', 'the bill')).toBe('Could I get ___, please?');
+    expect(normaliseGap('Could I get [blank], please?', 'the bill')).toBe('Could I get ___, please?');
+  });
+  it('cuts the answer out of a sentence that has no gap', () => {
+    expect(normaliseGap('Could I get the bill, please?', 'the bill')).toBe('Could I get ___, please?');
+    expect(normaliseGap('Where is The Gate?', 'the gate')).toBe('Where is ___?');
+  });
+  it('gives up when there is no gap and the answer is not in the sentence', () => {
+    expect(normaliseGap('Could I get it, please?', 'the bill')).toBeNull();
+    expect(normaliseGap('', 'the bill')).toBeNull();
+    expect(normaliseGap(undefined, 'the bill')).toBeNull();
+  });
+  it('leaves one gap and shows any other as the answer', () => {
+    expect(normaliseGap('___ and ___ please', 'tea')).toBe('___ and tea please');
+  });
+});
 
 describe('lev', () => {
   it('is 0 for identical strings', () => {

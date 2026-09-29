@@ -1,4 +1,4 @@
-import { hasGapSentence, echoScore } from '../lib/text';
+import { hasGapSentence, echoScore, normaliseGap } from '../lib/text';
 import { newSrsCard, srsStep } from '../lib/srs';
 import { daysLeft, dailyQuota } from '../lib/plan';
 import { DAY, PLUS } from '../core/util';
@@ -102,15 +102,25 @@ export async function fillScene(scene: GoalScene): Promise<void> {
 Пример: {"kind":"phrase","en":"the bill","sentence":"Could I get ___, please?","ru":"Можно мне счёт, пожалуйста?","word_ru":"счёт"}
 Формат ответа:
 {"items":[{"kind":"word","en":"слово или фраза для пропуска (2-4 слова)","sentence":"текст с ___","ru":"перевод предложения","word_ru":"перевод слова или фразы","ipa":"транскрипция или пустая строка","tip":"заметка по-русски или пустая строка"}]}`);
-  const items = Array.isArray(r.items) ? r.items : [];
+  // the prompt asks for one list, but models split it into words and phrases or rename it
+  const listed = (key: string, kind: string): Record<string, string>[] =>
+    Array.isArray(r[key])
+      ? r[key].filter((x: unknown) => x && typeof x === 'object').map((x: object) => ({ kind, ...x }))
+      : [];
+  const items = [
+    ...listed('items', ''),
+    ...listed('cards', ''),
+    ...listed('words', 'word'),
+    ...listed('phrases', 'phrase'),
+  ];
   let added = 0;
   items.forEach((c: Record<string, string>) => {
-    if (!c || typeof c !== 'object') return;
     const en = String(c.en || '').trim();
-    if (!en || !c.sentence || String(c.sentence).indexOf('___') < 0) return;
+    const sentence = normaliseGap(c.sentence, en);
+    if (!en || !sentence) return;
     // the gap must leave real surrounding text, or the card is just the whole answer with
     // no context to fill in — reject rather than store an unusable blank-only "sentence"
-    const context = String(c.sentence).replace('___', '').trim();
+    const context = sentence.replace('___', '').trim();
     if (context.length < 4) return;
     const id = uid('i');
     const item: GoalItem = {
@@ -119,7 +129,7 @@ export async function fillScene(scene: GoalScene): Promise<void> {
       kind: c.kind === 'phrase' ? 'phrase' : 'word',
       en,
       gap: en,
-      sentence: c.sentence,
+      sentence,
       ru: c.ru || '',
       word_ru: c.word_ru || '',
       ipa: c.ipa || '',
@@ -130,7 +140,16 @@ export async function fillScene(scene: GoalScene): Promise<void> {
   });
   // a scene that produced nothing usable stays unfilled and says so, instead of being marked
   // done with no cards in it
-  if (!added) throw new Error('модель не вернула подходящих карточек для сценария «' + scene.ru + '»');
+  if (!added) {
+    // say what came back, so a model that answers in the wrong shape is visible as such
+    const first = items[0];
+    const seen = first
+      ? ` (получено ${items.length}, например: «${String(first.sentence || first.en || '')
+          .replace(/[<>]/g, '')
+          .slice(0, 60)}»)`
+      : ` (в ответе нет списка карточек, пришло: «${JSON.stringify(r).replace(/[<>]/g, '').slice(0, 60)}»)`;
+    throw new Error('модель не вернула подходящих карточек для сценария «' + scene.ru + '»' + seen);
+  }
   scene.filled = true;
   save();
 }

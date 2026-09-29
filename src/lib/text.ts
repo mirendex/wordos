@@ -6,6 +6,23 @@ export function hasGapSentence(sentence: unknown): boolean {
   return typeof sentence === 'string' && sentence.indexOf('___') >= 0;
 }
 
+// models rarely keep to the exact "___" marker: they write "_____", "[blank]", or hand back the
+// whole sentence with the answer still in it. Bring any of those to one "___" for the answer;
+// null when the sentence has no gap and doesn't contain the answer either
+export function normaliseGap(sentence: unknown, answer: string): string | null {
+  let s = typeof sentence === 'string' ? sentence.trim() : '';
+  if (!s || !answer) return null;
+  s = s.replace(/_{2,}|\[\s*(?:blank|\.{2,}|…)\s*\]/gi, '___');
+  if (s.indexOf('___') < 0) {
+    const at = s.toLowerCase().indexOf(answer.toLowerCase());
+    if (at < 0) return null;
+    s = s.slice(0, at) + '___' + s.slice(at + answer.length);
+  }
+  // a card has one gap: any further one is shown as the answer itself
+  const first = s.indexOf('___') + 3;
+  return s.slice(0, first) + s.slice(first).split('___').join(answer);
+}
+
 export function lev(a: string, b: string): number {
   const m = a.length;
   const n = b.length;
