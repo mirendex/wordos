@@ -1,7 +1,7 @@
 import { byWordsLevel, cefr } from '../lib/scale';
 import { paint } from '../core/paint';
 import { S, save } from '../core/persist';
-import { haptic, hapPower } from '../platform/haptics';
+import { HAP_STEPS, haptic, hapStep, hapText } from '../platform/haptics';
 import { nToPct, pctToN } from '../lib/scale';
 import { cover } from '../domain/frequency';
 import { vocabState } from '../domain/vocab';
@@ -14,15 +14,16 @@ function sliderSet(clientX: number, el: HTMLElement, commit: boolean): void {
   const r = el.getBoundingClientRect();
   const pct = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
   if (el.dataset.slider === 'hap') {
-    const val = Math.round((pct * 100) / 5) * 5;
+    const step = Math.round(pct * HAP_STEPS);
     if (!S.cfg) S.cfg = {};
-    const was = hapPower();
-    S.cfg.hapPower = val;
-    (el.querySelector('.pfill') as HTMLElement).style.width = val + '%';
-    (el.querySelector('.pknob') as HTMLElement).style.left = val + '%';
+    const was = hapStep();
+    S.cfg.hapStep = step;
+    const at = (step / HAP_STEPS) * 100;
+    (el.querySelector('.pfill') as HTMLElement).style.width = at + '%';
+    (el.querySelector('.pknob') as HTMLElement).style.left = at + '%';
     const t = document.getElementById('haptxt');
-    if (t) t.innerHTML = 'сила: <b>' + val + '</b> из 100' + (val <= 0 ? ' · отклик выключен' : '');
-    if (val !== was && val > 0) haptic('tick');
+    if (t) t.innerHTML = hapText(step);
+    if (step !== was && step > 0) haptic('tick');
     if (commit) {
       save();
       haptic('ok');

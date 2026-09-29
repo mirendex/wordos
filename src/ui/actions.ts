@@ -3,7 +3,7 @@ import { checkAnswer } from '../lib/text';
 import { DAY } from '../core/util';
 import { paint } from '../core/paint';
 import { S, save } from '../core/persist';
-import { HAP_DEFAULT, haptic, hapticTest } from '../platform/haptics';
+import { HAP_DEFAULT_STEP, haptic, hapticTest } from '../platform/haptics';
 import { listen, listenFree, speak, ttsVoices } from '../platform/speech';
 import { notifyPlan } from '../platform/notify';
 import { APPVER } from '../platform/appinfo';
@@ -582,7 +582,7 @@ export function installActions(): void {
       return;
     }
     if (d.hapdef) {
-      S.cfg.hapPower = HAP_DEFAULT;
+      S.cfg.hapStep = HAP_DEFAULT_STEP;
       save();
       haptic('ok');
       paint();

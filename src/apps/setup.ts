@@ -1,6 +1,6 @@
 import { esc } from '../lib/scale';
 import { S } from '../core/persist';
-import { hapPower } from '../platform/haptics';
+import { HAP_STEPS, hapStep, hapText } from '../platform/haptics';
 import { MERR, MFREE, MLOAD, MODELS, MQ } from '../services/models';
 import { Win } from '../ui/windows';
 
@@ -44,11 +44,11 @@ export function setupView(w: Win): string {
     <p class="sub">Ноль слева выключает.</p>
     <div class="pslider" data-slider="hap">
       <div class="ptrack">${'<i></i>'.repeat(10)}</div>
-      <div class="pfill" style="width:${hapPower()}%"></div>
-      <div class="pknob" style="left:${hapPower()}%"></div>
+      <div class="pfill" style="width:${(hapStep() / HAP_STEPS) * 100}%"></div>
+      <div class="pknob" style="left:${(hapStep() / HAP_STEPS) * 100}%"></div>
     </div>
     <div class="pscale"><i style="left:0%">тихо</i><i style="left:50%">средне</i><i style="left:100%">сильно</i></div>
-    <div class="cov" id="haptxt">сила: <b>${hapPower()}</b> из 100${hapPower() <= 0 ? ' · отклик выключен' : ''}</div>
+    <div class="cov" id="haptxt">${hapText()}</div>
     <div class="rowb"><button class="btn sm" data-haptest="1">Проверить</button>
       <button class="btn sm" data-hapdef="1">Сбросить</button></div>
 

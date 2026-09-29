@@ -23,15 +23,20 @@ const HAP: Record<string, HapKind> = {
   win: { i: 3 }, // победа: три щелчка
 };
 
-export const HAP_DEFAULT = 5;
+// The slider has HAP_STEPS positions of 5% each after "off" at the far left; the strength it shows
+// runs from HAP_MIN to HAP_MAX.
+export const HAP_STEPS = 20;
+export const HAP_MIN = 100;
+export const HAP_MAX = 500;
+export const HAP_DEFAULT_STEP = 1;
 
 // On a phone whose motor can vary its amplitude, the slider sets the strength itself: every pulse
-// is the same short length and the slider's 0..100 becomes an amplitude of AMP_MIN..AMP_MAX out
-// of 255, so even the top is well short of full strength. Other phones only take a length, so
+// is the same short length and HAP_MIN..HAP_MAX becomes an amplitude of AMP_MIN..AMP_MAX out of
+// 255, so even the top stays a little short of full strength. Other phones only take a length, so
 // there the slider stretches the pulse instead.
 const PULSE_MS = 2;
-const AMP_MIN = 24;
-const AMP_MAX = 160;
+const AMP_MIN = 90;
+const AMP_MAX = 230;
 
 interface VibePlugin {
   info(): Promise<{ amplitude: boolean }>;
@@ -60,37 +65,57 @@ function askAmp(V: VibePlugin | undefined): void {
     });
 }
 
-export function hapPower(): number {
-  const v = S.cfg && typeof S.cfg.hapPower === 'number' ? S.cfg.hapPower : HAP_DEFAULT;
-  return Math.max(0, Math.min(100, v));
+// the slider position: 0 is off, 1..HAP_STEPS are the strengths. A value saved by the old 0..100
+// slider is turned into the nearest position
+export function hapStep(): number {
+  const c = S.cfg || {};
+  let k = HAP_DEFAULT_STEP;
+  if (typeof c.hapStep === 'number') k = c.hapStep;
+  else if (typeof c.hapPower === 'number') k = c.hapPower <= 0 ? 0 : Math.max(1, Math.round(c.hapPower / 5));
+  return Math.max(0, Math.min(HAP_STEPS, Math.round(k)));
+}
+
+// the strength the slider shows: 0 when off, otherwise HAP_MIN..HAP_MAX
+export function hapValue(step: number = hapStep()): number {
+  if (step <= 0) return 0;
+  return Math.round(HAP_MIN + ((step - 1) / (HAP_STEPS - 1)) * (HAP_MAX - HAP_MIN));
+}
+
+export function hapText(step: number = hapStep()): string {
+  return step <= 0 ? 'сила: <b>0</b> · отклик выключен' : 'сила: <b>' + hapValue(step) + '</b> из ' + HAP_MAX;
+}
+
+// 0..100 on the scale the length-based fallback and the impact styles were made for
+function hapPercent(): number {
+  return Math.round(hapValue() / 5);
 }
 
 export function hapStyle(bump?: boolean): 'Light' | 'Medium' | 'Heavy' {
-  const p = hapPower() + (bump ? 18 : 0);
+  const p = hapPercent() + (bump ? 18 : 0);
   return p < 42 ? 'Light' : p < 76 ? 'Medium' : 'Heavy';
 }
 
 export function hapAmp(quiet?: boolean, bump?: boolean): number {
-  const p = Math.min(100, hapPower() + (bump ? 18 : 0));
-  const amp = AMP_MIN + (p / 100) * (AMP_MAX - AMP_MIN);
+  const t = Math.min(1, (hapValue() - HAP_MIN) / (HAP_MAX - HAP_MIN) + (bump ? 0.18 : 0));
+  const amp = AMP_MIN + t * (AMP_MAX - AMP_MIN);
   return Math.max(1, Math.round(quiet ? amp * 0.45 : amp));
 }
 
 export function haptic(kind: string): void {
   if (S.cfg && S.cfg.haptic === false) return;
   const h = HAP[kind] || HAP.tap;
-  if (hapPower() <= 0) return;
+  if (hapStep() <= 0) return;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const P = (window as any).Capacitor && (window as any).Capacitor.Plugins;
   const style = hapStyle(h.s === 'Medium');
   const gap = 62;
-  const dur = Math.max(2, Math.round((h.q ? 0.45 : 1) * hapPower() * 0.3));
+  const dur = Math.max(2, Math.round((h.q ? 0.45 : 1) * hapPercent() * 0.3));
   const V: VibePlugin | undefined = P && P.Vibe;
   askAmp(V);
   try {
     if (P && P.Haptics && (P.Haptics.impact || P.Haptics.vibrate)) {
       const legacy = () => {
-        if (P.Haptics.vibrate && hapPower() < 100)
+        if (P.Haptics.vibrate && hapPercent() < 100)
           P.Haptics.vibrate({ duration: dur }).catch(() => {
             if (P.Haptics.impact) P.Haptics.impact({ style }).catch(() => {});
           });
