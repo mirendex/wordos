@@ -1,8 +1,9 @@
 import { chromium } from 'playwright';
+import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-// the brand colour: the desktop the app itself is drawn on, so launcher icon, splash and app
+// the brand colour: the desktop the app itself is drawn on, so launcher icon and app
 // follow each other without a jump
 const DESK = '#3B3560';
 
@@ -118,9 +119,6 @@ const variants = {
   // iOS rounds the corners itself and doesn't allow transparency
   touch: (s) => px(s, `<rect width="${s}" height="${s}" fill="${DESK}"/>` + place(s, s * SHARE, colour)),
   favicon: (s) => px(s, place(s, s / 2, colour)),
-  // Android 12+ draws the launcher icon at 240dp on the splash screen; older versions show
-  // this drawable instead, so it's the same logo at the same size
-  splash: (s) => px(s, place(s, (s * 33) / 108, colour)),
   stat: (s) => svg(s, '0 0 24 24', stat()),
 };
 
@@ -170,7 +168,6 @@ for (const [d, k] of Object.entries(DENSITIES)) {
   jobs.push([`${RES}/mipmap-${d}/ic_launcher_round.png`, 'round', 48 * k]);
   jobs.push([`${RES}/mipmap-${d}/ic_launcher_foreground.png`, 'foreground', 108 * k]);
   jobs.push([`${RES}/mipmap-${d}/ic_launcher_monochrome.png`, 'monochrome', 108 * k]);
-  jobs.push([`${RES}/drawable-${d}/splash_logo.png`, 'splash', 240 * k]);
   jobs.push([`${RES}/drawable-${d}/ic_stat_en.png`, 'stat', 24 * k]);
 }
 jobs.push(['public/icon-192.png', 'legacy', 192]);
@@ -179,12 +176,243 @@ jobs.push(['public/icon-maskable-512.png', 'maskable', 512]);
 jobs.push(['public/apple-touch-icon.png', 'touch', 180]);
 jobs.push(['public/favicon-32.png', 'favicon', 32]);
 
+// the launch animation flies the arrow pointer around the window, so the logo comes as two SVG
+// layers over the same box: the window with the pointer taken off, and the pointer alone. Laid
+// over each other they are exactly the logo, which is checked here.
+const POINTER = [
+  'K.....',
+  'KK....',
+  'KWK...',
+  'KWWK..',
+  'KWWWK.',
+  'KWWWWK',
+  'KWWWWWK',
+  'KWWKKKK',
+  'KWK....',
+  'KK.....',
+];
+const POINTER_AT = [20, 15];
+const WINDOW_SIZE = [24, 22];
+
+// The system splash is the launch animation: an animated vector of the logo, the window popping
+// in, the pointer coming out onto its corner and clicking it, a ring spreading from the tip. Only
+// Android 12+ plays it, older versions show the logo standing still. Each colour of the pixel map
+// is one path of 1x1 cells; the units are pixels of the logo.
+const SPLASH_MS = 700;
+const TIP = [POINTER_AT[0] + 0.5, POINTER_AT[1] + 0.5];
+const PRESS_WIN = 0.93; // how far the click presses the window in, and the pointer
+const PRESS_PTR = 0.8;
+const VIEW = 72; // the splash icon is drawn 240dp wide and cropped to its middle two thirds
+
+function cells(map) {
+  const byColour = new Map();
+  map.forEach((row, y) =>
+    [...row].forEach((c, x) => {
+      if (c === '.') return;
+      if (!byColour.has(c)) byColour.set(c, []);
+      byColour.get(c).push(`M${x},${y}h1v1h-1z`);
+    }),
+  );
+  return [...byColour].map(
+    ([c, d]) => `<path android:fillColor="${PALETTE[c]}" android:pathData="${d.join('')}"/>`,
+  );
+}
+
+function layers() {
+  const cols = Math.max(...LOGO.map((r) => r.length));
+  const blank = () => LOGO.map((r) => '.'.repeat(r.length));
+  const win = blank().map((r) => [...r]);
+  const ptr = blank().map((r) => [...r]);
+  LOGO.forEach((row, y) => [...row].forEach((c, x) => (win[y][x] = c)));
+  POINTER.forEach((row, j) =>
+    [...row].forEach((c, i) => {
+      if (c === '.') return;
+      const x = POINTER_AT[0] + i;
+      const y = POINTER_AT[1] + j;
+      ptr[y][x] = c;
+      // what the pointer covers: the window's paper, its right and bottom edge, or nothing
+      const inside = x < WINDOW_SIZE[0] && y < WINDOW_SIZE[1];
+      win[y][x] = inside ? (x === WINDOW_SIZE[0] - 1 || y === WINDOW_SIZE[1] - 1 ? 'K' : 'P') : '.';
+    }),
+  );
+  LOGO.forEach((row, y) =>
+    [...row].forEach((c, x) => {
+      if ((ptr[y][x] !== '.' ? ptr[y][x] : win[y][x]) !== c)
+        throw new Error(`the two logo layers differ from the logo at ${x},${y}`);
+    }),
+  );
+  return { cols, rows: LOGO.length, win: win.map((r) => r.join('')), ptr: ptr.map((r) => r.join('')) };
+}
+
+// the same two layers for the web part, which draws the last moment of the splash and opens it
+function writeWebLogo({ cols, rows, win, ptr }) {
+  const svg = (map) =>
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${cols} ${rows}" shape-rendering="crispEdges">` +
+    map
+      .flatMap((row, y) => {
+        const out = [];
+        for (let x = 0; x < row.length;) {
+          let n = 1;
+          while (row[x + n] === row[x]) n++;
+          if (row[x] !== '.')
+            out.push(`<rect x="${x}" y="${y}" width="${n}" height="1" fill="${PALETTE[row[x]]}"/>`);
+          x += n;
+        }
+        return out;
+      })
+      .join('') +
+    '</svg>';
+  const file = 'src/ui/bootlogo.ts';
+  writeFileSync(
+    resolve(file),
+    [
+      "// generated by scripts/gen-icons.mjs: the logo's pixel map as two SVG layers, the window and the pointer",
+      `export const BOOT_WINDOW = '${svg(win)}';`,
+      `export const BOOT_POINTER = '${svg(ptr)}';`,
+      `export const BOOT_COLS = ${cols};`,
+      `export const BOOT_ROWS = ${rows};`,
+      `export const BOOT_WIN_COLS = ${WINDOW_SIZE[0]};`,
+      `export const BOOT_WIN_ROWS = ${WINDOW_SIZE[1]};`,
+      `export const BOOT_TIP = [${TIP[0]}, ${TIP[1]}];`,
+      `export const BOOT_PRESS_WIN = ${PRESS_WIN};`,
+      `export const BOOT_PRESS_PTR = ${PRESS_PTR};`,
+      '',
+    ].join('\n'),
+  );
+  execFileSync('npx', ['prettier', '--write', file], { stdio: 'ignore' });
+  console.log(file);
+}
+
+function writeSplash() {
+  const { cols, rows, win, ptr } = layers();
+  const ring = (r, w, colour, name) =>
+    `<path android:name="${name}" android:strokeColor="${colour}" android:strokeWidth="${w}" android:strokeAlpha="0" ` +
+    `android:pathData="M${TIP[0] - r},${TIP[1]}a${r},${r} 0 1,0 ${2 * r},0a${r},${r} 0 1,0 ${-2 * r},0"/>`;
+  const vector = `<?xml version="1.0" encoding="utf-8"?>
+<!-- generated by scripts/gen-icons.mjs -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="${VIEW}dp" android:height="${VIEW}dp"
+    android:viewportWidth="${VIEW}" android:viewportHeight="${VIEW}">
+  <group android:name="logo" android:pivotX="${VIEW / 2}" android:pivotY="${VIEW / 2}">
+    <group android:name="place" android:translateX="${(VIEW - cols) / 2}" android:translateY="${(VIEW - rows) / 2}">
+      <group android:name="win" android:pivotX="${WINDOW_SIZE[0] / 2}" android:pivotY="${WINDOW_SIZE[1] / 2}">
+        ${cells(win).join('\n        ')}
+      </group>
+      <group android:name="ptr" android:pivotX="${TIP[0]}" android:pivotY="${TIP[1]}">
+        ${cells(ptr).join('\n        ')}
+      </group>
+      <group android:name="ring" android:pivotX="${TIP[0]}" android:pivotY="${TIP[1]}" android:scaleX="0.3" android:scaleY="0.3">
+        ${ring(6, 0.6, '#16151A', 'ringInk')}
+        ${ring(5.6, 0.5, '#FFFFFF', 'ringLight')}
+      </group>
+    </group>
+  </group>
+</vector>
+`;
+  // one animator per target, all over the same time line, so the parts stay in step. A key is
+  // [ms, value] and the value is held from the last key until the next
+  const EASE = { true: '@android:interpolator/overshoot', decel: '@android:interpolator/decelerate_quad' };
+  const frac = (ms) => (ms / SPLASH_MS).toFixed(4);
+  const animator = (prop, keys, type = 'floatType') =>
+    `<objectAnimator android:duration="${SPLASH_MS}">
+          <propertyValuesHolder android:propertyName="${prop}" android:valueType="${type}">` +
+    keys
+      .map(
+        ([ms, v, ease]) =>
+          `<keyframe android:fraction="${frac(ms)}" android:value="${v}"${ease ? ` android:interpolator="${EASE[ease]}"` : ''}/>`,
+      )
+      .join('') +
+    `</propertyValuesHolder></objectAnimator>`;
+  const target = (name, anims) =>
+    `  <target android:name="${name}">
+    <aapt:attr name="android:animation">
+      <set xmlns:android="http://schemas.android.com/apk/res/android">
+        ${anims.join('\n        ')}
+      </set>
+    </aapt:attr>
+  </target>`;
+  const CLICK = 380;
+  const both = (keys) => [animator('scaleX', keys), animator('scaleY', keys)];
+  // the window is there from the start. The pointer comes out from the lower right, clicks the
+  // window (the ring spreads) and the window is pressed in and stays so: the web part takes it
+  // from there, with the window springing back and opening into the first real window
+  const avd = `<?xml version="1.0" encoding="utf-8"?>
+<!-- generated by scripts/gen-icons.mjs: the launch animation, played by the system splash -->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:drawable="@drawable/splash_logo_vector">
+${target('ptr', [
+  ...both([
+    [0, 0],
+    [150, 0],
+    [300, 1, true],
+    [CLICK, 1],
+    [440, PRESS_PTR],
+    [SPLASH_MS, PRESS_PTR],
+  ]),
+  animator('translateX', [
+    [0, 9],
+    [150, 9],
+    [300, 0, 'decel'],
+    [SPLASH_MS, 0],
+  ]),
+  animator('translateY', [
+    [0, 11],
+    [150, 11],
+    [300, 0, 'decel'],
+    [SPLASH_MS, 0],
+  ]),
+])}
+${target(
+  'win',
+  both([
+    [0, 1],
+    [CLICK, 1],
+    [470, PRESS_WIN, 'decel'],
+    [SPLASH_MS, PRESS_WIN],
+  ]),
+)}
+${target(
+  'ring',
+  both([
+    [0, 0.3],
+    [CLICK, 0.3],
+    [SPLASH_MS, 1],
+  ]),
+)}
+${target('ringInk', [
+  animator('strokeAlpha', [
+    [0, 0],
+    [CLICK, 0],
+    [CLICK + 1, 1],
+    [SPLASH_MS, 0],
+  ]),
+])}
+${target('ringLight', [
+  animator('strokeAlpha', [
+    [0, 0],
+    [CLICK, 0],
+    [CLICK + 1, 1],
+    [SPLASH_MS, 0],
+  ]),
+])}
+</animated-vector>
+`;
+  writeWebLogo({ cols, rows, win, ptr });
+  const dir = 'android/app/src/main/res/drawable';
+  writeFileSync(resolve(dir, 'splash_logo_vector.xml'), vector);
+  writeFileSync(resolve(dir, 'splash_logo.xml'), avd);
+  console.log(`${dir}/splash_logo.xml`);
+}
+
+// `node scripts/gen-icons.mjs stat` redraws just the given kinds
+const only = process.argv.slice(2);
+if (!only.length || only.includes('splash')) writeSplash();
+
 const browser = await chromium.launch(
   process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {},
 );
 const page = await browser.newPage();
-// `node scripts/gen-icons.mjs stat` redraws just the given kinds
-const only = process.argv.slice(2);
 for (const [out, kind, size] of jobs) {
   if (only.length && !only.includes(kind)) continue;
   await page.setViewportSize({ width: size, height: size });

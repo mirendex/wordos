@@ -1,3 +1,4 @@
+import { playBoot } from './ui/bootanim';
 import './ui/render';
 import { load, S } from './core/persist';
 import { paint } from './core/paint';
@@ -20,7 +21,7 @@ function boot(): void {
   recalcLevel();
   paint();
   withoutHaptics(() => (S.seenIntro ? open('vocab') : open('about')));
-  haptic('boot');
+  playBoot(() => haptic('boot'));
   notifyPlan();
   loadAppVersion();
 }
