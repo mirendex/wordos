@@ -46,6 +46,13 @@ describe('cutJson', () => {
     expect(res._partial).toBe(true);
     expect(res.cards.map((c) => c.w)).toEqual(['cat']);
   });
+  it('salvages goal items from a truncated response', () => {
+    const truncated =
+      '{"items":[{"kind":"word","en":"bill","sentence":"The ___ please."},{"kind":"word","en":"tip","sentence":"Leave a ___ here."},{"kind":"word","en":"ta';
+    const res = cutJson(truncated) as { items: { en: string }[]; _partial: true };
+    expect(res._partial).toBe(true);
+    expect(res.items.map((i) => i.en)).toEqual(['bill', 'tip']);
+  });
   it('salvages key/value pairs as a last resort', () => {
     const res = cutJson('{"ru":"перевод"') as Record<string, unknown>;
     expect(res.ru).toBe('перевод');

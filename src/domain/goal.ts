@@ -103,6 +103,7 @@ export async function fillScene(scene: GoalScene): Promise<void> {
 Формат ответа:
 {"items":[{"kind":"word","en":"слово или фраза для пропуска (2-4 слова)","sentence":"текст с ___","ru":"перевод предложения","word_ru":"перевод слова или фразы","ipa":"транскрипция или пустая строка","tip":"заметка по-русски или пустая строка"}]}`);
   const items = Array.isArray(r.items) ? r.items : [];
+  let added = 0;
   items.forEach((c: Record<string, string>) => {
     if (!c || typeof c !== 'object') return;
     const en = String(c.en || '').trim();
@@ -125,7 +126,11 @@ export async function fillScene(scene: GoalScene): Promise<void> {
       tip: c.tip || '',
     };
     g.cur.items[id] = item;
+    added++;
   });
+  // a scene that produced nothing usable stays unfilled and says so, instead of being marked
+  // done with no cards in it
+  if (!added) throw new Error('модель не вернула подходящих карточек для сценария «' + scene.ru + '»');
   scene.filled = true;
   save();
 }
@@ -161,7 +166,13 @@ export async function loadGoalCards(): Promise<void> {
   const quota = dailyQuota(unseen, Math.max(1, goalDaysLeft()));
   const fresh = newGoalIds(Math.max(0, quota - due.length));
 
-  const emptyScenes = g.cur.scenes.filter((s: GoalScene) => !s.filled);
+  // a scene also counts as empty if an earlier run marked it filled but left it with no usable
+  // cards, so a goal stuck in that state fills itself again instead of silently staying empty
+  const hasCards = (id: string) =>
+    Object.values(g.cur.items as Record<string, GoalItem>).some(
+      (i) => i.scene === id && hasRealGapContext(i.sentence),
+    );
+  const emptyScenes = g.cur.scenes.filter((s: GoalScene) => !s.filled || !hasCards(s.id));
   if (!due.length && !fresh.length && emptyScenes.length) {
     g.busy = true;
     paint();

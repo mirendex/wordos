@@ -3,7 +3,7 @@ import { errHint } from '../../lib/json';
 import { maskPhrase } from '../../lib/text';
 import { daysLeft, goalProgress } from '../../lib/plan';
 import { DAY } from '../../core/util';
-import { GoalScene, goalState } from './state';
+import { GoalCard, GoalScene, goalState } from './state';
 import { Win } from '../../ui/windows';
 import { talkView } from './talk';
 import { dictView, pronView } from './practice';
@@ -79,8 +79,17 @@ function cardsView(w: Win): string {
       ${hint ? `<p class="sub" style="margin-top:8px">${esc(hint)}</p>` : ''}
       <div class="rowb"><button class="btn p" data-glearn="1">Повторить</button></div>`;
     }
+    const next = Object.values(g.cur.srs as Record<string, GoalCard>)
+      .filter((s) => !s.skip)
+      .map((s) => s.due)
+      .sort()[0];
+    const note = !Object.keys(g.cur.items).length
+      ? 'Пока нет ни одной карточки — нажми «Ещё», модель соберёт их под сценарии.'
+      : next && next > DAY()
+        ? `На сегодня всё пройдено. Следующее повторение — ${next}.`
+        : 'Слова и фразы под твои сценарии, с повторами по расписанию.';
     return `<h3 class="h">${g.queue.length ? 'Пачка пройдена' : 'Карточки цели'}</h3>
-      <p class="sub">Слова и фразы под твои сценарии, с повторами по расписанию.</p>
+      <p class="sub">${esc(note)}</p>
       <div class="rowb"><button class="btn p" data-glearn="1">Ещё</button></div>`;
   }
   const parts = String(c.sentence || '').split('___');

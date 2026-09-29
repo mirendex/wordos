@@ -80,6 +80,9 @@ export function cutJson(s: string): any {
     else add(o as BankCard);
   });
   if (cards.length) return { cards, _partial: true };
+  // a goal scenario's items are keyed by `en`, not `w`
+  const items = parts.filter((o) => o && o.en && o.sentence);
+  if (items.length) return { items, _partial: true };
   const whole = parts.find((o) => Object.keys(o).length > 1);
   if (whole) return whole;
   // last resort: scrape "key":"value" pairs out of the truncated object
