@@ -55,17 +55,18 @@ export function harvestHtml(w: Win): string {
   const picked = w.data.hpick || {};
   if (!list.length)
     return `<div class="note"><div class="l">В тексте нет слов, которых ещё нет в твоём курсе.</div></div>`;
+  const chosen = Object.keys(picked).filter((k) => picked[k]).length;
   return `<div class="note" style="margin-top:12px">
     <b style="font-family:var(--px);font-size:15px">Слова из текста</b>
-    <div class="sub">отмеченные уйдут в карточки</div>
+    <div class="sub">нажми на слова, которые хочешь учить, — они уйдут в карточки</div>
     <div class="chips" style="margin-top:10px">${list
       .map(
         (x: { w: string; r: number }, i: number) =>
           `<button class="chip" data-hpick="${i}" aria-pressed="${picked[i] ? 'true' : 'false'}">${esc(x.w)} <span style="color:var(--grey);font-size:11px">#${x.r}</span></button>`,
       )
       .join('')}</div>
-    <div class="rowb"><button class="btn p sm" data-hadd="1">В курс (${Object.keys(picked).filter((k) => picked[k]).length})</button>
-      <button class="btn sm" data-hall="1">Все</button>
+    <div class="rowb"><button class="btn p sm" data-hadd="1"${chosen ? '' : ' disabled'}>В курс (${chosen})</button>
+      <button class="btn sm" data-hall="1">${chosen === list.length ? 'Снять все' : 'Все'}</button>
       <button class="btn sm" data-hclose="1">Закрыть</button></div></div>`;
 }
 

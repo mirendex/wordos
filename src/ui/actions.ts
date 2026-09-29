@@ -824,8 +824,8 @@ export function installActions(): void {
     if (d.harvest) {
       const w = winByApp('read')!;
       w.data.harvest = textWords(w.data.text && w.data.text.body);
+      // nothing is chosen until the reader taps a word
       w.data.hpick = {};
-      w.data.harvest.forEach((_x: unknown, i: number) => (w.data.hpick[i] = true));
       paint();
       return;
     }

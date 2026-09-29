@@ -1,0 +1,14 @@
+/* a word chip you can pick: without these rules it was a plain button that looked the same
+   picked or not */
+.chip[aria-pressed] {
+  background: var(--paper);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+}
+.chip[aria-pressed='true'] {
+  background: var(--blue);
+  color: #fff;
+}
+.chip[aria-pressed='true'] span {
+  color: #cfd6ff !important;
+}
