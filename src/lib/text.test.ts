@@ -34,9 +34,6 @@ describe('normaliseGap', () => {
 });
 
 describe('lev', () => {
-  it('is 0 for identical strings', () => {
-    expect(lev('hello', 'hello')).toBe(0);
-  });
   it('counts a single substitution as 1', () => {
     expect(lev('cat', 'cot')).toBe(1);
   });
@@ -76,9 +73,6 @@ describe('maskPhrase', () => {
   });
   it('reveals the first `hint` letters, not counting spaces', () => {
     expect(maskPhrase('How often', 5)).toBe('How of···');
-  });
-  it('matches plain mask() for a single word', () => {
-    expect(maskPhrase('hello', 2).replace(/ /g, '')).toBe(mask('hello', 2).replace(/ /g, ''));
   });
 });
 

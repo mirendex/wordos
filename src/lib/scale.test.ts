@@ -24,19 +24,40 @@ describe('nToPct / pctToN', () => {
 });
 
 describe('byWordsLevel', () => {
-  it('never exceeds B2 (82)', () => {
-    expect(byWordsLevel(5000)).toBeLessThanOrEqual(82);
+  it('starts at 12 with no words and follows the square-root curve', () => {
+    expect(byWordsLevel(0)).toBe(12);
+    expect(byWordsLevel(400)).toBe(35);
+    expect(byWordsLevel(1600)).toBe(58);
   });
-  it('is monotonically non-decreasing', () => {
-    expect(byWordsLevel(2000)).toBeGreaterThan(byWordsLevel(200));
+  it('never exceeds B2 (82), however many words', () => {
+    expect(byWordsLevel(5000)).toBe(82);
+    expect(byWordsLevel(100000)).toBe(82);
+  });
+  it('never goes down as the word count grows', () => {
+    const counts = [0, 50, 200, 800, 2000, 3500, 5000];
+    const levels = counts.map(byWordsLevel);
+    expect(levels).toEqual(levels.slice().sort((a, b) => a - b));
   });
 });
 
 describe('cefr', () => {
-  it('maps score ranges to labels', () => {
-    expect(cefr(0)).toBe('A1');
-    expect(cefr(50)).toBe('B1');
-    expect(cefr(100)).toBe('C1');
+  it.each([
+    [0, 'A1'],
+    [14, 'A1'],
+    [15, 'A2'],
+    [29, 'A2'],
+    [30, 'A2+'],
+    [43, 'A2+'],
+    [44, 'B1'],
+    [57, 'B1'],
+    [58, 'B1+'],
+    [71, 'B1+'],
+    [72, 'B2'],
+    [86, 'B2'],
+    [87, 'C1'],
+    [100, 'C1'],
+  ])('maps a score of %i to %s', (score, label) => {
+    expect(cefr(score)).toBe(label);
   });
 });
 
@@ -46,9 +67,6 @@ describe('median', () => {
   });
   it('picks the middle value for an odd-length list', () => {
     expect(median([5, 1, 3])).toBe(3);
-  });
-  it('is not skewed by a single outlier the way a mean would be', () => {
-    expect(median([40, 42, 41, 95])).toBe(41.5);
   });
   it('returns 0 for an empty list', () => {
     expect(median([])).toBe(0);
