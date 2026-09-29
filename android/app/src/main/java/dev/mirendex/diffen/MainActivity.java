@@ -12,7 +12,7 @@ import com.getcapacitor.BridgeActivity;
 import java.util.Locale;
 
 public class MainActivity extends BridgeActivity {
-    private static final long SPLASH_MS = 620; // as long as the animation in drawable/splash_logo.xml
+    private static final long SPLASH_MS = 340; // as long as the animation in drawable/splash_logo.xml
     private static final long SPLASH_MAX_MS = 4000; // if the web part never says it is ready
 
     @Override

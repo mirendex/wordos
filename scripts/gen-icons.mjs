@@ -198,7 +198,7 @@ const WINDOW_SIZE = [24, 22];
 // the pointer glides in and comes to rest on its corner. The web part starts from that very frame
 // with the click and the window opening into the app. The window is centred in the icon, whose
 // units are pixels of the logo. Each colour of the pixel map is one path of 1x1 cells.
-const SPLASH_MS = 620; // MainActivity keeps the splash up this long
+const SPLASH_MS = 340; // MainActivity keeps the splash up this long
 const TIP = [POINTER_AT[0] + 0.5, POINTER_AT[1] + 0.5];
 const VIEW = 72; // the splash crops its icon to the middle two thirds
 
@@ -320,12 +320,12 @@ function writeSplash() {
     </aapt:attr>
   </target>`;
   // the pointer comes in from below right, a little past its place and back, and rests there
-  const START = 90;
-  const REST = 540;
+  const START = 30;
+  const REST = 300;
   const fade = [
     [0, 0],
     [START, 0],
-    [START + 170, 1, 'fade'],
+    [START + 100, 1, 'fade'],
     [SPLASH_MS, 1],
   ];
   const avd = `<?xml version="1.0" encoding="utf-8"?>

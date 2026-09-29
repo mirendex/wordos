@@ -17,15 +17,15 @@ import {
 // to come up out of the window that was clicked.
 
 const ICON_CSS = 288; // how wide the splash draws its icon, until the phone says where it really is
-const PRESS_MS = 90; // the pointer going down and the window giving under it
-const PRESS_WIN = 0.92;
-const PRESS_PTR = [0.5, 0.8]; // how far the pointer sinks, in pixels of the logo
-const HOLD = 70; // ms held down
-const SPRING_MS = 460; // the window springs back, overshoots and settles
-const ZOOM_DELAY = 120; // after the release, the logo grows over the first real window
-const ZOOM_MS = 440;
-const FADE_AT = 210; // after the release, the desk fades away from in front of it
-const FADE_MS = 240;
+const PRESS_MS = 55; // the pointer going down and the window giving under it
+const PRESS_WIN = 0.97;
+const PRESS_PTR = [0.4, 0.6]; // how far the pointer sinks, in pixels of the logo
+const HOLD = 25; // ms held down
+const SPRING_MS = 300; // the window springs back, overshoots and settles
+const ZOOM_DELAY = 65; // after the release, once the pointer is gone, the window grows over the first real one
+const ZOOM_MS = 280;
+const FADE_AT = 95; // after the release, the desk fades away from in front of it
+const FADE_MS = 160;
 const GONE_MS = 4500; // if the phone never says the splash is gone, go on anyway
 
 interface Box {
@@ -133,10 +133,11 @@ function play(click: () => void): void {
       { transform: 'translate(-50%, -50%) scale(0.2)', opacity: 1 },
       { transform: 'translate(-50%, -50%) scale(1)', opacity: 0 },
     ],
-    { duration: 420, easing: 'cubic-bezier(0.1, 0.7, 0.3, 1)', fill: 'forwards' },
+    { duration: 280, easing: 'cubic-bezier(0.1, 0.7, 0.3, 1)', fill: 'forwards' },
   );
 
-  // the release: the window springs back past its size and settles, the pointer lets go
+  // the release: the window springs back past its size and settles, the pointer lifts and is gone
+  // at once
   const up = PRESS_MS + HOLD;
   later(() => {
     if (!el) return;
@@ -150,18 +151,17 @@ function play(click: () => void): void {
       fill: 'forwards',
     });
     ptr.animate([{ transform: sunk }, { transform: 'translate(0, 0)' }], {
-      duration: 320,
+      duration: 200,
       easing: spring(0.5, 1),
       fill: 'forwards',
     });
     ptr.animate([{ opacity: 1 }, { opacity: 0 }], {
-      duration: 150,
-      delay: 140,
+      duration: 60,
       easing: 'ease-in',
       fill: 'forwards',
     });
-    // then the whole logo grows until its window is as wide as the real one, and is over it,
-    // thinning out as it goes so the big pixels never sit over the app
+    // then, with only the window left, the logo grows until the window is as wide as the real one,
+    // and is over it, thinning out as it goes so the big pixels never sit over the app
     const k = to.width / (BOOT_WIN_COLS * unit);
     const dx = to.left + to.width / 2 - (box.left + (BOOT_WIN_COLS * unit) / 2);
     const dy = to.top + to.height / 2 - (box.top + (BOOT_WIN_ROWS * unit) / 2);
@@ -171,8 +171,8 @@ function play(click: () => void): void {
       { duration: ZOOM_MS, delay: ZOOM_DELAY, easing: spring(0.8, 0.8), fill: 'forwards' },
     );
     logo.animate([{ opacity: 1 }, { opacity: 0 }], {
-      duration: 240,
-      delay: ZOOM_DELAY + 40,
+      duration: 160,
+      delay: ZOOM_DELAY + 20,
       easing: 'ease-in',
       fill: 'forwards',
     });
