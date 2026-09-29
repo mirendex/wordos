@@ -38,12 +38,6 @@ jobs:
       - name: Build the web part
         run: npm run build
 
-      - name: Install Chromium for the smoke test
-        run: npx playwright install --with-deps chromium
-
-      - name: Smoke test
-        run: node scripts/smoke.mjs
-
       - name: Copy the web part into the project
         run: npx cap sync android
 

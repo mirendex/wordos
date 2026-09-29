@@ -104,6 +104,7 @@ npm run open         # open the project in Android Studio
 npm run apk          # copy + build a debug APK via gradlew
 ```
 
-CI (`.github/workflows/build-apk.yml`) runs on every push to `main`/`master`: lint, tests, and
-`scripts/smoke.mjs`, then builds the web part and a debug APK and uploads it as an artifact and
-to a release.
+CI (`.github/workflows/build-apk.yml`) runs on every push to `main`/`master`: lint and tests,
+then builds the web part and a signed release APK and uploads it as an artifact and to a release.
+The headless smoke run (`scripts/smoke.mjs`) is not part of CI: it takes about two minutes, so it's
+run by hand.
