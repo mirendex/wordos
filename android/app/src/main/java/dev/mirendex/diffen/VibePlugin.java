@@ -54,7 +54,10 @@ public class VibePlugin extends Plugin {
         }
         int ms = Math.max(1, call.getInt("ms", 2));
         int amp = Math.max(1, Math.min(255, call.getInt("amp", 64)));
-        v.vibrate(VibrationEffect.createOneShot(ms, amp));
+        // full strength is sent as the system's own default amplitude, exactly as the length-only call
+        // of @capacitor/haptics did: a phone can treat a number of 255 as weaker than that
+        int level = amp >= 255 ? VibrationEffect.DEFAULT_AMPLITUDE : amp;
+        v.vibrate(VibrationEffect.createOneShot(ms, level));
         call.resolve();
     }
 }
