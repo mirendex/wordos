@@ -6,7 +6,7 @@ import androidx.core.splashscreen.SplashScreen;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
-    private static final long SPLASH_MS = 700; // as long as the animation in drawable/splash_logo.xml
+    private static final long SPLASH_MS = 760; // as long as the animation in drawable/splash_logo.xml
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

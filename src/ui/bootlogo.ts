@@ -9,4 +9,4 @@ export const BOOT_WIN_COLS = 24;
 export const BOOT_WIN_ROWS = 22;
 export const BOOT_TIP = [20.5, 15.5];
 export const BOOT_PRESS_WIN = 0.93;
-export const BOOT_PRESS_PTR = 0.8;
+export const BOOT_PRESS_PTR = [0.4, 0.7];

@@ -12,7 +12,7 @@
 #boot.out {
   opacity: 0;
   pointer-events: none;
-  transition: opacity 120ms steps(3);
+  transition: opacity 200ms ease-out;
 }
 
 /* the window and the pointer are two layers over the same box */
@@ -27,17 +27,6 @@
 .boot-ptr {
   position: absolute;
   inset: 0;
-}
-
-/* the logo gives way to the outlines that step out to the window */
-#boot.going .boot-logo {
-  visibility: hidden;
-}
-.boot-ghost {
-  position: fixed;
-  box-sizing: border-box;
-  border: 2px solid #ede7d8;
-  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
