@@ -15,7 +15,14 @@ public class MainActivity extends BridgeActivity {
         SplashScreen splash = SplashScreen.installSplashScreen(this);
         splash.setKeepOnScreenCondition(() -> SystemClock.uptimeMillis() - start < SPLASH_MS);
         // no exit animation of the system's own: the web part carries on from the last frame
-        splash.setOnExitAnimationListener(view -> view.remove());
+        splash.setOnExitAnimationListener(view -> {
+            view.remove();
+            // the web part plays the second half of the animation from this moment
+            if (getBridge() != null && getBridge().getWebView() != null) {
+                getBridge().getWebView().evaluateJavascript(
+                    "window.__splashGone=true;window.__splashDone&&window.__splashDone()", null);
+            }
+        });
         registerPlugin(BackGatePlugin.class);
         registerPlugin(VibePlugin.class);
         super.onCreate(savedInstanceState);

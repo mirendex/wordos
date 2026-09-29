@@ -357,17 +357,17 @@ ${target('ptr', [
   animator('translateX', [
     [0, 10],
     [120, 10],
-    [CLICK, -0.6, 'decel'],
+    [CLICK, -0.6, true],
     [500, 0, 'ease'],
-    [580, PRESS_PTR[0], 'decel'],
+    [590, PRESS_PTR[0], true],
     [SPLASH_MS, PRESS_PTR[0]],
   ]),
   animator('translateY', [
     [0, 12],
     [120, 12],
-    [CLICK, -1, 'ease'],
+    [CLICK, -1, true],
     [500, 0, 'ease'],
-    [580, PRESS_PTR[1], 'decel'],
+    [590, PRESS_PTR[1], true],
     [SPLASH_MS, PRESS_PTR[1]],
   ]),
 ])}
@@ -378,8 +378,7 @@ ${target(
   both([
     [0, 1],
     [CLICK + 20, 1],
-    [520, PRESS_WIN * 0.985, 'decel'],
-    [660, PRESS_WIN, 'ease'],
+    [610, PRESS_WIN, true],
     [SPLASH_MS, PRESS_WIN],
   ]),
 )}

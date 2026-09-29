@@ -7,6 +7,8 @@ declare module '*.txt?raw' {
 
 interface Window {
   __appBack?: () => boolean;
+  __splashGone?: boolean;
+  __splashDone?: () => void;
   storage?: {
     get(key: string): Promise<{ key: string; value: string } | null>;
     set(key: string, value: string): Promise<{ key: string; value: string }>;
