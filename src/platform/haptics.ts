@@ -23,7 +23,7 @@ const HAP: Record<string, HapKind> = {
   ok: { i: 2 }, // верно: щёлк-щёлк
   no: { i: 1, s: 'Medium' }, // мимо: один плотнее
   win: { i: 3 }, // победа: три щелчка
-  boot: { i: 1, r: [0.6] }, // запуск: мягкий щелчок, когда окно раскрывается
+  boot: { i: 1 }, // запуск: курсор нажал на окно
 };
 
 // The slider is "off" at the far left and then HAP_STEPS positions of 5, up to 100.
