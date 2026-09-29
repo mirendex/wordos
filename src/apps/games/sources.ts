@@ -1,7 +1,7 @@
 import { BANK, S } from '../../core/persist';
 import { hasGapSentence } from '../../lib/text';
 import { freqInit, FREQ, RANK } from '../../domain/frequency';
-import { coursePos, skipWord } from '../../domain/vocab';
+import { coursePos } from '../../domain/vocab';
 import { diaryState } from '../diary/state';
 
 export function wordLimit(): number {
@@ -22,7 +22,7 @@ export function gamePool(minLen: number, maxLen: number): string[] {
     .map((x) => x.w)
     .filter((w) => {
       if (!/^[a-z]+$/.test(w)) return false;
-      return w.length >= minLen && w.length <= maxLen && !skipWord(w);
+      return w.length >= minLen && w.length <= maxLen;
     });
 }
 

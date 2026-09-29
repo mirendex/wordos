@@ -60,7 +60,6 @@ export function vocabView(w: Win): string {
       ${me ? '<button class="btn sm" data-tome="1">К моей точке</button>' : ''}
       <button class="btn p sm" data-learn="1">Учить</button>
       ${coursePos() > myWords() + 200 ? `<button class="btn sm r" data-fixpos="1">Вернуть курс к запасу</button>` : ''}</div>
-    <div class="rowb"><button class="btn sm" data-vskipstop="1">${v.skipStop ? 'Служебные слова (the, a, is): пропускать' : 'Служебные слова (the, a, is): тоже учить'}</button></div>
 
     <h3 class="h" style="margin-top:20px">Следующие слова${next.length ? ' · с #' + next[0].r : ''}</h3>
     <div style="margin-top:8px">${next

@@ -4,7 +4,7 @@ import { paint } from '../core/paint';
 import { S, save } from '../core/persist';
 import { ask } from '../services/llm';
 import { freqInit, RANK } from '../domain/frequency';
-import { coursePos, skipWord, vocabState } from '../domain/vocab';
+import { coursePos, vocabState } from '../domain/vocab';
 import { winByApp, Win } from '../ui/windows';
 
 const READTOPICS: [string, string][] = [
@@ -43,7 +43,7 @@ export function textWords(body: string): { w: string; r: number }[] {
       seen[c] = 1;
       const r = RANK![c];
       if (!r) return; // вне топ-5000: слишком редкое
-      if (v.known[c] || v.srs[c] || skipWord(c)) return; // уже знаешь или служебное
+      if (v.known[c] || v.srs[c]) return; // уже знаешь
       if (r <= coursePos()) return; // курс это уже прошёл
       out.push({ w: c, r });
     });

@@ -62,7 +62,7 @@ import {
 import { goalState } from '../apps/goal/state';
 
 const SELECTOR =
-  '[data-app],[data-close],[data-winmin],[data-winmax],[data-mclose],[data-mok],[data-shade],[data-focus],[data-topic],[data-newtext],[data-harvest],[data-hpick],[data-hall],[data-hclose],[data-hadd],[data-again],[data-w],[data-saveword],[data-tab],[data-del],[data-speak],[data-gtab],[data-fwnew],[data-fwhint],[data-fwtap],[data-fwclear],[data-otap],[data-oback],[data-onew],[data-ogen],[data-oclear],[data-hkey],[data-hnew],[data-hru],[data-ptap],[data-pnew],[data-fkey],[data-fnew],[data-fru],[data-fsave],[data-tcmd],[data-tr],[data-reset],[data-echogen],[data-echosay],[data-echonext],[data-echoslow],[data-lnext],[data-lsay],[data-lslow],[data-lcheck],[data-lskip],[data-lsave],[data-sys],[data-dcheck],[data-dnew],[data-dsave],[data-intro],[data-notify],[data-nhour],[data-haptic],[data-haptest],[data-hapdef],[data-rate],[data-voices],[data-pickvoice],[data-savekey],[data-clearkey],[data-pickmodel],[data-mfree],[data-mreload],[data-setbase],[data-tome],[data-fixpos],[data-learn],[data-more],[data-back],[data-vcheck],[data-vskip],[data-vnext],[data-vpeek],[data-vnotknow],[data-vtab],[data-vhint],[data-know],[data-vknow],[data-prefetch],[data-vpick],[data-vmode],[data-say],[data-voice],[data-jump],[data-vsearch],[data-go],[data-vtranslate],[data-fgiveup],[data-owntopic],[data-vskipstop],[data-onboardlevel],[data-gtab2],[data-gmake],[data-gscenedel],[data-garchive],[data-glearn],[data-ghint],[data-gcheck],[data-gskip],[data-gnext],[data-gtalk],[data-gtalkclose],[data-gsend],[data-gvoice],[data-gaddphrase],[data-gdictnext],[data-gdictslow],[data-gdictcheck],[data-gdictskip],[data-gpronnext],[data-gpronsay],[data-gpronslow]';
+  '[data-app],[data-close],[data-winmin],[data-winmax],[data-mclose],[data-mok],[data-shade],[data-focus],[data-topic],[data-newtext],[data-harvest],[data-hpick],[data-hall],[data-hclose],[data-hadd],[data-again],[data-w],[data-saveword],[data-tab],[data-del],[data-speak],[data-gtab],[data-fwnew],[data-fwhint],[data-fwtap],[data-fwclear],[data-otap],[data-oback],[data-onew],[data-ogen],[data-oclear],[data-hkey],[data-hnew],[data-hru],[data-ptap],[data-pnew],[data-fkey],[data-fnew],[data-fru],[data-fsave],[data-tcmd],[data-tr],[data-reset],[data-echogen],[data-echosay],[data-echonext],[data-echoslow],[data-lnext],[data-lsay],[data-lslow],[data-lcheck],[data-lskip],[data-lsave],[data-sys],[data-dcheck],[data-dnew],[data-dsave],[data-intro],[data-notify],[data-nhour],[data-haptic],[data-haptest],[data-hapdef],[data-rate],[data-voices],[data-pickvoice],[data-savekey],[data-clearkey],[data-pickmodel],[data-mfree],[data-mreload],[data-setbase],[data-tome],[data-fixpos],[data-learn],[data-more],[data-back],[data-vcheck],[data-vskip],[data-vnext],[data-vpeek],[data-vnotknow],[data-vtab],[data-vhint],[data-know],[data-vknow],[data-prefetch],[data-vpick],[data-vmode],[data-say],[data-voice],[data-jump],[data-vsearch],[data-go],[data-vtranslate],[data-fgiveup],[data-owntopic],[data-onboardlevel],[data-gtab2],[data-gmake],[data-gscenedel],[data-garchive],[data-glearn],[data-ghint],[data-gcheck],[data-gskip],[data-gnext],[data-gtalk],[data-gtalkclose],[data-gsend],[data-gvoice],[data-gaddphrase],[data-gdictnext],[data-gdictslow],[data-gdictcheck],[data-gdictskip],[data-gpronnext],[data-gpronsay],[data-gpronslow]';
 
 export function installActions(): void {
   document.addEventListener('click', (e) => {
@@ -215,13 +215,6 @@ export function installActions(): void {
       const v = vocabState();
       v.base = v.n;
       v.touched = 1;
-      save();
-      paint();
-      return;
-    }
-    if (d.vskipstop) {
-      const v = vocabState();
-      v.skipStop = !v.skipStop;
       save();
       paint();
       return;

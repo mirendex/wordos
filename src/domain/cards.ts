@@ -6,7 +6,7 @@ import { winByApp } from '../ui/windows';
 import { ask } from '../services/llm';
 import { speak } from '../platform/speech';
 import { freqInit, FREQ, RANK } from './frequency';
-import { IV, nextNew, skipWord, vocabState } from './vocab';
+import { IV, nextNew, vocabState } from './vocab';
 import { recalcLevel } from './progress';
 
 export function bankSize(): number {
@@ -49,7 +49,7 @@ export function needWords(limit: number): string[] {
   });
   for (let i = v.n; i < FREQ!.length && out.length < limit; i++) {
     const w = FREQ![i].w;
-    if (!v.known[w] && !v.srs[w] && !skipWord(w) && !(BANK[w] || []).length) out.push(w);
+    if (!v.known[w] && !v.srs[w] && !(BANK[w] || []).length) out.push(w);
   }
   return out.slice(0, limit);
 }

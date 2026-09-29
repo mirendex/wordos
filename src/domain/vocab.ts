@@ -1,15 +1,10 @@
 import { DAY, PLUS } from '../core/util';
 import { S, save } from '../core/persist';
 import { IV, srsStep } from '../lib/srs';
-import { cover, freqInit, FREQ, RANK, STOP } from './frequency';
+import { cover, freqInit, FREQ, RANK } from './frequency';
 import { recalcLevel } from './progress';
 
 export { IV };
-
-export function skipWord(w: string): boolean {
-  const v = vocabState();
-  return v.skipStop !== false && STOP.has(w);
-}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function vocabState(): any {
@@ -31,7 +26,6 @@ export function vocabState(): any {
   if (!v.queue) v.queue = [];
   if (v.i === undefined) v.i = 0;
   if (!v.tab) v.tab = 'chart';
-  if (typeof v.skipStop !== 'boolean') v.skipStop = false;
   return v;
 }
 
@@ -92,7 +86,7 @@ export function nextNew(limit: number): { w: string; r: number }[] {
   const out: { w: string; r: number }[] = [];
   for (let i = coursePos(); i < FREQ!.length && out.length < limit; i++) {
     const w = FREQ![i].w;
-    if (v.known[w] || v.srs[w] || skipWord(w)) continue;
+    if (v.known[w] || v.srs[w]) continue;
     out.push({ w, r: i + 1 });
   }
   return out;
