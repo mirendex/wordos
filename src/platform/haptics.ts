@@ -23,20 +23,16 @@ const HAP: Record<string, HapKind> = {
   win: { i: 3 }, // победа: три щелчка
 };
 
-// The slider has HAP_STEPS positions of 5% each after "off" at the far left; the strength it shows
-// runs from HAP_MIN to HAP_MAX.
+// The slider is "off" at the far left and then HAP_STEPS positions of 5, up to 100.
 export const HAP_STEPS = 20;
-export const HAP_MIN = 100;
-export const HAP_MAX = 500;
 export const HAP_DEFAULT_STEP = 1;
 
 // On a phone whose motor can vary its amplitude, the slider sets the strength itself: every pulse
-// is the same short length and HAP_MIN..HAP_MAX becomes an amplitude of AMP_MIN..AMP_MAX out of
-// 255, so even the top stays a little short of full strength. Other phones only take a length, so
-// there the slider stretches the pulse instead.
+// is the same short length and the number on the slider is the share of the motor's full strength
+// (255), so 5 is 5% and 100 is all of it. Other phones only take a length, so there the slider
+// stretches the pulse instead.
 const PULSE_MS = 2;
-const AMP_MIN = 90;
-const AMP_MAX = 230;
+const AMP_FULL = 255;
 
 interface VibePlugin {
   info(): Promise<{ amplitude: boolean }>;
@@ -75,19 +71,18 @@ export function hapStep(): number {
   return Math.max(0, Math.min(HAP_STEPS, Math.round(k)));
 }
 
-// the strength the slider shows: 0 when off, otherwise HAP_MIN..HAP_MAX
+// the number the slider shows: 0 when off, otherwise 5..100 in steps of 5
 export function hapValue(step: number = hapStep()): number {
-  if (step <= 0) return 0;
-  return Math.round(HAP_MIN + ((step - 1) / (HAP_STEPS - 1)) * (HAP_MAX - HAP_MIN));
+  return Math.max(0, step) * 5;
 }
 
 export function hapText(step: number = hapStep()): string {
-  return step <= 0 ? 'сила: <b>0</b> · отклик выключен' : 'сила: <b>' + hapValue(step) + '</b> из ' + HAP_MAX;
+  return step <= 0 ? 'сила: <b>0</b> · отклик выключен' : 'сила: <b>' + hapValue(step) + '</b> из 100';
 }
 
-// 0..100 on the scale the length-based fallback and the impact styles were made for
+// the same 0..100, on the scale the length-based fallback and the impact styles were made for
 function hapPercent(): number {
-  return Math.round(hapValue() / 5);
+  return hapValue();
 }
 
 export function hapStyle(bump?: boolean): 'Light' | 'Medium' | 'Heavy' {
@@ -96,8 +91,8 @@ export function hapStyle(bump?: boolean): 'Light' | 'Medium' | 'Heavy' {
 }
 
 export function hapAmp(quiet?: boolean, bump?: boolean): number {
-  const t = Math.min(1, (hapValue() - HAP_MIN) / (HAP_MAX - HAP_MIN) + (bump ? 0.18 : 0));
-  const amp = AMP_MIN + t * (AMP_MAX - AMP_MIN);
+  const share = Math.min(100, hapValue() + (bump ? 18 : 0)) / 100;
+  const amp = share * AMP_FULL;
   return Math.max(1, Math.round(quiet ? amp * 0.45 : amp));
 }
 
