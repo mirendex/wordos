@@ -9,12 +9,17 @@ import { bankSize, dealingWords } from '../../domain/cards';
 import { dealHtml } from '../../ui/deal';
 import { Win } from '../../ui/windows';
 
+// "6 слов", "1 слова": how many cards are being written, never which words, as those are the answers
+function words(n: number): string {
+  return n + (n % 10 === 1 && n % 100 !== 11 ? ' слова' : ' слов');
+}
+
 export function learnView(w: Win): string {
   const v = vocabState();
   const dealing = dealingWords();
-  if (w.data.busy) return dealHtml(dealing, 'тасую колоду', 'пишу примеры: ' + dealing.join(', '));
+  if (w.data.busy) return dealHtml('тасую колоду', 'пишу примеры для ' + words(dealing.length));
   const c = v.queue[v.i];
-  if (!c && dealing.length) return dealHtml(dealing, 'ещё пара карточек', 'дописываю: ' + dealing.join(', '));
+  if (!c && dealing.length) return dealHtml('ещё пара карточек', 'дописываю ' + words(dealing.length));
   if (!c) {
     const due = dueWords().length;
     if (v.err) {

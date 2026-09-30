@@ -46,6 +46,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.dcard b.hid {
+  height: 16px;
+  margin: 4px 0 14px;
+  background: var(--blue);
+}
 .dcard i {
   display: block;
   height: 4px;

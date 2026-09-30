@@ -71,7 +71,6 @@ function cardsView(w: Win): string {
   if (w.data.busy || g.busy) {
     const left = g.cur ? g.cur.scenes.filter((s: GoalScene) => !s.filled) : [];
     return dealHtml(
-      left.map((s: GoalScene) => s.en),
       'тасую колоду',
       left.length ? 'слова и фразы для «' + left[0].ru + '»' : 'модель придумывает примеры',
     );
