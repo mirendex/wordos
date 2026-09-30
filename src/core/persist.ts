@@ -79,6 +79,7 @@ export async function load(): Promise<void> {
   if (!Array.isArray(S.words)) S.words = [];
   if (!Array.isArray(S.notes)) S.notes = [];
   if (!S.read || typeof S.read !== 'object') S.read = {};
+  delete S.read.spare; // left by a version that wrote the next text ahead
   if (!S.icons || typeof S.icons !== 'object') S.icons = {};
   if (!S.mt || typeof S.mt !== 'object') S.mt = {};
   if (typeof S.level !== 'number') S.level = 40;

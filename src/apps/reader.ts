@@ -84,11 +84,6 @@ export function readView(w: Win): string {
         : ''
     }
       <h3 class="h">Читалка</h3><p class="sub">Тапни по слову, чтобы увидеть перевод.</p>
-      ${
-        spareReady()
-          ? `<div class="rowb" style="margin:0 0 10px"><button class="btn p sm" data-topic="${esc(S.read.spare.topic)}">Готов текст: ${esc(topicName(S.read.spare.topic))}</button></div>`
-          : ''
-      }
       <div class="chips">${READTOPICS.map((t) => `<button class="chip" data-topic="${esc(t[1])}">${esc(t[0])}</button>`).join('')}</div>
       <div class="rowb"><button class="btn sm" data-owntopic="1">Своя тема</button>
       ${S.read.last ? `<button class="btn sm" data-again="1">Вернуться к прошлому тексту</button>` : ''}</div>`;
@@ -121,15 +116,6 @@ function textPrompt(topic: string): string {
 {"title":"заголовок на английском до 5 слов","body":"текст одним абзацем"}`;
 }
 
-function topicName(topic: string): string {
-  const t = READTOPICS.find((x) => x[1] === topic);
-  return t ? t[0] : topic;
-}
-
-function spareReady(): boolean {
-  return !!(S.read.spare && S.read.spare.text && S.read.spare.text.body);
-}
-
 // the text as it is being written, the title first and then the body, with a caret at its end;
 // until the first words come, the usual loading box
 function streamHtml(st: { title: string; body: string }): string {
@@ -148,41 +134,11 @@ function showStream(w: Win): void {
   else paint();
 }
 
-let spareFor = '';
-
-// one more text on the same topic, written in the background while this one is read, so the next
-// one opens at once
-async function spareText(topic: string): Promise<void> {
-  if (!navigator.onLine || spareFor === topic || (spareReady() && S.read.spare.topic === topic)) return;
-  spareFor = topic;
-  try {
-    const r = await ask(textPrompt(topic));
-    if (r && r.body) {
-      S.read.spare = { topic, text: r };
-      save();
-      const w = winByApp('read');
-      if (w && !w.data.text && !w.data.stream) paint();
-    }
-  } catch {
-    /* it is only a spare */
-  }
-  spareFor = '';
-}
-
 export async function getText(topic: string): Promise<void> {
   const w = winByApp('read')!;
   w.data.err = '';
   w.data.pop = null;
   w.data.harvest = null;
-  if (spareReady() && S.read.spare.topic === topic) {
-    w.data.text = S.read.spare.text;
-    S.read.last = w.data.text;
-    S.read.spare = null;
-    save();
-    paint();
-    setTimeout(() => spareText(topic), 1500);
-    return;
-  }
   w.data.text = null;
   w.data.stream = { title: '', body: '' };
   paint();
@@ -202,7 +158,6 @@ export async function getText(topic: string): Promise<void> {
   }
   w.data.stream = null;
   paint();
-  if (w.data.text) setTimeout(() => spareText(topic), 1500);
 }
 
 // The word shows up at once with whatever translation is already known (the cards, the free
