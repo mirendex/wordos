@@ -18,7 +18,7 @@ export async function warm(force?: boolean): Promise<void> {
   running = true;
   last = Date.now();
   try {
-    await prefetchAhead(15);
+    await prefetchAhead();
     await fillGoalAhead();
     if (listenState().done > 0) await listenTopUp();
     const t = S.term;
@@ -31,7 +31,7 @@ export async function warm(force?: boolean): Promise<void> {
 }
 
 export function installWarm(): void {
-  setTimeout(warm, 2500);
+  setTimeout(warm, 1200);
   addEventListener('online', () => warm(true));
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) warm();

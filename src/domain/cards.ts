@@ -5,7 +5,7 @@ import { BANK, save, scheduleBankSave } from '../core/persist';
 import { winByApp } from '../ui/windows';
 import { ask } from '../services/llm';
 import { speak } from '../platform/speech';
-import { freqInit, FREQ, RANK } from './frequency';
+import { freqInit, RANK } from './frequency';
 import { IV, nextNew, vocabState } from './vocab';
 import { recalcLevel } from './progress';
 
@@ -18,8 +18,7 @@ export function trimBank(): void {
   const keys = Object.keys(BANK);
   if (keys.length <= 130) return;
   const keep = new Set(keys.filter((w) => v.srs[w] && !v.srs[w].skip));
-  freqInit();
-  for (let i = v.n; i < v.n + 120 && i < FREQ!.length; i++) keep.add(FREQ![i].w);
+  nextNew(120).forEach((x) => keep.add(x.w));
   keys.forEach((w) => {
     if (!keep.has(w)) delete BANK[w];
   });
@@ -40,17 +39,17 @@ export function markKnown(w: string): void {
   save();
 }
 
-export function needWords(limit: number): string[] {
-  freqInit();
+// the words the next batches will take (see loadCards) that have no card in the bank yet: the
+// ones due soon, then the next `horizon` new words of the course
+export function needWords(limit: number, horizon = 60): string[] {
   const v = vocabState();
   const out: string[] = [];
   Object.keys(v.srs).forEach((w) => {
     if (v.srs[w].due <= PLUS(3) && !v.srs[w].skip && !(BANK[w] || []).length) out.push(w);
   });
-  for (let i = v.n; i < FREQ!.length && out.length < limit; i++) {
-    const w = FREQ![i].w;
-    if (!v.known[w] && !v.srs[w] && !(BANK[w] || []).length) out.push(w);
-  }
+  nextNew(horizon).forEach((x) => {
+    if (out.length < limit && !(BANK[x.w] || []).length) out.push(x.w);
+  });
   return out.slice(0, limit);
 }
 
@@ -88,21 +87,24 @@ ${avoid ? 'Для этих слов нужно ДРУГОЕ предложени
   return added;
 }
 
-export async function prefetch(quiet?: boolean): Promise<void> {
+// the words being written right now, and the request writing them
+let inflight: { words: string[]; done: Promise<unknown> } | null = null;
+
+export async function prefetch(quiet?: boolean, horizon?: number): Promise<void> {
   const v = vocabState();
-  if (v.loading) return;
-  if (!navigator.onLine) return;
-  const list = needWords(5);
+  if (inflight || !navigator.onLine) return;
+  const list = needWords(8, horizon);
   if (!list.length) return;
-  v.loading = true;
   v.err = '';
   if (!quiet) paint();
+  const done = fetchBatch(list);
+  inflight = { words: list, done };
   try {
-    await fetchBatch(list);
+    await done;
   } catch (e) {
     v.err = (e as Error).message;
   }
-  v.loading = false;
+  inflight = null;
   paint();
 }
 
@@ -174,16 +176,17 @@ export async function loadCards(): Promise<void> {
   paint();
   if (v.mode === 'audio' && v.queue[0]) speak(String(v.queue[0].sentence || '').replace('___', v.queue[0].w));
   if (!dealing.length) {
-    setTimeout(() => prefetch(true), 400);
+    setTimeout(() => prefetchAhead(), 400);
     return;
   }
-  v.loading = true;
   try {
-    await fetchBatch(dealing);
+    // the words the background is already writing are waited for, not asked for again
+    if (inflight && dealing.some((x) => inflight!.words.indexOf(x) >= 0)) await inflight.done.catch(() => {});
+    const still = dealing.filter((x) => !hasUsable(x));
+    if (still.length && my === run) await fetchBatch(still);
   } catch (e) {
     if (my === run && !v.queue.length) v.err = (e as Error).message;
   }
-  v.loading = false;
   if (my !== run) return;
   const came = dealing.filter(hasUsable);
   const wasEmpty = !v.queue.length;
@@ -195,16 +198,15 @@ export async function loadCards(): Promise<void> {
   paint();
   if (wasEmpty && v.mode === 'audio' && v.queue[0])
     speak(String(v.queue[0].sentence || '').replace('___', v.queue[0].w));
-  setTimeout(() => prefetch(true), 400);
+  setTimeout(() => prefetchAhead(), 400);
 }
 
-// keeps enough cards in the bank for the next batch or two, a few words at a time
-export async function prefetchAhead(words = 15): Promise<void> {
-  for (let n = 0; n < words; n += 5) {
-    if (!needWords(5).length) return;
-    const v = vocabState();
-    if (v.loading) return;
-    await prefetch(true);
-    if (v.err) return;
+// keeps cards in the bank for the next two batches, a few words per request, and asks for nothing
+// once they are there
+export async function prefetchAhead(words = 20): Promise<void> {
+  for (let n = 0; n < words; n += 8) {
+    if (inflight || !needWords(1, words).length) return;
+    await prefetch(true, words);
+    if (vocabState().err) return;
   }
 }
