@@ -64,14 +64,13 @@ export function save(): void {
 }
 
 export async function load(): Promise<void> {
+  const [r, b, m] = await Promise.all([KEY, BKEY, MKEY].map((k) => window.storage!.get(k).catch(() => null)));
   try {
-    const r = await window.storage!.get(KEY);
     if (r && r.value) S = Object.assign(JSON.parse(JSON.stringify(FRESH)), JSON.parse(r.value));
   } catch {
     /* ignore */
   }
   try {
-    const b = await window.storage!.get(BKEY);
     if (b && b.value) BANK = JSON.parse(b.value);
   } catch {
     /* ignore */
@@ -85,7 +84,6 @@ export async function load(): Promise<void> {
   if (typeof S.level !== 'number') S.level = 40;
   if (!BANK || typeof BANK !== 'object') BANK = {};
   try {
-    const m = await window.storage!.get(MKEY);
     if (m && m.value) {
       const j = JSON.parse(m.value);
       if (j.at && Date.now() - j.at < 86400000 && j.list && j.list.length) restoreModelsCache(j.list);

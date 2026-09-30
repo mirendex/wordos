@@ -13,7 +13,7 @@ import java.util.Locale;
 
 public class MainActivity extends BridgeActivity {
     private static final long SPLASH_MS = 380; // as long as the animation in drawable/splash_logo.xml
-    private static final long SPLASH_MAX_MS = 4000; // if the web part never says it is ready
+    private static final long SPLASH_MAX_MS = 2000; // if the web part never says it is ready
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -98,23 +98,29 @@ public class MainActivity extends BridgeActivity {
             int[] px = new int[w * h];
             bmp.getPixels(px, 0, w, 0, 0, w, h);
             bmp.recycle();
-            int l = w;
-            int t = h;
-            int r = -1;
-            int b = -1;
-            for (int y = 0; y < h; y++) {
-                for (int x = 0; x < w; x++) {
-                    if ((px[y * w + x] >>> 24) > 128) {
-                        if (x < l) l = x;
-                        if (x > r) r = x;
-                        if (y < t) t = y;
-                        if (y > b) b = y;
-                    }
-                }
-            }
-            return r < 0 ? null : new int[] { l, t, r + 1, b + 1 };
+            // look in from each side and stop at the first drawn pixel
+            int t = 0;
+            while (t < h && rowEmpty(px, w, t)) t++;
+            if (t == h) return null;
+            int b = h - 1;
+            while (rowEmpty(px, w, b)) b--;
+            int l = 0;
+            while (colEmpty(px, w, t, b, l)) l++;
+            int r = w - 1;
+            while (colEmpty(px, w, t, b, r)) r--;
+            return new int[] { l, t, r + 1, b + 1 };
         } catch (RuntimeException e) {
             return null;
         }
+    }
+
+    private static boolean rowEmpty(int[] px, int w, int y) {
+        for (int x = 0; x < w; x++) if ((px[y * w + x] >>> 24) > 128) return false;
+        return true;
+    }
+
+    private static boolean colEmpty(int[] px, int w, int top, int bottom, int x) {
+        for (int y = top; y <= bottom; y++) if ((px[y * w + x] >>> 24) > 128) return false;
+        return true;
     }
 }

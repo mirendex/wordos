@@ -17,16 +17,21 @@ import {
 // to come up out of the window that was clicked.
 
 const ICON_CSS = 288; // how wide the splash draws its icon, until the phone says where it really is
-const PRESS_MS = 55; // the pointer going down and the window giving under it
+const PRESS_MS = 85; // the pointer going down and the window giving under it
 const PRESS_WIN = 0.97;
 const PRESS_PTR = [0.4, 0.6]; // how far the pointer sinks, in pixels of the logo
-const HOLD = 25; // ms held down
+const HOLD = 30; // ms held down
 const SPRING_MS = 300; // the window springs back, overshoots and settles
 const ZOOM_DELAY = 65; // after the release, once the pointer is gone, the window grows over the first real one
-const ZOOM_MS = 280;
-const FADE_AT = 95; // after the release, the desk fades away from in front of it
-const FADE_MS = 160;
-const GONE_MS = 4500; // if the phone never says the splash is gone, go on anyway
+const ZOOM_MS = 320;
+const LOGO_FADE_AT = 40; // into the zoom, the logo thins out while the real window comes up under it
+const LOGO_FADE_MS = 220;
+const FADE_AT = 90; // into the zoom, the desk fades away from in front of the real window
+const FADE_MS = 200;
+const WIN_IN_MS = 260; // the real window settling in from a little smaller
+const WIN_FROM = 0.94;
+const GONE_MS = 2000; // if the phone never says the splash is gone, go on anyway
+const LIMIT_MS = 5000; // if the app never gets as far as playing it, the desk still shows up
 
 interface Box {
   x: number;
@@ -52,9 +57,20 @@ function spring(zeta: number, swings: number, n = 48): string {
 
 let el: HTMLElement | null = null;
 let timers: ReturnType<typeof setTimeout>[] = [];
+let leaving = false;
 
 function later(fn: () => void, ms: number): void {
   timers.push(setTimeout(fn, ms));
+}
+
+// a tap sends the desk away at once instead of cutting the animation off
+function skip(): void {
+  if (!el || leaving) return;
+  leaving = true;
+  timers.forEach(clearTimeout);
+  timers = [];
+  el.classList.add('out');
+  later(endBoot, FADE_MS + 60);
 }
 
 export function endBoot(): void {
@@ -91,9 +107,8 @@ function showBoot(): void {
     `<div class="boot-ring" style="left:${pct(BOOT_TIP[0], BOOT_COLS)};top:${pct(BOOT_TIP[1], BOOT_ROWS)}"></div></div>`;
   document.body.appendChild(el);
   place(guessBox());
-  el.addEventListener('pointerdown', endBoot);
-  // if the app never gets as far as playing it, the desk still shows up
-  later(endBoot, 10000);
+  el.addEventListener('pointerdown', skip);
+  later(endBoot, LIMIT_MS);
   // two frames on, it is on screen under the splash, which may now go
   requestAnimationFrame(() =>
     requestAnimationFrame(() => {
@@ -104,20 +119,49 @@ function showBoot(): void {
   );
 }
 
-function play(click: () => void): void {
+// The click starts as soon as the splash is gone, and the growing over the first window as soon as
+// that window is up and the click is over, so a slow start of the app never holds the click back
+let click: (() => void) | null = null;
+let gone = !!window.__splashGone || !(window as unknown as { Capacitor?: unknown }).Capacitor;
+let ready = false;
+let pressed = false;
+let released = false;
+let clicked = false;
+let zoomed = false;
+let press: { logo: HTMLElement; win: HTMLElement; box: DOMRect; unit: number } | null = null;
+
+const reduced = (): boolean => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function leave(): void {
+  if (!el || leaving) return;
+  leaving = true;
+  el.classList.add('out');
+  later(endBoot, FADE_MS + 60);
+}
+
+function buzz(): void {
+  if (clicked || !click) return;
+  clicked = true;
+  click();
+}
+
+// the pointer goes down, the window gives under it, a ring spreads from the tip; then the release:
+// the window springs back past its size and settles, the pointer lifts and is gone at once
+function startPress(): void {
   const o = el;
   const logo = o && (o.querySelector('.boot-logo') as HTMLElement | null);
   const win = o && (o.querySelector('.boot-win') as HTMLElement | null);
   const ptr = o && o.querySelector('.boot-ptr');
   const ring = o && o.querySelector('.boot-ring');
   if (!o || !logo || !win || !ptr || !ring) return;
+  pressed = true;
   const box = logo.getBoundingClientRect();
   const unit = box.width / BOOT_COLS;
+  press = { logo, win, box, unit };
   win.style.transformOrigin = `${pct(BOOT_WIN_COLS / 2, BOOT_COLS)} ${pct(BOOT_WIN_ROWS / 2, BOOT_ROWS)}`;
   const sunk = `translate(${PRESS_PTR[0] * unit}px, ${PRESS_PTR[1] * unit}px)`;
 
-  // the click: the pointer goes down, the window gives under it, a ring spreads from the tip
-  click();
+  buzz();
   ptr.animate([{ transform: 'translate(0, 0)' }, { transform: sunk }], {
     duration: PRESS_MS,
     easing: 'cubic-bezier(0.3, 0, 0.2, 1)',
@@ -131,20 +175,13 @@ function play(click: () => void): void {
   ring.animate(
     [
       { transform: 'translate(-50%, -50%) scale(0.2)', opacity: 1 },
-      { transform: 'translate(-50%, -50%) scale(1)', opacity: 0 },
+      { transform: 'translate(-50%, -50%) scale(1.3)', opacity: 0 },
     ],
-    { duration: 280, easing: 'cubic-bezier(0.1, 0.7, 0.3, 1)', fill: 'forwards' },
+    { duration: 340, easing: 'cubic-bezier(0.1, 0.7, 0.3, 1)', fill: 'forwards' },
   );
 
-  // the release: the window springs back past its size and settles, the pointer lifts and is gone
-  // at once
-  const up = PRESS_MS + HOLD;
   later(() => {
     if (!el) return;
-    const real = document.querySelector('.win');
-    const to = real
-      ? real.getBoundingClientRect()
-      : { left: 0, top: 0, width: innerWidth, height: innerHeight };
     win.animate([{ transform: `scale(${PRESS_WIN})` }, { transform: 'scale(1)' }], {
       duration: SPRING_MS,
       easing: spring(0.4, 1.3),
@@ -155,44 +192,73 @@ function play(click: () => void): void {
       easing: spring(0.5, 1),
       fill: 'forwards',
     });
-    ptr.animate([{ opacity: 1 }, { opacity: 0 }], {
-      duration: 60,
-      easing: 'ease-in',
-      fill: 'forwards',
-    });
-    // then, with only the window left, the logo grows until the window is as wide as the real one,
-    // and is over it, thinning out as it goes so the big pixels never sit over the app
-    const k = to.width / (BOOT_WIN_COLS * unit);
-    const dx = to.left + to.width / 2 - (box.left + (BOOT_WIN_COLS * unit) / 2);
-    const dy = to.top + to.height / 2 - (box.top + (BOOT_WIN_ROWS * unit) / 2);
-    logo.style.transformOrigin = win.style.transformOrigin;
-    logo.animate(
-      [{ transform: 'translate(0, 0) scale(1)' }, { transform: `translate(${dx}px, ${dy}px) scale(${k})` }],
-      { duration: ZOOM_MS, delay: ZOOM_DELAY, easing: spring(0.8, 0.8), fill: 'forwards' },
-    );
-    logo.animate([{ opacity: 1 }, { opacity: 0 }], {
-      duration: 160,
-      delay: ZOOM_DELAY + 20,
-      easing: 'ease-in',
-      fill: 'forwards',
-    });
+    ptr.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 60, easing: 'ease-in', fill: 'forwards' });
     later(() => {
-      if (!el) return;
-      o.classList.add('out');
-      later(endBoot, FADE_MS + 60);
-    }, FADE_AT);
-  }, up);
+      released = true;
+      step();
+    }, ZOOM_DELAY);
+  }, PRESS_MS + HOLD);
 }
 
-// The animation goes on once the splash is gone and the app is up, whichever is later
-let click: (() => void) | null = null;
-let gone = !!window.__splashGone || !(window as unknown as { Capacitor?: unknown }).Capacitor;
-let started = false;
+// with only the window left, the logo grows until the window is as wide as the real one and is
+// over it, thinning out as it goes while the real window comes up under it. Where the real
+// window is is read now, not when the click began, as it may have moved since
+function zoom(): void {
+  const o = el;
+  if (!o || !press) return;
+  zoomed = true;
+  const { logo, win, box, unit } = press;
+  const real = document.querySelector('.win');
+  const to = real
+    ? real.getBoundingClientRect()
+    : { left: 0, top: 0, width: innerWidth, height: innerHeight };
+  const k = to.width / (BOOT_WIN_COLS * unit);
+  const dx = to.left + to.width / 2 - (box.left + (BOOT_WIN_COLS * unit) / 2);
+  const dy = to.top + to.height / 2 - (box.top + (BOOT_WIN_ROWS * unit) / 2);
+  logo.style.transformOrigin = win.style.transformOrigin;
+  logo.animate(
+    [{ transform: 'translate(0, 0) scale(1)' }, { transform: `translate(${dx}px, ${dy}px) scale(${k})` }],
+    { duration: ZOOM_MS, easing: spring(0.8, 0.8), fill: 'forwards' },
+  );
+  logo.animate([{ opacity: 1 }, { opacity: 0 }], {
+    duration: LOGO_FADE_MS,
+    delay: LOGO_FADE_AT,
+    easing: 'ease-in',
+    fill: 'forwards',
+  });
+  if (real)
+    real.animate(
+      [
+        { opacity: 0, transform: `scale(${WIN_FROM})` },
+        { opacity: 1, transform: 'scale(1)' },
+      ],
+      {
+        duration: WIN_IN_MS,
+        delay: FADE_AT - 20,
+        easing: 'cubic-bezier(0.2, 0.7, 0.2, 1)',
+        fill: 'backwards',
+      },
+    );
+  later(leave, FADE_AT);
+}
+
+function step(): void {
+  if (!el || zoomed || !ready || !released) return;
+  zoom();
+}
 
 function go(): void {
-  if (started || !click || !gone || !el) return;
-  started = true;
-  play(click);
+  if (!el || !gone || pressed) return;
+  if (reduced()) {
+    // no motion: the desk just fades away once the app is up
+    pressed = released = true;
+    if (ready) {
+      buzz();
+      leave();
+    }
+    return;
+  }
+  startPress();
 }
 
 // MainActivity calls this as the splash goes, with where the splash drew the logo
@@ -204,17 +270,23 @@ window.__splashDone = (box?: Box | null) => {
 
 // call once the first window is open. `haptic` is played with the click
 export function playBoot(haptic: () => void): void {
-  if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (!el) {
     haptic();
-    endBoot();
     return;
   }
   click = haptic;
-  later(() => {
-    gone = true;
+  ready = true;
+  if (reduced()) {
     go();
-  }, GONE_MS);
+    return;
+  }
+  if (pressed) buzz();
   go();
+  step();
 }
 
 showBoot();
+later(() => {
+  gone = true;
+  go();
+}, GONE_MS);
