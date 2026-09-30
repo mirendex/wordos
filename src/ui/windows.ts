@@ -1,5 +1,6 @@
 import { haptic } from '../platform/haptics';
 import { paint } from '../core/paint';
+import { WKEY } from '../core/keys';
 
 export interface Win {
   key: string;
@@ -21,6 +22,101 @@ export const MIN_WIN_H = 200;
 
 let W: Win[] = [];
 let z = 10;
+
+const APPS = ['read', 'games', 'term', 'vocab', 'goal', 'setup', 'diary', 'listen', 'echo', 'notes', 'about'];
+
+// what is kept of a window between launches: where it is and how it is shown, not what is in it —
+// the app's own state lives in S, and what a window holds in `data` is only half-done work
+function layout(): string {
+  return JSON.stringify(
+    W.map((w) => ({
+      key: w.key,
+      app: w.app,
+      z: w.z,
+      x: Math.round(w.x),
+      y: Math.round(w.y),
+      w: Math.round(w.w),
+      h: Math.round(w.h),
+      minimized: !!w.minimized,
+      maximized: !!w.maximized,
+      restore: w.restore,
+    })),
+  );
+}
+
+let saved = '';
+let restored = false;
+
+// writes the windows down if they changed; cheap enough to call on every paint
+export function saveWins(): void {
+  if (!restored) return; // nothing to write over the saved windows until they are back
+  const s = layout();
+  if (s === saved) return;
+  saved = s;
+  window.storage!.set(WKEY, s).catch(() => {});
+}
+
+const num = (v: unknown, d: number): number => (typeof v === 'number' && isFinite(v) ? v : d);
+
+// puts back the windows as they were when the app was closed; false if there is nothing to put back
+export function restoreWins(raw: string | null | undefined): boolean {
+  restored = true;
+  if (!raw) return false;
+  let list: unknown;
+  try {
+    list = JSON.parse(raw);
+  } catch {
+    return false;
+  }
+  if (!Array.isArray(list)) return false;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const seen = new Set<string>();
+  W = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  list.forEach((o: any) => {
+    if (!o || typeof o !== 'object' || APPS.indexOf(o.app) < 0) return;
+    const key = typeof o.key === 'string' ? o.key : o.app + ':';
+    if (seen.has(key)) return;
+    seen.add(key);
+    // the screen may be another size now: keep each window on it and no bigger than it
+    const w = Math.max(MIN_WIN_W, Math.min(vw, num(o.w, 480)));
+    const h = Math.max(MIN_WIN_H, Math.min(vh, num(o.h, 460)));
+    const x = Math.max(0, Math.min(vw - 90, num(o.x, 40)));
+    const y = Math.max(0, Math.min(vh - 70, num(o.y, 24)));
+    const r = o.restore;
+    W.push({
+      key,
+      app: o.app,
+      data: {},
+      z: num(o.z, 10),
+      x,
+      y,
+      w,
+      h,
+      minimized: !!o.minimized,
+      maximized: !!o.maximized,
+      restore:
+        r && typeof r === 'object'
+          ? {
+              x: Math.max(0, Math.min(vw - 90, num(r.x, x))),
+              y: Math.max(0, Math.min(vh - 70, num(r.y, y))),
+              w: Math.max(MIN_WIN_W, Math.min(vw, num(r.w, w))),
+              h: Math.max(MIN_WIN_H, Math.min(vh, num(r.h, h))),
+            }
+          : undefined,
+    });
+  });
+  // the stacking order is kept, renumbered from the bottom so the counter starts low again
+  W.slice()
+    .sort((a, b) => a.z - b.z)
+    .forEach((w, i) => (w.z = 11 + i));
+  z = 10 + W.length;
+  saved = layout();
+  W.forEach(() => pushNav());
+  syncBackGate();
+  return true;
+}
 
 export function windows(): Win[] {
   return W;
@@ -159,6 +255,13 @@ export function backPressed(): boolean {
 }
 
 window.__appBack = backPressed;
+
+// the app may be closed from the background without another word, so the windows are written
+// down every time it goes there
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') saveWins();
+});
+window.addEventListener('pagehide', saveWins);
 
 export function topWinEl(): Element | null {
   const top = topWin();

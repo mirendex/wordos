@@ -1,7 +1,7 @@
 import { esc } from '../lib/scale';
 import { $, clockTxt } from '../core/util';
 import { setPainter } from '../core/paint';
-import { title, windows, visibleWindows, topZ, Win } from './windows';
+import { title, windows, visibleWindows, topZ, saveWins, Win } from './windows';
 import { modalHtml } from './modal';
 import { renderIcons } from './icons';
 import { aboutView } from '../apps/about';
@@ -60,6 +60,7 @@ function typing(): boolean {
 }
 
 function paintImpl(force?: boolean): void {
+  saveWins();
   if (typing() && !force) return; // не перерисовываем под открытой клавиатурой
   document.querySelectorAll<HTMLElement>('.win').forEach((el) => {
     const b = el.querySelector('.body');

@@ -208,7 +208,11 @@ function zoom(): void {
   if (!o || !press) return;
   zoomed = true;
   const { logo, win, box, unit } = press;
-  const real = document.querySelector('.win');
+  // with several windows back from the last time, the one on top is the one it grows into
+  const real = Array.from(document.querySelectorAll<HTMLElement>('.win')).reduce<HTMLElement | null>(
+    (a, b) => (!a || +b.style.zIndex > +a.style.zIndex ? b : a),
+    null,
+  );
   const to = real
     ? real.getBoundingClientRect()
     : { left: 0, top: 0, width: innerWidth, height: innerHeight };

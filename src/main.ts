@@ -1,9 +1,9 @@
 import { playBoot } from './ui/bootanim';
 import './ui/render';
-import { load, S } from './core/persist';
+import { load, S, WINS } from './core/persist';
 import { paint } from './core/paint';
 import { recalcLevel } from './domain/progress';
-import { open } from './ui/windows';
+import { open, restoreWins } from './ui/windows';
 import { installGestures } from './ui/gestures';
 import { installKeyboard } from './ui/keyboard';
 import { installActions } from './ui/actions';
@@ -20,8 +20,9 @@ installActions();
 function boot(): void {
   if (!S.cfg) S.cfg = { key: '', model: 'openai/gpt-4o-mini' };
   recalcLevel();
-  paint();
-  withoutHaptics(() => (S.seenIntro ? open('vocab') : open('about')));
+  // the windows come back as they were left; the very first time there are none to bring back
+  if (restoreWins(WINS)) paint();
+  else withoutHaptics(() => (S.seenIntro ? open('vocab') : open('about')));
   playBoot(() => haptic('boot'));
   notifyPlan();
   loadAppVersion();

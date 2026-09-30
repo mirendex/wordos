@@ -1,5 +1,5 @@
 import './storage';
-import { BKEY, KEY, MKEY } from './keys';
+import { BKEY, KEY, MKEY, WKEY } from './keys';
 import { restoreModelsCache } from '../services/models';
 
 export const FRESH = {
@@ -16,6 +16,8 @@ export const FRESH = {
 export let S: any = JSON.parse(JSON.stringify(FRESH));
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export let BANK: any = {};
+// the windows as they were left, for the desk to put back (see restoreWins)
+export let WINS: string | null = null;
 
 let bt: ReturnType<typeof setTimeout> | null = null;
 let bankOk = true;
@@ -64,7 +66,10 @@ export function save(): void {
 }
 
 export async function load(): Promise<void> {
-  const [r, b, m] = await Promise.all([KEY, BKEY, MKEY].map((k) => window.storage!.get(k).catch(() => null)));
+  const [r, b, m, w] = await Promise.all(
+    [KEY, BKEY, MKEY, WKEY].map((k) => window.storage!.get(k).catch(() => null)),
+  );
+  WINS = (w && w.value) || null;
   try {
     if (r && r.value) S = Object.assign(JSON.parse(JSON.stringify(FRESH)), JSON.parse(r.value));
   } catch {
