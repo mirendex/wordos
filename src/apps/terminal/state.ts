@@ -151,6 +151,8 @@ export interface TermState {
   saved: Quest[];
   lastFile?: string;
   gen?: { busy?: boolean; err?: string };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  spare?: any; // a machine put together ahead, not opened yet
 }
 
 export function termInit(): TermState {

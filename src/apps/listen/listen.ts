@@ -37,6 +37,29 @@ export function listenPick(): boolean {
   return false;
 }
 
+function listenPrompt(): string {
+  const lvl = S.level;
+  const len =
+    lvl < 42
+      ? 'по 4-6 слов'
+      : lvl < 60
+        ? 'по 6-9 слов'
+        : lvl < 75
+          ? 'по 8-12 слов'
+          : "по 10-15 слов, с сокращениями вроде I'll и we're";
+  return `Придумай 6 английских предложений для диктанта на слух.
+Уровень ${cefr(S.level)}, ${tone(S.level)} Длина: ${len}. Обычная речь: работа, быт, разговор с коллегой. Без редких имён и цифр.
+Формат ответа:
+{"lines":[{"en":"предложение","ru":"перевод"}]}`;
+}
+
+async function listenLines(): Promise<{ en: string; ru?: string }[]> {
+  const r = await ask(listenPrompt());
+  const lines = (Array.isArray(r.lines) ? r.lines : []).filter((x: { en?: string }) => x && x.en);
+  if (!lines.length) throw new Error('пусто');
+  return lines;
+}
+
 export async function listenGen(): Promise<void> {
   const w = winByApp('listen')!;
   const l = listenState();
@@ -44,21 +67,7 @@ export async function listenGen(): Promise<void> {
   l.err = '';
   paint();
   try {
-    const lvl = S.level;
-    const len =
-      lvl < 42
-        ? 'по 4-6 слов'
-        : lvl < 60
-          ? 'по 6-9 слов'
-          : lvl < 75
-            ? 'по 8-12 слов'
-            : "по 10-15 слов, с сокращениями вроде I'll и we're";
-    const r = await ask(`Придумай 6 английских предложений для диктанта на слух.
-Уровень ${cefr(S.level)}, ${tone(S.level)} Длина: ${len}. Обычная речь: работа, быт, разговор с коллегой. Без редких имён и цифр.
-Формат ответа:
-{"lines":[{"en":"предложение","ru":"перевод"}]}`);
-    const lines = (Array.isArray(r.lines) ? r.lines : []).filter((x: { en?: string }) => x && x.en);
-    if (!lines.length) throw new Error('пусто');
+    const lines = await listenLines();
     l.pool = lines;
     l.cur = { sentence: lines[0].en, ru: lines[0].ru || '', src: 'свежее' };
     l.poolI = 0;
@@ -73,6 +82,27 @@ export async function listenGen(): Promise<void> {
   if (l.cur) setTimeout(() => speak(l.cur.sentence), 250);
 }
 
+let topping = false;
+
+// the next phrases are written while the last few of these are still being played, so the
+// dictation goes on without a pause
+export async function listenTopUp(): Promise<void> {
+  const l = listenState();
+  if (topping || !navigator.onLine || !(S.cfg && S.cfg.key)) return;
+  if (l.pool && l.pool.length - 1 - (l.poolI || 0) > 2) return;
+  topping = true;
+  try {
+    const lines = await listenLines();
+    const rest = l.pool && l.pool.length ? l.pool.slice(l.poolI || 0) : [{ en: l.cur ? l.cur.sentence : '' }];
+    l.pool = rest.concat(lines);
+    l.poolI = 0;
+    save();
+  } catch {
+    /* the bank still has phrases, and the next tap will try again */
+  }
+  topping = false;
+}
+
 export function listenNext(): void {
   const l = listenState();
   if (l.pool && l.poolI < l.pool.length - 1) {
@@ -83,11 +113,13 @@ export function listenNext(): void {
     l.text = '';
     paint();
     setTimeout(() => speak(l.cur.sentence), 200);
+    listenTopUp();
     return;
   }
   if (listenPick()) {
     paint();
     setTimeout(() => speak(l.cur.sentence), 200);
+    listenTopUp();
     return;
   }
   listenGen();

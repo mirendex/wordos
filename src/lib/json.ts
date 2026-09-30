@@ -99,3 +99,31 @@ export function cutJson(s: string): any {
   if (Object.keys(pairs).length) return pairs;
   throw new Error('модель вернула не JSON');
 }
+
+// the text of a string field in a JSON object that is still being written: as much of it as has
+// come so far, or null if the field hasn't started
+export function partialField(raw: string, key: string): string | null {
+  const m = new RegExp('"' + key + '"\\s*:\\s*"').exec(raw);
+  if (!m) return null;
+  let out = '';
+  for (let i = m.index + m[0].length; i < raw.length; i++) {
+    const c = raw[i];
+    if (c === '"') break;
+    if (c !== '\\') {
+      out += c;
+      continue;
+    }
+    const n = raw[i + 1];
+    if (n === undefined) break;
+    if (n === 'u') {
+      const hex = raw.slice(i + 2, i + 6);
+      if (!/^[0-9a-fA-F]{4}$/.test(hex)) break;
+      out += String.fromCharCode(parseInt(hex, 16));
+      i += 5;
+    } else {
+      out += n === 'n' ? '\n' : n === 't' ? '\t' : n === 'r' ? '' : n;
+      i++;
+    }
+  }
+  return out;
+}

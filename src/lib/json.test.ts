@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cutJson, errHint, objects } from './json';
+import { cutJson, errHint, objects, partialField } from './json';
 
 describe('objects', () => {
   it('finds top-level and nested balanced objects', () => {
@@ -59,5 +59,21 @@ describe('cutJson', () => {
   });
   it('throws when nothing can be salvaged', () => {
     expect(() => cutJson('not json at all')).toThrow();
+  });
+});
+
+describe('partialField', () => {
+  it('reads a field that is still being written', () => {
+    expect(partialField('{"title":"Sea","body":"The ocean is', 'body')).toBe('The ocean is');
+  });
+  it('stops at the closing quote and unescapes', () => {
+    expect(partialField('{"body":"say \\"hi\\"\\nnow","x":1}', 'body')).toBe('say "hi"\nnow');
+  });
+  it('drops an escape cut in half', () => {
+    expect(partialField('{"body":"a\\', 'body')).toBe('a');
+    expect(partialField('{"body":"a\\u00', 'body')).toBe('a');
+  });
+  it('is null before the field starts', () => {
+    expect(partialField('{"title":"x",', 'body')).toBeNull();
   });
 });

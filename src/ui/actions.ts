@@ -13,6 +13,7 @@ import { cover, FREQ, RANK } from '../domain/frequency';
 import { inProgress, learnedWords, myWords, srsGrade, vocabState } from '../domain/vocab';
 import { recalcLevel } from '../domain/progress';
 import { loadCards, markKnown, prefetch } from '../domain/cards';
+import { warm } from '../services/warm';
 import {
   bringToFront,
   close,
@@ -532,6 +533,7 @@ export function installActions(): void {
       S.cfg.key = (i ? i.value : '').trim();
       if (i) i.blur();
       save();
+      if (S.cfg.key) setTimeout(() => warm(true), 500);
       dialog({ title: 'ключ', text: S.cfg.key ? 'Ключ сохранён у тебя на телефоне.' : 'Ключ убран.' });
       return;
     }

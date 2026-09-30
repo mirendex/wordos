@@ -5,15 +5,16 @@ import { DAY } from '../../core/util';
 import { SR } from '../../platform/speech';
 import { RANK } from '../../domain/frequency';
 import { dueWords, vocabState } from '../../domain/vocab';
-import { bankSize } from '../../domain/cards';
+import { bankSize, dealingWords } from '../../domain/cards';
+import { dealHtml } from '../../ui/deal';
 import { Win } from '../../ui/windows';
 
 export function learnView(w: Win): string {
   const v = vocabState();
-  if (w.data.busy)
-    return `<div class="loadbox"><div class="pix"><i></i><i></i><i></i><i></i><i></i></div>
-    <b>собираю карточки</b><span>модель придумывает примеры</span><div class="scan"></div></div>`;
+  const dealing = dealingWords();
+  if (w.data.busy) return dealHtml(dealing, 'тасую колоду', 'пишу примеры: ' + dealing.join(', '));
   const c = v.queue[v.i];
+  if (!c && dealing.length) return dealHtml(dealing, 'ещё пара карточек', 'дописываю: ' + dealing.join(', '));
   if (!c) {
     const due = dueWords().length;
     if (v.err) {
@@ -40,6 +41,7 @@ export function learnView(w: Win): string {
     <div class="crow">
       <span class="ctag ${c.rev ? 'rev' : 'new'}">${c.rev ? 'повтор ' + (s2 ? s2.reps : 1) : 'новое'}</span>
       <span class="ctag">#${RANK![c.w] || '?'}</span>
+      ${dealing.length ? `<span class="ctag wip">+${dealing.length} пишутся</span>` : ''}
       <span class="cnum">${v.i + 1}/${v.queue.length}</span>
     </div>
   </div>

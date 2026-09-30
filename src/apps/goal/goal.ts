@@ -6,6 +6,8 @@ import { DAY } from '../../core/util';
 import { GoalCard, GoalScene, goalState } from './state';
 import { Win } from '../../ui/windows';
 import { talkView } from './talk';
+import { dealHtml } from '../../ui/deal';
+import { fillingGoal } from '../../domain/goal';
 import { dictView, pronView } from './practice';
 
 function planView(): string {
@@ -57,7 +59,7 @@ function planView(): string {
         <b>${esc(s.ru)}</b>
         <div class="acts"><button class="btn sm" data-gtalk="${s.id}">диалог${talks ? ' · ' + talks : ''}</button>
         <button class="btn sm r" data-gscenedel="${s.id}">убрать</button></div>
-        <span>${s.filled ? sp.learned + '/' + sp.total + ' слов' : 'ещё не заполнено'}</span></div>`;
+        <span>${s.filled ? sp.learned + '/' + sp.total + ' слов' : fillingGoal() ? 'пишу карточки…' : 'ещё не заполнено'}</span></div>`;
       })
       .join('')}</div>
     <div class="rowb" style="margin-top:12px"><button class="btn p" data-glearn="1">Учить</button>
@@ -66,9 +68,14 @@ function planView(): string {
 
 function cardsView(w: Win): string {
   const g = goalState();
-  if (w.data.busy || g.busy)
-    return `<div class="loadbox"><div class="pix"><i></i><i></i><i></i><i></i><i></i></div>
-    <b>собираю карточки</b><span>модель придумывает примеры</span><div class="scan"></div></div>`;
+  if (w.data.busy || g.busy) {
+    const left = g.cur ? g.cur.scenes.filter((s: GoalScene) => !s.filled) : [];
+    return dealHtml(
+      left.map((s: GoalScene) => s.en),
+      'тасую колоду',
+      left.length ? 'слова и фразы для «' + left[0].ru + '»' : 'модель придумывает примеры',
+    );
+  }
   if (!g.cur) return `<p class="sub">Сначала составь план на вкладке «План».</p>`;
   const c = g.queue[g.i];
   if (!c) {

@@ -60,6 +60,7 @@ export async function makeGoal(desc: string, until: string): Promise<void> {
     g.draft = '';
     g.draftUntil = '';
     save();
+    setTimeout(fillGoalAhead, 300);
   } catch (e) {
     g.err = (e as Error).message;
   }
@@ -154,6 +155,39 @@ export async function fillScene(scene: GoalScene): Promise<void> {
   save();
 }
 
+// The scenes are filled one by one in the background as soon as the plan is made, so by the time
+// the cards are asked for they are mostly there already
+let ahead: Promise<void> | null = null;
+let scene: Promise<void> | null = null; // the scene being filled right now
+
+export function fillingGoal(): boolean {
+  return !!ahead;
+}
+
+export function fillGoalAhead(): Promise<void> {
+  if (ahead) return ahead;
+  if (!navigator.onLine) return Promise.resolve();
+  ahead = (async () => {
+    for (;;) {
+      const g = goalState();
+      const s = g.cur && g.cur.scenes.find((x: GoalScene) => !x.filled);
+      if (!s) return;
+      scene = fillScene(s);
+      try {
+        await scene;
+      } catch {
+        return;
+      } finally {
+        scene = null;
+      }
+      paint();
+    }
+  })().finally(() => {
+    ahead = null;
+  });
+  return ahead;
+}
+
 export function goalDaysLeft(): number {
   const g = goalState();
   if (!g.cur) return 0;
@@ -197,7 +231,9 @@ export async function loadGoalCards(): Promise<void> {
     paint();
     let filled = false;
     try {
-      await fillScene(emptyScenes[0]);
+      // the scene being filled in the background is waited for, not asked for twice
+      if (scene) await scene.catch(() => {});
+      else await fillScene(emptyScenes[0]);
       filled = true;
     } catch (e) {
       g.err = (e as Error).message;
@@ -211,6 +247,7 @@ export async function loadGoalCards(): Promise<void> {
     paint();
     return;
   }
+  if (emptyScenes.length) setTimeout(fillGoalAhead, 400);
 
   g.queue = due.concat(fresh).map((id) => Object.assign({ rev: due.indexOf(id) >= 0 }, g.cur.items[id]));
   g.i = 0;

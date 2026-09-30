@@ -11,6 +11,7 @@ import { loadAppVersion } from './platform/appinfo';
 import { notifyPlan } from './platform/notify';
 import { $, clockTxt } from './core/util';
 import { haptic, withoutHaptics } from './platform/haptics';
+import { installWarm } from './services/warm';
 
 installGestures();
 installKeyboard();
@@ -24,6 +25,7 @@ function boot(): void {
   playBoot(() => haptic('boot'));
   notifyPlan();
   loadAppVersion();
+  installWarm();
 }
 
 setInterval(() => {

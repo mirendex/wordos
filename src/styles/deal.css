@@ -1,0 +1,169 @@
+/* cards being written: see src/ui/deal.ts */
+.deal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 0 14px;
+  text-align: center;
+}
+.deck {
+  position: relative;
+  width: 168px;
+  height: 108px;
+  margin-bottom: 18px;
+}
+.deck s,
+.dcard {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.deck s {
+  background: repeating-linear-gradient(45deg, var(--blue) 0 6px, #4757b5 6px 12px);
+}
+.deck s:first-child {
+  transform: translate(9px, 8px) rotate(4deg);
+}
+.deck s:nth-child(2) {
+  transform: translate(-6px, 5px) rotate(-3deg);
+}
+.dcard {
+  background: #fff;
+  padding: 16px 16px 0;
+  box-sizing: border-box;
+  text-align: left;
+  opacity: 0;
+  animation: dealt 3.2s var(--d) infinite both;
+}
+.dcard b {
+  display: block;
+  font-family: var(--px);
+  font-size: 20px;
+  color: var(--blue);
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dcard i {
+  display: block;
+  height: 4px;
+  margin-bottom: 7px;
+  background: var(--ink);
+  transform-origin: left;
+  transform: scaleX(0);
+  animation: 3.2s var(--d) infinite both;
+}
+.dcard i:nth-of-type(1) {
+  width: 92%;
+  animation-name: line1;
+}
+.dcard i:nth-of-type(2) {
+  width: 74%;
+  animation-name: line2;
+}
+.dcard i:nth-of-type(3) {
+  width: 40%;
+  animation-name: line3;
+}
+.dtitle {
+  display: block;
+  font-family: var(--px);
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+.dsub {
+  font-size: 12px;
+  color: var(--grey);
+  max-width: 260px;
+}
+@keyframes dealt {
+  0% {
+    opacity: 0;
+    transform: translate(-46px, -34px) rotate(-14deg);
+  }
+  7% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(-1deg);
+  }
+  9% {
+    transform: translate(0, 1px) rotate(0);
+  }
+  29% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0);
+  }
+  37%,
+  100% {
+    opacity: 0;
+    transform: translate(70px, -14px) rotate(12deg);
+  }
+}
+@keyframes line1 {
+  0%,
+  9% {
+    transform: scaleX(0);
+  }
+  15%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+@keyframes line2 {
+  0%,
+  15% {
+    transform: scaleX(0);
+  }
+  21%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+@keyframes line3 {
+  0%,
+  21% {
+    transform: scaleX(0);
+  }
+  26%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+/* while the batch is going, the cards still being written */
+.ctag.wip {
+  border-style: dashed;
+}
+
+/* a text coming in while it is written */
+.caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  vertical-align: -0.12em;
+  margin-left: 2px;
+  background: var(--ink);
+  animation: caret 0.9s steps(1) infinite;
+}
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dcard,
+  .dcard i {
+    animation: none;
+  }
+  .dcard:last-child {
+    opacity: 1;
+  }
+  .dcard i {
+    transform: none;
+  }
+  .caret {
+    animation: none;
+  }
+}

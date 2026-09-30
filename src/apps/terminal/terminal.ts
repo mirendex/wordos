@@ -10,29 +10,23 @@ export function tprint(x: string, t?: '' | 'cmd' | 'sys' | 'ok'): void {
   if (S.term.out.length > 140) S.term.out = S.term.out.slice(-140);
 }
 
-export async function genQuest(): Promise<void> {
-  const t = termInit();
-  if (t.gen && t.gen.busy) return;
-  t.gen = t.gen || {};
-  t.gen.busy = true;
-  t.gen.err = '';
-  paint(true);
-  try {
-    const themes = [
-      'ночная смена в порту',
-      'маленькая студия звукозаписи',
-      'сервер школьного сайта',
-      'склад запчастей',
-      'метеостанция',
-      'служба доставки еды',
-      'ферма серверов в подвале',
-      'касса маленького кинотеатра',
-      'приют для собак',
-      'ремонт велосипедов',
-    ];
-    const theme = themes[Math.floor(Math.random() * themes.length)];
-    const code = String(Math.floor(Math.random() * 8999) + 1000);
-    const j = await ask(`Придумай маленький текстовый квест для тренировки чтения на английском.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function questJson(): Promise<any> {
+  const themes = [
+    'ночная смена в порту',
+    'маленькая студия звукозаписи',
+    'сервер школьного сайта',
+    'склад запчастей',
+    'метеостанция',
+    'служба доставки еды',
+    'ферма серверов в подвале',
+    'касса маленького кинотеатра',
+    'приют для собак',
+    'ремонт велосипедов',
+  ];
+  const theme = themes[Math.floor(Math.random() * themes.length)];
+  const code = String(Math.floor(Math.random() * 8999) + 1000);
+  return ask(`Придумай маленький текстовый квест для тренировки чтения на английском.
 Тема: ${theme}. Уровень английского: ${cefr(S.level)}.
 Это чужой компьютер: несколько файлов на английском (письма, логи, заметки, README). Из них читатель должен вывести четырёхзначный код ${code} и открыть запертую папку.
 Код ${code} НЕ пиши прямо. Спрячь его как дату (месяц и день), время (чч:мм) или номер: пусть в двух разных файлах будут подсказки, из которых он однозначно собирается.
@@ -43,6 +37,37 @@ export async function genQuest(): Promise<void> {
 "files":[{"path":"~/README.txt","text":"..."},{"path":"~/mail/note.txt","text":"..."},{"path":"~/logs/run.log","text":"..."}],
 "locked_file":{"path":"~/vault/answer.txt","text":"..."},
 "code":"${code}","hint":"подсказка по-русски, где искать цифры"}`);
+}
+
+let spareBusy = false;
+
+// the next machine is put together while this one is being solved, so "новая машина" opens it at once
+export async function spareQuest(): Promise<void> {
+  const t = termInit();
+  if (t.spare || spareBusy || !navigator.onLine || !(S.cfg && S.cfg.key)) return;
+  spareBusy = true;
+  try {
+    const j = await questJson();
+    buildQuest(j);
+    t.spare = j;
+    save();
+  } catch {
+    /* it is only a spare */
+  }
+  spareBusy = false;
+}
+
+export async function genQuest(): Promise<void> {
+  const t = termInit();
+  if (t.gen && t.gen.busy) return;
+  t.gen = t.gen || {};
+  const spare = t.spare;
+  t.spare = null;
+  t.gen.busy = !spare;
+  t.gen.err = '';
+  paint(true);
+  try {
+    const j = spare || (await questJson());
     const q = buildQuest(j);
     QUESTS.push(q);
     t.saved.push(q);
@@ -132,6 +157,7 @@ export function termRun(raw: string): void {
         tprint('', '');
         tprint(q.done, 'ok');
         if (q.id === 'atlas') S.egg = Object.assign({}, S.egg || {}, { atlas: 1 });
+        if (t.qi >= QUESTS.length - 1) setTimeout(spareQuest, 1000);
       }
     }
   } else if (cmd === 'unlock') {
@@ -148,7 +174,7 @@ export function termRun(raw: string): void {
       t.cwd = '~';
       S.term.out = QUESTS[t.qi].intro.map((x) => ({ t: 'sys' as const, x }));
     } else {
-      tprint('собираю новую машину, это занимает несколько секунд', 'sys');
+      if (!t.spare) tprint('собираю новую машину, это занимает несколько секунд', 'sys');
       genQuest();
     }
   } else if (cmd === 'hint')

@@ -116,9 +116,33 @@ export function wordStatus(w: string): string {
   return 'ещё не бралось';
 }
 
+const hasUsable = (w: string) =>
+  (BANK[w] || []).some((c: { sentence?: string }) => hasGapSentence(c.sentence));
+
+// takes a card for `w` out of the bank for the queue, dropping any stale malformed ones
+function takeCard(w: string, rev: boolean) {
+  const v = vocabState();
+  BANK[w] = (BANK[w] || []).filter((c: { sentence?: string }) => hasGapSentence(c.sentence));
+  const card = BANK[w].length > 1 ? BANK[w].shift() : BANK[w][0];
+  v.seen[w] = card.sentence;
+  return Object.assign({ w, rev }, card);
+}
+
+// words whose cards are being written while the queue is already going
+let dealing: string[] = [];
+let run = 0;
+
+export function dealingWords(): string[] {
+  return dealing;
+}
+
+// The batch starts at once with the cards already in the bank; the ones still missing are asked
+// for in the background and join the end of the queue as they come. Only a batch with nothing
+// in the bank at all waits, and then the window deals the deck while it does
 export async function loadCards(): Promise<void> {
   const win = winByApp('vocab')!;
   const v = vocabState();
+  const my = ++run;
   v.err = '';
   freqInit();
   const t = DAY();
@@ -129,54 +153,58 @@ export async function loadCards(): Promise<void> {
   const fresh = nextNew(Math.max(3, 10 - due.length)).map((x) => x.w);
   const all = due.concat(fresh);
   v.tab = 'learn';
-  if (!all.length) {
-    v.queue = [];
-    v.i = 0;
-    paint();
-    return;
-  }
-
-  const hasUsable = (w: string) =>
-    (BANK[w] || []).some((c: { sentence?: string }) => hasGapSentence(c.sentence));
-  const miss = all.filter((w) => !hasUsable(w));
-  if (miss.length) {
-    if (!navigator.onLine) {
-      const have = all.filter((w) => hasUsable(w));
-      if (!have.length) {
-        v.queue = [];
-        v.i = 0;
-        v.offline = 1;
-        paint();
-        return;
-      }
-    } else {
-      win.data.busy = true;
-      paint();
-      try {
-        await fetchBatch(miss.slice(0, 6));
-      } catch (e) {
-        v.err = (e as Error).message;
-      }
-      win.data.busy = false;
-    }
-  }
-  v.offline = 0;
-  v.queue = all
-    .filter((w) => hasUsable(w))
-    .map((w) => {
-      // drop any stale malformed entries so they never reach the queue
-      BANK[w] = (BANK[w] || []).filter((c: { sentence?: string }) => hasGapSentence(c.sentence));
-      const card = BANK[w].length > 1 ? BANK[w].shift() : BANK[w][0];
-      v.seen[w] = card.sentence;
-      return Object.assign({ w, rev: due.indexOf(w) >= 0 }, card);
-    });
   v.i = 0;
   v.shown = false;
   v.hint = 0;
   v.res = null;
+  if (!all.length) {
+    v.queue = [];
+    dealing = [];
+    paint();
+    return;
+  }
+  const ready = all.filter(hasUsable);
+  const miss = all.filter((w) => !hasUsable(w));
+  v.offline = !ready.length && miss.length && !navigator.onLine ? 1 : 0;
+  v.queue = ready.map((w) => takeCard(w, due.indexOf(w) >= 0));
+  dealing = navigator.onLine ? miss.slice(0, 6) : [];
+  win.data.busy = !v.queue.length && dealing.length > 0;
   saveBank();
   save();
   paint();
   if (v.mode === 'audio' && v.queue[0]) speak(String(v.queue[0].sentence || '').replace('___', v.queue[0].w));
+  if (!dealing.length) {
+    setTimeout(() => prefetch(true), 400);
+    return;
+  }
+  v.loading = true;
+  try {
+    await fetchBatch(dealing);
+  } catch (e) {
+    if (my === run && !v.queue.length) v.err = (e as Error).message;
+  }
+  v.loading = false;
+  if (my !== run) return;
+  const came = dealing.filter(hasUsable);
+  const wasEmpty = !v.queue.length;
+  v.queue = v.queue.concat(came.map((w) => takeCard(w, due.indexOf(w) >= 0)));
+  dealing = [];
+  win.data.busy = false;
+  saveBank();
+  save();
+  paint();
+  if (wasEmpty && v.mode === 'audio' && v.queue[0])
+    speak(String(v.queue[0].sentence || '').replace('___', v.queue[0].w));
   setTimeout(() => prefetch(true), 400);
+}
+
+// keeps enough cards in the bank for the next batch or two, a few words at a time
+export async function prefetchAhead(words = 15): Promise<void> {
+  for (let n = 0; n < words; n += 5) {
+    if (!needWords(5).length) return;
+    const v = vocabState();
+    if (v.loading) return;
+    await prefetch(true);
+    if (v.err) return;
+  }
 }

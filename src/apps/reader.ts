@@ -1,8 +1,9 @@
 import { esc, cefr, tone } from '../lib/scale';
-import { errHint } from '../lib/json';
+import { errHint, partialField } from '../lib/json';
 import { paint } from '../core/paint';
-import { S, save } from '../core/persist';
-import { ask } from '../services/llm';
+import { BANK, S, save } from '../core/persist';
+import { ask, askStream } from '../services/llm';
+import { fetchFreeTranslation } from '../services/translate';
 import { freqInit, RANK } from '../domain/frequency';
 import { coursePos, vocabState } from '../domain/vocab';
 import { winByApp, Win } from '../ui/windows';
@@ -72,9 +73,7 @@ export function harvestHtml(w: Win): string {
 
 export function readView(w: Win): string {
   const t = w.data.text;
-  if (w.data.busy)
-    return `<div class="loadbox"><div class="pix"><i></i><i></i><i></i><i></i><i></i></div>
-      <b>пишу текст</b><span>под твой уровень</span><div class="scan"></div></div>`;
+  if (w.data.stream) return `<div data-stream>${streamHtml(w.data.stream)}</div>`;
   if (!t)
     return `${
       w.data.err
@@ -85,6 +84,11 @@ export function readView(w: Win): string {
         : ''
     }
       <h3 class="h">Читалка</h3><p class="sub">Тапни по слову, чтобы увидеть перевод.</p>
+      ${
+        spareReady()
+          ? `<div class="rowb" style="margin:0 0 10px"><button class="btn p sm" data-topic="${esc(S.read.spare.topic)}">Готов текст: ${esc(topicName(S.read.spare.topic))}</button></div>`
+          : ''
+      }
       <div class="chips">${READTOPICS.map((t) => `<button class="chip" data-topic="${esc(t[1])}">${esc(t[0])}</button>`).join('')}</div>
       <div class="rowb"><button class="btn sm" data-owntopic="1">Своя тема</button>
       ${S.read.last ? `<button class="btn sm" data-again="1">Вернуться к прошлому тексту</button>` : ''}</div>`;
@@ -99,7 +103,7 @@ export function readView(w: Win): string {
       ${
         w.data.pop
           ? `<div class="pop"><b>${esc(w.data.pop.en)}</b> · ${esc(w.data.pop.ru)}
-        <p class="sub" style="margin-top:4px">${esc(w.data.pop.note || '')}</p>
+        <p class="sub" style="margin-top:4px">${esc(w.data.pop.note || (w.data.pop.wip ? 'уточняю по контексту…' : ''))}</p>
         <div class="rowb"><button class="btn sm" data-saveword="1">В блокнот</button>
         <button class="btn sm" data-speak="${esc(w.data.pop.en)}">Вслух</button></div></div>`
           : ''
@@ -110,41 +114,126 @@ export function readView(w: Win): string {
       ${w.data.harvest ? harvestHtml(w) : ''}`;
 }
 
-export async function getText(topic: string): Promise<void> {
-  const w = winByApp('read')!;
-  w.data.busy = true;
-  w.data.err = '';
-  paint();
-  try {
-    const r = await ask(`Напиши короткий текст на английском для того, кто учит язык. Тема: ${topic}.
+function textPrompt(topic: string): string {
+  return `Напиши короткий текст на английском для того, кто учит язык. Тема: ${topic}.
 Уровень ${cefr(S.level)}, подача: ${tone(S.level)}. Длина ${S.level < 42 ? '50-70' : S.level < 60 ? '80-110' : S.level < 75 ? '110-140' : '140-180'} слов. Интересный факт, история или наблюдение, не учебный пересказ.
 Формат ответа:
-{"title":"заголовок на английском до 5 слов","body":"текст одним абзацем"}`);
+{"title":"заголовок на английском до 5 слов","body":"текст одним абзацем"}`;
+}
+
+function topicName(topic: string): string {
+  const t = READTOPICS.find((x) => x[1] === topic);
+  return t ? t[0] : topic;
+}
+
+function spareReady(): boolean {
+  return !!(S.read.spare && S.read.spare.text && S.read.spare.text.body);
+}
+
+// the text as it is being written, the title first and then the body, with a caret at its end;
+// until the first words come, the usual loading box
+function streamHtml(st: { title: string; body: string }): string {
+  if (!st.title && !st.body)
+    return `<div class="loadbox"><div class="pix"><i></i><i></i><i></i><i></i><i></i></div>
+      <b>пишу текст</b><span>под твой уровень</span><div class="scan"></div></div>`;
+  return `<h3 class="h">${esc(st.title)}${st.body ? '' : '<span class="caret"></span>'}</h3>
+      <div class="read" style="margin-top:10px">${st.body ? esc(st.body) + '<span class="caret"></span>' : ''}</div>`;
+}
+
+// puts the growing text straight into the window, so the rest of the screen isn't redrawn with
+// every word
+function showStream(w: Win): void {
+  const el = document.querySelector(`.win[data-k="${CSS.escape(w.key)}"] [data-stream]`);
+  if (el) el.innerHTML = streamHtml(w.data.stream);
+  else paint();
+}
+
+let spareFor = '';
+
+// one more text on the same topic, written in the background while this one is read, so the next
+// one opens at once
+async function spareText(topic: string): Promise<void> {
+  if (!navigator.onLine || spareFor === topic || (spareReady() && S.read.spare.topic === topic)) return;
+  spareFor = topic;
+  try {
+    const r = await ask(textPrompt(topic));
+    if (r && r.body) {
+      S.read.spare = { topic, text: r };
+      save();
+      const w = winByApp('read');
+      if (w && !w.data.text && !w.data.stream) paint();
+    }
+  } catch {
+    /* it is only a spare */
+  }
+  spareFor = '';
+}
+
+export async function getText(topic: string): Promise<void> {
+  const w = winByApp('read')!;
+  w.data.err = '';
+  w.data.pop = null;
+  w.data.harvest = null;
+  if (spareReady() && S.read.spare.topic === topic) {
+    w.data.text = S.read.spare.text;
+    S.read.last = w.data.text;
+    S.read.spare = null;
+    save();
+    paint();
+    setTimeout(() => spareText(topic), 1500);
+    return;
+  }
+  w.data.text = null;
+  w.data.stream = { title: '', body: '' };
+  paint();
+  try {
+    const r = await askStream(textPrompt(topic), (raw) => {
+      if (!w.data.stream) return;
+      w.data.stream.title = partialField(raw, 'title') || '';
+      w.data.stream.body = partialField(raw, 'body') || '';
+      showStream(w);
+    });
     if (!r || !r.body) throw new Error('модель не вернула текст');
     w.data.text = r;
-    w.data.err = '';
     S.read.last = r;
     save();
   } catch (e) {
     w.data.err = (e as Error).message || 'не вышло';
   }
-  w.data.busy = false;
+  w.data.stream = null;
   paint();
+  if (w.data.text) setTimeout(() => spareText(topic), 1500);
 }
 
+// The word shows up at once with whatever translation is already known (the cards, the free
+// dictionary), and the model's reading of it in this very sentence replaces it when it comes
 export async function lookup(word: string, sentence: string): Promise<void> {
   const w = winByApp('read')!;
   const clean = word.replace(/[^A-Za-z'-]/g, '');
   if (!clean) return;
-  w.data.pop = { en: clean, ru: '...', note: '' };
+  const lc = clean.toLowerCase();
+  const known = (BANK[lc] && BANK[lc][0] && BANK[lc][0].word_ru) || S.mt[lc] || '';
+  w.data.pop = { en: clean, ru: known || '...', note: '', wip: true };
   paint();
+  const same = () => w.data.pop && w.data.pop.en === clean;
+  if (!known)
+    fetchFreeTranslation(lc).then((t) => {
+      if (t && same() && w.data.pop.wip) {
+        w.data.pop.ru = t;
+        paint();
+      }
+    });
   try {
     const r = await ask(`Слово "${clean}" в предложении: "${sentence}".
 Формат ответа:
 {"ru":"перевод в этом контексте, 1-3 слова","note":"короткая заметка по-русски до 12 слов или пустая строка"}`);
-    w.data.pop = { en: clean, ru: r.ru || '', note: r.note || '' };
+    if (same()) w.data.pop = { en: clean, ru: r.ru || w.data.pop.ru, note: r.note || '' };
   } catch {
-    w.data.pop = { en: clean, ru: 'перевод не пришёл', note: 'попробуй ещё раз' };
+    if (same())
+      w.data.pop =
+        w.data.pop.ru && w.data.pop.ru !== '...'
+          ? { en: clean, ru: w.data.pop.ru, note: '' }
+          : { en: clean, ru: 'перевод не пришёл', note: 'попробуй ещё раз' };
   }
   paint();
 }
