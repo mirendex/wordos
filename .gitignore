@@ -11,3 +11,9 @@ legacy/
 scripts/smoke.png
 *.jks
 *.keystore
+
+.DS_Store
+.idea/
+.vscode/
+*.log
+.env*
