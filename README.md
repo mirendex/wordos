@@ -1,135 +1,183 @@
+<div align="center">
+
+<img src="public/icon-512.png" alt="WordOS logo" width="112" height="112">
+
 # WordOS
 
-An Android app for learning English on your own material: a frequency-based vocabulary,
-LLM-generated texts and translations, word games, listening dictation and read-aloud practice,
-and an English-language diary. It runs as its own little "desktop OS" inside a single WebView —
-with its own windows, desktop icons, and a taskbar.
+**Learn English inside a tiny pixel-art desktop OS.**
+Vocabulary with spaced repetition, LLM-written texts and cards, word games, dictation and a
+text adventure — each one a window on your phone's desktop.
 
-Built on [Capacitor](https://capacitorjs.com/): the web part is framework-free TypeScript,
-wrapped in a native Android shell. The app's interface is in Russian (it is made for Russian
-speakers learning English); the code, comments and docs are in English.
+[![Build APK](https://github.com/mirendex/wordos/actions/workflows/build-apk.yml/badge.svg)](https://github.com/mirendex/wordos/actions/workflows/build-apk.yml)
+[![Release](https://img.shields.io/github/v/release/mirendex/wordos?label=apk&color=3B3560)](https://github.com/mirendex/wordos/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-C1432C)](LICENSE)
+![Platform: Android](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
+![Capacitor 8](https://img.shields.io/badge/Capacitor-8-119EFF?logo=capacitor&logoColor=white)
 
-A prebuilt APK is available on the [Releases](../../releases/latest) page.
+**English** · [Русский](README.ru.md)
+
+<img src="docs/screenshots/tablet-desktop.png" alt="WordOS on a tablet: WORDS.DB, TERMINAL and GAMES windows on the desktop" width="860">
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/phone-desktop.png" alt="Desktop" width="190"></td>
+    <td><img src="docs/screenshots/phone-words.png" alt="WORDS.DB" width="190"></td>
+    <td><img src="docs/screenshots/phone-games.png" alt="Five-letter game" width="190"></td>
+    <td><img src="docs/screenshots/phone-terminal.png" alt="Terminal quest" width="190"></td>
+  </tr>
+</table>
+
+</div>
+
+## About
+
+WordOS is an Android app for learning English on your own material. Instead of a feed of
+lessons, it is a small desktop operating system running in a single WebView: apps are icons,
+everything opens in windows you can drag, resize, maximize and minimize to the taskbar, and all
+of them share one vocabulary, so progress in any app counts everywhere.
+
+- The interface is in **Russian** — the app is made for Russian speakers learning English. Code,
+  comments and docs are in English.
+- Texts, cards, dialogues and checks are written by an LLM through
+  [OpenRouter](https://openrouter.ai/) with **your own API key**; pick any model you like.
+- No account, no backend: everything is stored on the device.
 
 ## Features
 
-- **WORDS.DB** — learning the 5000 most frequent words of the language, with spaced repetition
-  (SRS) and LLM-generated flashcards (example sentence, translation, word forms).
-- **GOAL** — preparing for a specific event by a date: scenario-based vocabulary and phrases
-  (a trip, an interview, a move) with its own SRS and progress, plus a role-play dialogue with
-  the LLM for each scenario.
-- **READER** — texts on a chosen topic and level (CEFR), with a tap-to-translate word lookup.
-- **DIARY** — write your own English text and get it checked and corrected.
-- **LISTEN / ECHO** — listening dictation and read-aloud practice with speech recognition.
-- **GAMES** — hangman, word-pair matching, sentence ordering, a word-search grid, and a
-  wordle-style "five letters" game.
-- **TERM** — a text adventure: an LLM-generated filesystem on "someone else's computer" that you
-  explore with `cd`/`ls`/`cat` to find the code.
-- A predictive-animation back gesture through a custom Capacitor plugin (`BackGate`), haptics,
-  text-to-speech and speech recognition, and local reminders to review words.
-- Windows drag, maximize/restore, resize from the corner, and minimize to the taskbar — with
-  both mouse and touch; on screens ≤760px wide (phones) a window is always fullscreen.
+| App          | What it does                                                                                                                           |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **WORDS.DB** | The 5000 most frequent English words with spaced repetition (SRS) and generated cards: example sentence, translation, word forms.      |
+| **GOAL**     | Prepare for an event by a date — a trip, an interview, a move: scenario vocabulary and phrases, a daily quota and role-play dialogues. |
+| **READER**   | Texts on a chosen topic at your level (CEFR), streamed as they are written, with tap-to-translate for any word.                        |
+| **DIARY**    | Write in English and get your text checked, corrected and explained.                                                                   |
+| **LISTEN**   | Listening dictation with text-to-speech.                                                                                               |
+| **ECHO**     | Read-aloud practice scored with speech recognition.                                                                                    |
+| **GAMES**    | Five-letter word game, word search, sentence order, pairs and hangman.                                                                 |
+| **TERMINAL** | A text adventure: explore a departed developer's laptop with `ls`, `cd` and `cat` to find the code.                                    |
+| **NOTES**    | Your saved words and the corrections collected from the diary.                                                                         |
+| **SETUP**    | OpenRouter key and model, voice, haptics strength and daily review reminders.                                                          |
 
-## Stack
+**Under the hood**
 
-- **Vite + TypeScript** — builds the web part (no UI framework, rendering is template strings).
-- **Vitest** — unit tests for the pure logic (SRS, diffing, parsing JSON from the LLM, level
-  estimation).
-- **ESLint + Prettier** — static checks and a single code style.
-- **Capacitor 8** — the Android wrapper and access to native APIs (haptics, TTS/STT,
-  notifications).
-- Storage — `localStorage` behind a small async shim (`window.storage`, `src/core/storage.ts`).
-- LLM — [OpenRouter](https://openrouter.ai/) (the user supplies their own key in the app's
-  settings).
-- Playwright — an end-to-end smoke run of the app in a headless browser (`scripts/smoke.mjs`).
+- A small window manager: drag, resize from the corner, maximize/restore, minimize to the
+  taskbar, marquee selection — with mouse and touch; on phones (≤ 760 px) windows go fullscreen.
+  Windows come back where you left them.
+- Android's predictive back gesture animates the top window closed (custom `BackGate` plugin).
+- A launch animation that continues the system splash frame-for-frame.
+- Haptics with real amplitude control on supported phones (custom `Vibe` plugin), TTS/STT and
+  local reminders.
+- The model is asked ahead in the background — the next cards, scenes, dictation phrases and
+  terminal machines — so most screens open instantly.
 
-## Architecture
+## Install
 
-Rendering is a set of template strings, no virtual DOM: `paint()` redraws the windows and desktop
-on every state change. The circular "everything calls paint, paint calls everything" dependency
-is broken by `core/paint.ts` — this module knows nothing about the screens, it just holds the
-current render function (`setPainter`), which `ui/render.ts` supplies at startup.
-
-```
-index.html              entry point, desktop markup
-src/
-  main.ts                bootstrap: wires up gestures/keyboard/clicks, load() → boot()
-  env.d.ts                global declarations (window.storage, *.txt?raw)
-  styles/                 CSS, split by interface section
-  lib/                    pure functions with no side effects — what the tests cover:
-                          json.ts (parsing partially cut-off JSON from the LLM), scale.ts (level
-                          scale, CEFR), text.ts (Levenshtein distance, answer checking, text diff),
-                          five.ts (wordle), termfs.ts (building the quest filesystem),
-                          grid.ts (laying words out on a grid), srs.ts (the spaced-repetition
-                          ladder, shared by WORDS.DB and GOAL), plan.ts (countdown, daily quota,
-                          goal progress)
-  data/                   the frequency dictionary (freq.txt, 5000 words)
-  core/                   persist.ts (S, BANK, load/save), paint.ts (a leaf of the
-                          dependency tree), storage.ts (the localStorage shim), util.ts, keys.ts
-  platform/               wrappers over Capacitor: haptics.ts, speech.ts (TTS/STT), appinfo.ts,
-                          notify.ts
-  services/               llm.ts (OpenRouter requests), models.ts (the model list), translate.ts,
-                          warm.ts (asking the model ahead, in the background)
-  domain/                 vocabulary business logic: frequency.ts, vocab.ts (SRS), progress.ts,
-                          cards.ts, goal.ts (GOAL: scenarios, cards, dialogue)
-  ui/                     windows.ts (a small window manager + the back gesture), render.ts
-                          (paint + the screen router), icons.ts, modal.ts, gestures.ts
-                          (drag/marquee/slider), keyboard.ts, actions.ts (clicks),
-                          deal.ts (the card-dealing loading view), bootanim.ts + bootlogo.ts
-                          (the launch animation; bootlogo.ts is generated)
-  apps/                   each app is its own module: about, reader, notes, setup,
-                          diary/, echo/, listen/, terminal/, vocab/, goal/ (state, practice, talk),
-                          games/{hangman,pairs,order,letters,five,sources}
-scripts/
-  smoke.mjs               a headless run: opens every window, plays every game, checks
-                          persistence in localStorage and window management (maximize/restore/
-                          resize/minimize) at a tablet width — run manually and in CI
-android/                  the native Android project (Capacitor)
-  app/src/main/java/dev/mirendex/diffen/
-    MainActivity.java      registers the native plugins
-    BackGatePlugin.java     the predictive back gesture, kept in sync with window state in JS
-    SplashGatePlugin.java   lets the web part say when the splash can go
-    VibePlugin.java         haptic pulses with their own strength (amplitude)
-```
-
-## Requirements
-
-- Node.js 22+
-- For the APK: JDK 21 and the Android SDK
-- An [OpenRouter](https://openrouter.ai/keys) API key, entered in the app's settings (SETUP) — the
-  key stays on the device
+1. Download `wordos.apk` from the [latest release](https://github.com/mirendex/wordos/releases/latest)
+   and install it (allow installing from unknown sources if asked).
+2. Get an API key at [openrouter.ai/keys](https://openrouter.ai/keys).
+3. Open **SETUP** in the app, paste the key and choose a model.
 
 ## Development
 
+**Requirements:** Node.js 22+; for the APK also JDK 21 and the Android SDK.
+
 ```bash
+git clone https://github.com/mirendex/wordos.git
+cd wordos
 npm install
-npm run dev          # local dev server with hot reload
-npm run typecheck    # type checking (strict tsconfig)
-npm run lint         # ESLint
-npm test             # Vitest
-npm run build        # build the web part into www/
-npm run format       # Prettier
-npm run icons        # regenerate icons, splash and boot logo (scripts/gen-icons.mjs)
-node scripts/smoke.mjs  # end-to-end run in a headless browser
+npm run dev
 ```
 
-## Building the APK
+| Command                  | What it does                                                |
+| ------------------------ | ----------------------------------------------------------- |
+| `npm run dev`            | Dev server with hot reload                                  |
+| `npm run build`          | Typecheck and build the web part into `www/`                |
+| `npm run typecheck`      | TypeScript in strict mode                                   |
+| `npm run lint`           | ESLint                                                      |
+| `npm run format`         | Prettier                                                    |
+| `npm test`               | Vitest unit tests                                           |
+| `node scripts/smoke.mjs` | End-to-end run in headless Chromium (after `npm run build`) |
+| `npm run screenshots`    | Regenerate the README screenshots into `docs/screenshots/`  |
+| `npm run icons`          | Regenerate launcher icons, splash and boot logo             |
+
+### Building the APK
 
 ```bash
-npm run copy         # build the web part + npx cap copy android
-npm run open         # open the project in Android Studio
-npm run apk          # copy + build a debug APK via gradlew
+npm run copy   # build the web part and sync it into android/
+npm run open   # open the project in Android Studio
+npm run apk    # build a debug APK with Gradle
 ```
 
-CI (`.github/workflows/build-apk.yml`) runs on every push to `main`/`master`: lint, typecheck and
-tests, then builds the web part and a signed release APK and uploads it as an artifact and to a
-release. Signing needs these repository secrets: `ANDROID_KEYSTORE_BASE64` (a base64-encoded
-keystore) and `ANDROID_KEYSTORE_PASSWORD`; the key alias must be `wordos`
-(see `android/app/build.gradle`). The signing and release steps run only in the upstream
-repository, so forks still get lint, tests and the web build.
-The headless smoke run (`scripts/smoke.mjs`) is not part of CI: it takes about two minutes, so it's
-run by hand.
+### CI and releases
+
+[`build-apk.yml`](.github/workflows/build-apk.yml) runs on every push to `master`: lint,
+typecheck and tests, then the web build, a signed release APK, and an update of the
+[`latest`](https://github.com/mirendex/wordos/releases/latest) release. Signing uses the
+repository secrets `ANDROID_KEYSTORE_BASE64` (a base64-encoded keystore) and
+`ANDROID_KEYSTORE_PASSWORD`; the key alias must be `wordos` (see `android/app/build.gradle`).
+The signing and release steps run only in the upstream repository, so forks still get lint,
+tests and the web build. The smoke run takes about two minutes and is run by hand.
+
+## Architecture
+
+Framework-free TypeScript: rendering is template strings, with no virtual DOM. `paint()`
+redraws the desktop and windows on every state change. The circular "everything calls paint,
+paint calls everything" dependency is broken by `core/paint.ts`, which knows nothing about the
+screens and only holds the current render function (`setPainter`) that `ui/render.ts` supplies
+at startup. Pure logic lives in `src/lib/` and is what the unit tests cover.
+
+<details>
+<summary>Project structure</summary>
+
+```
+index.html               entry point, desktop markup
+src/
+  main.ts                bootstrap: gestures, keyboard, clicks, load() → boot()
+  env.d.ts               global declarations (window.storage, *.txt?raw)
+  styles/                CSS, split by interface section
+  lib/                   pure functions, covered by tests: json.ts (parsing cut-off JSON from
+                         the LLM), scale.ts (level scale, CEFR), text.ts (Levenshtein distance,
+                         answer checking, diff), five.ts, termfs.ts (quest filesystem),
+                         grid.ts (word search layout), srs.ts (spaced-repetition ladder),
+                         plan.ts (countdown, daily quota, goal progress)
+  data/                  frequency dictionary (freq.txt, 5000 words)
+  core/                  persist.ts (state, card bank, load/save), paint.ts, storage.ts
+                         (localStorage shim), util.ts, keys.ts
+  platform/              Capacitor wrappers: haptics.ts, speech.ts (TTS/STT), appinfo.ts,
+                         notify.ts
+  services/              llm.ts (OpenRouter), models.ts, translate.ts, warm.ts (background
+                         prefetch)
+  domain/                frequency.ts, vocab.ts, progress.ts, cards.ts, goal.ts
+  ui/                    windows.ts (window manager + back gesture), render.ts (paint + screen
+                         router), icons.ts, modal.ts, gestures.ts, keyboard.ts, actions.ts,
+                         deal.ts (card-dealing loader), bootanim.ts + bootlogo.ts (launch
+                         animation; bootlogo.ts is generated)
+  apps/                  one module per app: about, reader, notes, setup, diary/, echo/,
+                         listen/, terminal/, vocab/, goal/, games/
+scripts/
+  smoke.mjs              headless run of every window, game, persistence and window management
+  screenshots.mjs        README screenshots
+  gen-icons.mjs          icons, splash and boot logo from one pixel map
+android/                 native Android project (Capacitor)
+  app/src/main/java/dev/mirendex/diffen/
+    MainActivity.java    registers the plugins, hands the splash over to the web part
+    BackGatePlugin.java  predictive back gesture, in sync with the window state in JS
+    SplashGatePlugin.java  lets the web part say when the splash can go
+    VibePlugin.java      haptic pulses with their own amplitude
+```
+
+</details>
+
+## Privacy
+
+Progress, cards and settings — including your API key — are kept in the app's local storage
+and never leave the device, except for these requests:
+
+- [OpenRouter](https://openrouter.ai/) — prompts for texts, cards, checks and dialogues, sent
+  with your key;
+- [MyMemory](https://mymemory.translated.net/) — free translation of single words (READER, word search, games);
+- Google Fonts — the interface fonts.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) © mirendex
