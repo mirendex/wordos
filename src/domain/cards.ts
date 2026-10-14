@@ -10,8 +10,18 @@ import { IV, nextNew, newToday, vocabState } from './vocab';
 import { BATCH, newInBatch } from '../lib/srs';
 import { recalcLevel } from './progress';
 
-export function bankSize(): number {
-  return Object.keys(BANK).filter((w) => BANK[w] && BANK[w].length).length;
+// the cards in the bank split by what they are for: words not started yet, made ahead in the
+// background, and words already being learned, whose card is kept for their reviews
+export function bankSplit(): { fresh: number; review: number } {
+  const v = vocabState();
+  let fresh = 0;
+  let review = 0;
+  Object.keys(BANK).forEach((w) => {
+    if (!(BANK[w] && BANK[w].length)) return;
+    if (v.srs[w]) review++;
+    else fresh++;
+  });
+  return { fresh, review };
 }
 
 export function trimBank(): void {

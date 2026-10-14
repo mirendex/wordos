@@ -6,7 +6,7 @@ import { SR } from '../../platform/speech';
 import { RANK } from '../../domain/frequency';
 import { dueWords, newToday, vocabState } from '../../domain/vocab';
 import { BATCH, newInBatch } from '../../lib/srs';
-import { bankSize, dealingWords } from '../../domain/cards';
+import { bankSplit, dealingWords } from '../../domain/cards';
 import { dealHtml } from '../../ui/deal';
 import { Win } from '../../ui/windows';
 
@@ -32,6 +32,7 @@ export function learnView(w: Win): string {
         <button class="btn" data-app="setup">Сменить модель</button></div>`;
     }
     const fresh = newInBatch(due, newToday());
+    const bank = bankSplit();
     const why =
       due > BATCH
         ? `новые слова добавятся, когда повторений останется не больше ${BATCH}`
@@ -41,7 +42,7 @@ export function learnView(w: Win): string {
     return `<h3 class="h">${v.queue.length ? 'Пачка пройдена' : 'Карточки'}</h3>
       <p class="sub">${due ? 'К повторению готово слов: ' + due : 'Повторять нечего, всё придёт по расписанию.'}</p>
       ${why ? `<p class="sub">${why}</p>` : ''}
-      <p class="sub">в запасе: ${bankSize()}${navigator.onLine ? '' : ' · офлайн'}</p>
+      <p class="sub">наготове новых: ${bank.fresh} · для повторений: ${bank.review}${navigator.onLine ? '' : ' · офлайн'}</p>
       <div class="rowb">${
         due
           ? `<button class="btn p" data-more="1">${fresh ? 'Повторить и добрать' : 'Повторить'}</button>`

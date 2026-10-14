@@ -14,7 +14,7 @@ import {
   vocabState,
 } from '../../domain/vocab';
 import { chartSvg, demoHtml } from '../../domain/progress';
-import { bankSize, wordStatus } from '../../domain/cards';
+import { bankSplit, wordStatus } from '../../domain/cards';
 import { isBankPersisted } from '../../core/persist';
 import { dueCount } from '../../ui/icons';
 import { Win } from '../../ui/windows';
@@ -37,6 +37,7 @@ export function vocabView(w: Win): string {
   const me = myWords();
   const next = nextNew(10).map((x) => ({ w: x.w, f: (FREQ![x.r - 1] || {}).f || 0, r: x.r }));
   const marked = Object.keys(v.srs).filter((w) => v.srs[w].skip).length;
+  const bank = bankSplit();
   return (
     tabs +
     `
@@ -71,7 +72,7 @@ export function vocabView(w: Win): string {
       <span>#${x.r} · ${(x.f / 1e4).toFixed(3)}% всех слов языка</span></div>`,
       )
       .join('')}</div>
-    <p class="sub" style="margin-top:12px">Отмечено знакомыми: ${marked} · карточек в запасе: ${bankSize()}${isBankPersisted() ? '' : ' (не сохраняется)'}</p>`
+    <p class="sub" style="margin-top:12px">Отмечено знакомыми: ${marked} · карточек наготове: ${bank.fresh} новых, ${bank.review} для повторений${isBankPersisted() ? '' : ' (не сохраняется)'}</p>`
   );
 }
 
