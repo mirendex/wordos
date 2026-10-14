@@ -131,7 +131,9 @@ git push
 
 When CI sees a version with no `v<version>` tag yet, it creates the tag and a
 [GitHub release](https://github.com/mirendex/wordos/releases) `WordOS <version>` with
-`wordos-<version>.apk` and notes generated from the commits. Pushes without a version change only
+`wordos-<version>.apk` and the commit subjects since the previous version as notes. The installed
+app checks for a newer release a couple of times a day and offers it quietly: a `↑ <version>`
+button in the taskbar and a line in ABOUT. Pushes without a version change only
 build the APK.
 
 ## Architecture
@@ -192,6 +194,7 @@ and never leave the device, except for these requests:
 - [OpenRouter](https://openrouter.ai/) — prompts for texts, cards, checks and dialogues, sent
   with your key;
 - [MyMemory](https://mymemory.translated.net/) — free translation of single words (READER, word search, games);
+- GitHub API — a check for a newer release, at most twice a day;
 - Google Fonts — the interface fonts.
 
 ## License
