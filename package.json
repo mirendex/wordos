@@ -15,7 +15,8 @@
     "copy": "npm run build && cap sync android",
     "open": "cap open android",
     "apk": "npm run copy && cd android && ./gradlew assembleDebug",
-    "icons": "node scripts/gen-icons.mjs"
+    "icons": "node scripts/gen-icons.mjs",
+    "screenshots": "npm run build && node scripts/screenshots.mjs"
   },
   "keywords": [
     "english",
