@@ -1,6 +1,7 @@
 import { esc, byWordsLevel, cefr, nToPct } from '../lib/scale';
 import { S } from '../core/persist';
 import { APPVER } from '../platform/appinfo';
+import { available } from '../services/update';
 import { cover, freqInit } from '../domain/frequency';
 import { myWords, vocabState } from '../domain/vocab';
 import { chartSvg, demoHtml } from '../domain/progress';
@@ -54,6 +55,7 @@ const APP_LIST: { id: string; name: string; desc: string }[] = [
 ];
 
 function homeView(): string {
+  const upd = available();
   const eggs = S.egg || {};
   return `<h3 class="h">Английский</h3>
     <p class="sub">Слова, тексты, дневник и игры — всё растёт из одного словаря.</p>
@@ -83,7 +85,8 @@ function homeView(): string {
     </div>`
         : ''
     }
-    <p class="sub" style="margin-top:12px">Версия ${esc(APPVER || '—')}</p>`;
+    <p class="sub" style="margin-top:12px">Версия ${esc(APPVER || '—')}</p>
+    ${upd ? `<p class="sub">Доступна версия ${esc(upd.version)} <button class="btn sm p" data-upd="1">обновить</button></p>` : ''}`;
 }
 
 export function aboutView(): string {

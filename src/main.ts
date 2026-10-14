@@ -12,6 +12,7 @@ import { notifyPlan } from './platform/notify';
 import { $, clockTxt } from './core/util';
 import { haptic, withoutHaptics } from './platform/haptics';
 import { installWarm } from './services/warm';
+import { installUpdateCheck } from './services/update';
 
 installGestures();
 installKeyboard();
@@ -27,6 +28,7 @@ function boot(): void {
   notifyPlan();
   loadAppVersion();
   installWarm();
+  installUpdateCheck();
 }
 
 setInterval(() => {

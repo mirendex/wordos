@@ -563,10 +563,21 @@ textarea.ta {
 #taskbar .t.min {
   opacity: 0.6;
 }
+#taskbar .upd {
+  margin-left: auto;
+  border: 2px solid var(--ink);
+  background: var(--blue);
+  color: #fff;
+  padding: 1px 8px;
+  white-space: nowrap;
+}
 #taskbar .clock {
   margin-left: auto;
   border-left: 2px solid var(--ink);
   padding-left: 9px;
+}
+#taskbar .clock.near {
+  margin-left: 0;
 }
 .wait {
   font-family: var(--px);

@@ -16,6 +16,7 @@ import { vocabView } from '../apps/vocab/vocab';
 import { goalView } from '../apps/goal/goal';
 import { gamesView } from '../apps/games/games';
 import { MLOAD, MODELS, loadModels } from '../services/models';
+import { offered } from '../services/update';
 
 function content(w: Win): string {
   if (w.app === 'games') return gamesView(w);
@@ -85,11 +86,16 @@ function paintImpl(force?: boolean): void {
     })
     .join('');
   $('#modal')!.innerHTML = modalHtml();
+  const upd = offered();
   $('#taskbar')!.innerHTML =
     W.map(
       (w) =>
         `<button class="t ${w.z === topZ() && !w.minimized ? 'on' : ''} ${w.minimized ? 'min' : ''}" data-focus="${esc(w.key)}">${esc(title(w))}</button>`,
-    ).join('') + `<span class="clock" id="clock" data-sys="1">${clockTxt()}</span>`;
+    ).join('') +
+    (upd
+      ? `<button class="upd" data-upd="1" title="Доступно обновление">↑ ${esc(upd.version)}</button>`
+      : '') +
+    `<span class="clock${upd ? ' near' : ''}" id="clock" data-sys="1">${clockTxt()}</span>`;
   document.querySelectorAll<HTMLElement>('.win').forEach((el) => {
     const b = el.querySelector('.body') as HTMLElement | null;
     const s = SCROLL[el.dataset.k!];

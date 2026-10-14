@@ -9,6 +9,10 @@ export interface Modal {
   value?: string;
   placeholder?: string;
   onok?: (v: string) => void;
+  // a two-button message: `okText` runs onok, `cancelText` (closing it any other way too) runs oncancel
+  okText?: string;
+  cancelText?: string;
+  oncancel?: () => void;
 }
 
 let MODAL: Modal | null = null;
@@ -30,6 +34,13 @@ export function closeModal(): void {
   paint(true);
 }
 
+// closes without confirming: the cross, the cancel button or a tap on the shade
+export function cancelModal(): void {
+  const cb = MODAL?.oncancel;
+  closeModal();
+  if (cb) cb();
+}
+
 export function takeModalOk(): ((v: string) => void) | undefined {
   return MODAL?.onok;
 }
@@ -45,8 +56,13 @@ export function modalHtml(): string {
       <div class="mtext">${esc(m.text || '')}</div>
       ${m.kind === 'ask' ? `<input class="answ" id="mdin" value="${esc(m.value || '')}" placeholder="${esc(m.placeholder || '')}" autocomplete="off" spellcheck="false" autocapitalize="off">` : ''}
       <div class="rowb">
-        ${m.kind === 'ask' ? '<button class="btn p" data-mok="1">Сохранить</button>' : '<button class="btn p" data-mclose="1">Понятно</button>'}
-        ${m.kind === 'ask' ? '<button class="btn" data-mclose="1">Отмена</button>' : ''}
+        ${
+          m.kind === 'ask'
+            ? '<button class="btn p" data-mok="1">Сохранить</button><button class="btn" data-mclose="1">Отмена</button>'
+            : m.okText
+              ? `<button class="btn p" data-mok="1">${esc(m.okText)}</button><button class="btn" data-mclose="1">${esc(m.cancelText || 'Отмена')}</button>`
+              : '<button class="btn p" data-mclose="1">Понятно</button>'
+        }
       </div>
     </div>
   </div>`;
