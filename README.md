@@ -6,7 +6,10 @@ and an English-language diary. It runs as its own little "desktop OS" inside a s
 with its own windows, desktop icons, and a taskbar.
 
 Built on [Capacitor](https://capacitorjs.com/): the web part is framework-free TypeScript,
-wrapped in a native Android shell.
+wrapped in a native Android shell. The app's interface is in Russian (it is made for Russian
+speakers learning English); the code, comments and docs are in English.
+
+A prebuilt APK is available on the [Releases](../../releases/latest) page.
 
 ## Features
 
@@ -51,7 +54,7 @@ current render function (`setPainter`), which `ui/render.ts` supplies at startup
 index.html              entry point, desktop markup
 src/
   main.ts                bootstrap: wires up gestures/keyboard/clicks, load() → boot()
-  types.ts, env.d.ts      global declarations (window.storage, *.txt?raw)
+  env.d.ts                global declarations (window.storage, *.txt?raw)
   styles/                 CSS, split by interface section
   lib/                    pure functions with no side effects — what the tests cover:
                           json.ts (parsing partially cut-off JSON from the LLM), scale.ts (level
@@ -61,19 +64,22 @@ src/
                           ladder, shared by WORDS.DB and GOAL), plan.ts (countdown, daily quota,
                           goal progress)
   data/                   the frequency dictionary (freq.txt, 5000 words)
-  core/                   state.ts/persist.ts (S, BANK, load/save), paint.ts (a leaf of the
+  core/                   persist.ts (S, BANK, load/save), paint.ts (a leaf of the
                           dependency tree), storage.ts (the localStorage shim), util.ts, keys.ts
   platform/               wrappers over Capacitor: haptics.ts, speech.ts (TTS/STT), appinfo.ts,
                           notify.ts
-  services/               llm.ts (OpenRouter requests), models.ts (the model list), translate.ts
+  services/               llm.ts (OpenRouter requests), models.ts (the model list), translate.ts,
+                          warm.ts (asking the model ahead, in the background)
   domain/                 vocabulary business logic: frequency.ts, vocab.ts (SRS), progress.ts,
                           cards.ts, goal.ts (GOAL: scenarios, cards, dialogue)
   ui/                     windows.ts (a small window manager + the back gesture), render.ts
                           (paint + the screen router), icons.ts, modal.ts, gestures.ts
-                          (drag/marquee/slider), keyboard.ts, actions.ts (clicks)
+                          (drag/marquee/slider), keyboard.ts, actions.ts (clicks),
+                          deal.ts (the card-dealing loading view), bootanim.ts + bootlogo.ts
+                          (the launch animation; bootlogo.ts is generated)
   apps/                   each app is its own module: about, reader, notes, setup,
-                          diary/, echo/, listen/, terminal/, vocab/, goal/, games/{hangman,pairs,
-                          order,letters,five}
+                          diary/, echo/, listen/, terminal/, vocab/, goal/ (state, practice, talk),
+                          games/{hangman,pairs,order,letters,five,sources}
 scripts/
   smoke.mjs               a headless run: opens every window, plays every game, checks
                           persistence in localStorage and window management (maximize/restore/
@@ -82,7 +88,16 @@ android/                  the native Android project (Capacitor)
   app/src/main/java/dev/mirendex/diffen/
     MainActivity.java      registers the native plugins
     BackGatePlugin.java     the predictive back gesture, kept in sync with window state in JS
+    SplashGatePlugin.java   lets the web part say when the splash can go
+    VibePlugin.java         haptic pulses with their own strength (amplitude)
 ```
+
+## Requirements
+
+- Node.js 22+
+- For the APK: JDK 21 and the Android SDK
+- An [OpenRouter](https://openrouter.ai/keys) API key, entered in the app's settings (SETUP) — the
+  key stays on the device
 
 ## Development
 
@@ -93,6 +108,8 @@ npm run typecheck    # type checking (strict tsconfig)
 npm run lint         # ESLint
 npm test             # Vitest
 npm run build        # build the web part into www/
+npm run format       # Prettier
+npm run icons        # regenerate icons, splash and boot logo (scripts/gen-icons.mjs)
 node scripts/smoke.mjs  # end-to-end run in a headless browser
 ```
 
@@ -104,7 +121,15 @@ npm run open         # open the project in Android Studio
 npm run apk          # copy + build a debug APK via gradlew
 ```
 
-CI (`.github/workflows/build-apk.yml`) runs on every push to `main`/`master`: lint and tests,
-then builds the web part and a signed release APK and uploads it as an artifact and to a release.
+CI (`.github/workflows/build-apk.yml`) runs on every push to `main`/`master`: lint, typecheck and
+tests, then builds the web part and a signed release APK and uploads it as an artifact and to a
+release. Signing needs these repository secrets: `ANDROID_KEYSTORE_BASE64` (a base64-encoded
+keystore) and `ANDROID_KEYSTORE_PASSWORD`; the key alias must be `wordos`
+(see `android/app/build.gradle`). The signing and release steps run only in the upstream
+repository, so forks still get lint, tests and the web build.
 The headless smoke run (`scripts/smoke.mjs`) is not part of CI: it takes about two minutes, so it's
 run by hand.
+
+## License
+
+[MIT](LICENSE)
