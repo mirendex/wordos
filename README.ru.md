@@ -9,7 +9,7 @@
 текстовый квест — каждое приложение открывается окном на рабочем столе телефона.
 
 [![Build APK](https://github.com/mirendex/wordos/actions/workflows/build-apk.yml/badge.svg)](https://github.com/mirendex/wordos/actions/workflows/build-apk.yml)
-[![Release](https://img.shields.io/github/v/release/mirendex/wordos?label=release&color=3B3560)](https://github.com/mirendex/wordos/releases/latest)
+[![Release](https://img.shields.io/github/v/release/mirendex/wordos?sort=semver&label=release&color=3B3560)](https://github.com/mirendex/wordos/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-C1432C)](LICENSE)
 ![Platform: Android](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
