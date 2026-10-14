@@ -30,3 +30,16 @@ export function srsStep(s: SrsCard, res: AnswerCheck, today: string, plus: (n: n
   }
   return was;
 }
+
+export const BATCH = 10; // cards in a batch
+export const NEW_PER_DAY = 10;
+
+// How many new words a batch takes. While more reviews are due than fit in one batch it takes
+// none, so the words already being learned are caught up with before more are started; then only
+// the places the reviews leave free, up to what is left of the day's new words. `more` is the
+// learner asking for new words with nothing left to review: a whole batch of them, limit or not
+export function newInBatch(due: number, newToday: number, more = false): number {
+  if (more) return due ? 0 : BATCH;
+  if (due > BATCH) return 0;
+  return Math.max(0, Math.min(BATCH - due, NEW_PER_DAY - newToday));
+}

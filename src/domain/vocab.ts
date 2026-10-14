@@ -119,6 +119,12 @@ export function forecast(): { d: string; n: number }[] {
   return out;
 }
 
+// new words started today
+export function newToday(): number {
+  const l = vocabState().log[DAY()];
+  return (l && l.n) || 0;
+}
+
 export function logDay(kind: 'n' | 'r' | 'ok'): void {
   const v = vocabState();
   const t = DAY();

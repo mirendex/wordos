@@ -6,7 +6,8 @@ import { winByApp } from '../ui/windows';
 import { ask } from '../services/llm';
 import { speak } from '../platform/speech';
 import { freqInit, RANK } from './frequency';
-import { IV, nextNew, vocabState } from './vocab';
+import { IV, nextNew, newToday, vocabState } from './vocab';
+import { BATCH, newInBatch } from '../lib/srs';
 import { recalcLevel } from './progress';
 
 export function bankSize(): number {
@@ -141,18 +142,19 @@ export function dealingWords(): string[] {
 // The batch starts at once with the cards already in the bank; the ones still missing are asked
 // for in the background and join the end of the queue as they come. Only a batch with nothing
 // in the bank at all waits, and then the window deals the deck while it does
-export async function loadCards(): Promise<void> {
+// `more`: the learner asked for new words past the day's limit (see newInBatch)
+export async function loadCards(more = false): Promise<void> {
   const win = winByApp('vocab')!;
   const v = vocabState();
   const my = ++run;
   v.err = '';
   freqInit();
   const t = DAY();
-  const due = Object.keys(v.srs)
+  const dueAll = Object.keys(v.srs)
     .filter((w) => v.srs[w].due <= t && !v.srs[w].skip)
-    .sort((a, b) => (RANK![a] || 0) - (RANK![b] || 0))
-    .slice(0, 7);
-  const fresh = nextNew(Math.max(3, 10 - due.length)).map((x) => x.w);
+    .sort((a, b) => (RANK![a] || 0) - (RANK![b] || 0));
+  const due = dueAll.slice(0, BATCH);
+  const fresh = nextNew(newInBatch(dueAll.length, newToday(), more)).map((x) => x.w);
   const all = due.concat(fresh);
   v.tab = 'learn';
   v.i = 0;

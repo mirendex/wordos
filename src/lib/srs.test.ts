@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { IV, newSrsCard, srsStep } from './srs';
+import { BATCH, IV, NEW_PER_DAY, newInBatch, newSrsCard, srsStep } from './srs';
 
 const plus = (n: number) => 'd+' + n;
 
@@ -44,5 +44,24 @@ describe('srsStep', () => {
     const s = { ...newSrsCard('d0'), reps: 1 };
     const was = srsStep(s, 'ok', 'd0', plus);
     expect(was).toBe(false);
+  });
+});
+
+describe('newInBatch', () => {
+  it('takes no new words while the reviews are more than a batch', () => {
+    expect(newInBatch(48, 0)).toBe(0);
+    expect(newInBatch(BATCH + 1, 0)).toBe(0);
+  });
+  it('fills the places the reviews leave free', () => {
+    expect(newInBatch(7, 0)).toBe(BATCH - 7);
+    expect(newInBatch(0, 0)).toBe(Math.min(BATCH, NEW_PER_DAY));
+  });
+  it('stops at the day limit', () => {
+    expect(newInBatch(0, NEW_PER_DAY)).toBe(0);
+    expect(newInBatch(2, NEW_PER_DAY - 3)).toBe(3);
+  });
+  it('gives a batch of new words when asked, once nothing is due', () => {
+    expect(newInBatch(0, NEW_PER_DAY, true)).toBe(BATCH);
+    expect(newInBatch(4, 0, true)).toBe(0);
   });
 });

@@ -236,7 +236,7 @@ export function installActions(): void {
       return;
     }
     if (d.learn || d.more) {
-      loadCards();
+      loadCards(d.more === 'new');
       return;
     }
     if (d.back) {
