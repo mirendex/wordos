@@ -24,6 +24,7 @@ const HOLD = 30; // ms held down
 const SPRING_MS = 300; // the window springs back, overshoots and settles
 const ZOOM_DELAY = 65; // after the release, once the pointer is gone, the window grows over the first real one
 const ZOOM_MS = 320;
+const ZOOM_IN_PLACE = 1.8; // how much the logo grows when the window doesn't fill the screen
 const LOGO_FADE_AT = 40; // into the zoom, the logo thins out while the real window comes up under it
 const LOGO_FADE_MS = 220;
 const FADE_AT = 90; // into the zoom, the desk fades away from in front of the real window
@@ -216,9 +217,13 @@ function zoom(): void {
   const to = real
     ? real.getBoundingClientRect()
     : { left: 0, top: 0, width: innerWidth, height: innerHeight };
-  const k = to.width / (BOOT_WIN_COLS * unit);
-  const dx = to.left + to.width / 2 - (box.left + (BOOT_WIN_COLS * unit) / 2);
-  const dy = to.top + to.height / 2 - (box.top + (BOOT_WIN_ROWS * unit) / 2);
+  // it grows into the window only when the window fills the screen; a smaller one, as on a
+  // tablet, may stand anywhere, and the logo flying off to it looks like it slipped away, so
+  // then the logo grows where it is and the window comes up in its own place
+  const fills = to.width >= innerWidth * 0.9;
+  const k = fills ? to.width / (BOOT_WIN_COLS * unit) : ZOOM_IN_PLACE;
+  const dx = fills ? to.left + to.width / 2 - (box.left + (BOOT_WIN_COLS * unit) / 2) : 0;
+  const dy = fills ? to.top + to.height / 2 - (box.top + (BOOT_WIN_ROWS * unit) / 2) : 0;
   logo.style.transformOrigin = win.style.transformOrigin;
   logo.animate(
     [{ transform: 'translate(0, 0) scale(1)' }, { transform: `translate(${dx}px, ${dy}px) scale(${k})` }],
