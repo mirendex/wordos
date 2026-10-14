@@ -121,11 +121,11 @@ base64) и `ANDROID_KEYSTORE_PASSWORD`; алиас ключа должен бы�
 ### Выпуск новой версии
 
 Версия задаётся в одном месте — в `package.json`; `versionName` и `versionCode` для Android
-вычисляются из неё (`1.4.0` → `10400`). Релиз публикуется только при смене версии:
+вычисляются из неё (`1.5.0` → `10500`). Релиз публикуется только при смене версии:
 
 ```bash
 npm version minor --no-git-tag-version   # или patch / major
-git commit -am "Release 1.5.0"
+git commit -am "Release <version>"
 git push
 ```
 

@@ -121,11 +121,11 @@ run by hand.
 ### Releasing a new version
 
 The version lives in one place, `package.json`; Android's `versionName` and `versionCode` are
-derived from it (`1.4.0` → `10400`). A release is published only when the version changes:
+derived from it (`1.5.0` → `10500`). A release is published only when the version changes:
 
 ```bash
 npm version minor --no-git-tag-version   # or patch / major
-git commit -am "Release 1.5.0"
+git commit -am "Release <version>"
 git push
 ```
 
