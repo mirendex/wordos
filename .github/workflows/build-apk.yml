@@ -7,7 +7,7 @@ on:
 
 concurrency:
   group: build-apk
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -16,6 +16,19 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+
+      - name: Read the app version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
+            echo "Release v$VERSION already exists, only building"
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New version v$VERSION, a release will be published"
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: actions/setup-node@v4
         with:
@@ -69,26 +82,23 @@ jobs:
         if: github.repository == 'mirendex/wordos'
         uses: actions/upload-artifact@v4
         with:
-          name: english-apk
+          name: wordos-${{ steps.version.outputs.version }}-apk
           path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
 
-      - name: Move the latest tag to this commit
-        if: github.repository == 'mirendex/wordos'
-        run: |
-          git tag -f latest
-          git push -f origin refs/tags/latest
-          cp android/app/build/outputs/apk/release/app-release.apk wordos.apk
+      - name: Name the APK after the version
+        if: github.repository == 'mirendex/wordos' && steps.version.outputs.release == 'true' && github.ref_name == github.event.repository.default_branch
+        run: cp android/app/build/outputs/apk/release/app-release.apk "wordos-${{ steps.version.outputs.version }}.apk"
 
-      - name: Replace the APK in the latest release
-        if: github.repository == 'mirendex/wordos'
+      - name: Create the GitHub release
+        if: github.repository == 'mirendex/wordos' && steps.version.outputs.release == 'true' && github.ref_name == github.event.repository.default_branch
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest
-          name: WordOS
-          body: Build ${{ github.run_number }} from ${{ github.sha }}
-          files: wordos.apk
-          overwrite_files: true
+          tag_name: v${{ steps.version.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          name: WordOS ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: wordos-${{ steps.version.outputs.version }}.apk
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

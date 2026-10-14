@@ -9,7 +9,7 @@
 текстовый квест — каждое приложение открывается окном на рабочем столе телефона.
 
 [![Build APK](https://github.com/mirendex/wordos/actions/workflows/build-apk.yml/badge.svg)](https://github.com/mirendex/wordos/actions/workflows/build-apk.yml)
-[![Release](https://img.shields.io/github/v/release/mirendex/wordos?label=apk&color=3B3560)](https://github.com/mirendex/wordos/releases/latest)
+[![Release](https://img.shields.io/github/v/release/mirendex/wordos?label=release&color=3B3560)](https://github.com/mirendex/wordos/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-C1432C)](LICENSE)
 ![Platform: Android](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
@@ -72,7 +72,7 @@ WordOS — Android-приложение для изучения английск
 
 ## Установка
 
-1. Скачайте `wordos.apk` из [последнего релиза](https://github.com/mirendex/wordos/releases/latest)
+1. Скачайте `wordos-<версия>.apk` из [последнего релиза](https://github.com/mirendex/wordos/releases/latest)
    и установите (если попросит — разрешите установку из неизвестных источников).
 2. Получите API-ключ на [openrouter.ai/keys](https://openrouter.ai/keys).
 3. Откройте в приложении **SETUP**, вставьте ключ и выберите модель.
@@ -111,12 +111,28 @@ npm run apk    # собрать debug APK через Gradle
 ### CI и релизы
 
 [`build-apk.yml`](.github/workflows/build-apk.yml) запускается на каждый push в `master`: lint,
-проверка типов и тесты, затем сборка веб-части, подписанный release APK и обновление релиза
-[`latest`](https://github.com/mirendex/wordos/releases/latest). Для подписи нужны секреты
-репозитория `ANDROID_KEYSTORE_BASE64` (keystore в base64) и `ANDROID_KEYSTORE_PASSWORD`; алиас
-ключа должен быть `wordos` (см. `android/app/build.gradle`). Шаги подписи и релиза выполняются
-только в основном репозитории, так что в форках проходят lint, тесты и сборка веб-части.
-Smoke-прогон занимает около двух минут и запускается вручную.
+проверка типов и тесты, затем сборка веб-части и подписанный release APK, который сохраняется
+как артефакт сборки. Для подписи нужны секреты репозитория `ANDROID_KEYSTORE_BASE64` (keystore в
+base64) и `ANDROID_KEYSTORE_PASSWORD`; алиас ключа должен быть `wordos` (см.
+`android/app/build.gradle`). Шаги подписи и релиза выполняются только в основном репозитории,
+так что в форках проходят lint, тесты и сборка веб-части. Smoke-прогон занимает около двух минут
+и запускается вручную.
+
+### Выпуск новой версии
+
+Версия задаётся в одном месте — в `package.json`; `versionName` и `versionCode` для Android
+вычисляются из неё (`1.4.0` → `10400`). Релиз публикуется только при смене версии:
+
+```bash
+npm version minor --no-git-tag-version   # или patch / major
+git commit -am "Release 1.5.0"
+git push
+```
+
+Если для версии ещё нет тега `v<версия>`, CI создаёт тег и
+[релиз на GitHub](https://github.com/mirendex/wordos/releases) `WordOS <версия>` с файлом
+`wordos-<версия>.apk` и описанием изменений по коммитам. Push без смены версии только собирает
+APK.
 
 ## Архитектура
 

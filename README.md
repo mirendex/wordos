@@ -9,7 +9,7 @@ Vocabulary with spaced repetition, LLM-written texts and cards, word games, dict
 text adventure — each one a window on your phone's desktop.
 
 [![Build APK](https://github.com/mirendex/wordos/actions/workflows/build-apk.yml/badge.svg)](https://github.com/mirendex/wordos/actions/workflows/build-apk.yml)
-[![Release](https://img.shields.io/github/v/release/mirendex/wordos?label=apk&color=3B3560)](https://github.com/mirendex/wordos/releases/latest)
+[![Release](https://img.shields.io/github/v/release/mirendex/wordos?label=release&color=3B3560)](https://github.com/mirendex/wordos/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-C1432C)](LICENSE)
 ![Platform: Android](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
@@ -72,7 +72,7 @@ of them share one vocabulary, so progress in any app counts everywhere.
 
 ## Install
 
-1. Download `wordos.apk` from the [latest release](https://github.com/mirendex/wordos/releases/latest)
+1. Download `wordos-<version>.apk` from the [latest release](https://github.com/mirendex/wordos/releases/latest)
    and install it (allow installing from unknown sources if asked).
 2. Get an API key at [openrouter.ai/keys](https://openrouter.ai/keys).
 3. Open **SETUP** in the app, paste the key and choose a model.
@@ -111,12 +111,28 @@ npm run apk    # build a debug APK with Gradle
 ### CI and releases
 
 [`build-apk.yml`](.github/workflows/build-apk.yml) runs on every push to `master`: lint,
-typecheck and tests, then the web build, a signed release APK, and an update of the
-[`latest`](https://github.com/mirendex/wordos/releases/latest) release. Signing uses the
-repository secrets `ANDROID_KEYSTORE_BASE64` (a base64-encoded keystore) and
-`ANDROID_KEYSTORE_PASSWORD`; the key alias must be `wordos` (see `android/app/build.gradle`).
-The signing and release steps run only in the upstream repository, so forks still get lint,
-tests and the web build. The smoke run takes about two minutes and is run by hand.
+typecheck and tests, then the web build and a signed release APK, uploaded as a workflow
+artifact. Signing uses the repository secrets `ANDROID_KEYSTORE_BASE64` (a base64-encoded
+keystore) and `ANDROID_KEYSTORE_PASSWORD`; the key alias must be `wordos` (see
+`android/app/build.gradle`). The signing and release steps run only in the upstream repository,
+so forks still get lint, tests and the web build. The smoke run takes about two minutes and is
+run by hand.
+
+### Releasing a new version
+
+The version lives in one place, `package.json`; Android's `versionName` and `versionCode` are
+derived from it (`1.4.0` → `10400`). A release is published only when the version changes:
+
+```bash
+npm version minor --no-git-tag-version   # or patch / major
+git commit -am "Release 1.5.0"
+git push
+```
+
+When CI sees a version with no `v<version>` tag yet, it creates the tag and a
+[GitHub release](https://github.com/mirendex/wordos/releases) `WordOS <version>` with
+`wordos-<version>.apk` and notes generated from the commits. Pushes without a version change only
+build the APK.
 
 ## Architecture
 
