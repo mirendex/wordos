@@ -25,8 +25,8 @@ let z = 10;
 
 const APPS = ['read', 'games', 'term', 'vocab', 'goal', 'setup', 'diary', 'listen', 'echo', 'notes', 'about'];
 
-// what is kept of a window between launches: where it is and how it is shown, not what is in it —
-// the app's own state lives in S, and what a window holds in `data` is only half-done work
+// What is persisted of a window between launches: its position and display state, not its contents.
+// The app's own state lives in S, and a window's `data` only holds work in progress.
 function layout(): string {
   return JSON.stringify(
     W.map((w) => ({
@@ -47,9 +47,9 @@ function layout(): string {
 let saved = '';
 let restored = false;
 
-// writes the windows down if they changed; cheap enough to call on every paint
+// saves the windows if they changed; cheap enough to call on every paint
 export function saveWins(): void {
-  if (!restored) return; // nothing to write over the saved windows until they are back
+  if (!restored) return; // don't overwrite the saved windows before they are restored
   const s = layout();
   if (s === saved) return;
   saved = s;
@@ -58,7 +58,7 @@ export function saveWins(): void {
 
 const num = (v: unknown, d: number): number => (typeof v === 'number' && isFinite(v) ? v : d);
 
-// puts back the windows as they were when the app was closed; false if there is nothing to put back
+// restores the windows as they were when the app was closed; false if there is nothing to restore
 export function restoreWins(raw: string | null | undefined): boolean {
   restored = true;
   if (!raw) return false;
@@ -79,7 +79,7 @@ export function restoreWins(raw: string | null | undefined): boolean {
     const key = typeof o.key === 'string' ? o.key : o.app + ':';
     if (seen.has(key)) return;
     seen.add(key);
-    // the screen may be another size now: keep each window on it and no bigger than it
+    // the screen may have changed size: keep each window on screen and no larger than it
     const w = Math.max(MIN_WIN_W, Math.min(vw, num(o.w, 480)));
     const h = Math.max(MIN_WIN_H, Math.min(vh, num(o.h, 460)));
     const x = Math.max(0, Math.min(vw - 90, num(o.x, 40)));
@@ -107,7 +107,7 @@ export function restoreWins(raw: string | null | undefined): boolean {
           : undefined,
     });
   });
-  // the stacking order is kept, renumbered from the bottom so the counter starts low again
+  // keep the stacking order, renumbered from the bottom so the z-index counter starts low again
   W.slice()
     .sort((a, b) => a.z - b.z)
     .forEach((w, i) => (w.z = 11 + i));
@@ -237,7 +237,7 @@ export function syncBackGate(): void {
 }
 
 export function pushNav(): void {
-  if (NATIVE_BACK) return; // в приложении кнопку назад отдаёт плагин
+  if (NATIVE_BACK) return; // in the native app the back gesture is handled by the plugin
   try {
     history.pushState({ os: 1 }, '');
   } catch {
@@ -256,8 +256,8 @@ export function backPressed(): boolean {
 
 window.__appBack = backPressed;
 
-// the app may be closed from the background without another word, so the windows are written
-// down every time it goes there
+// the OS may kill the app in the background without notice, so save the windows every time it
+// goes there
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') saveWins();
 });
@@ -295,7 +295,7 @@ if (BACKGATE && BACKGATE.addListener) {
 
 let lastW = window.innerWidth;
 window.addEventListener('resize', () => {
-  if (window.innerWidth === lastW) return; // изменилась только высота: это клавиатура
+  if (window.innerWidth === lastW) return; // only the height changed: that's the on-screen keyboard
   lastW = window.innerWidth;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   clearTimeout((window as any).__rz);

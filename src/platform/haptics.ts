@@ -5,25 +5,25 @@ interface HapKind {
   i?: number;
   q?: number;
   s?: 'Medium';
-  g?: number; // пауза между импульсами, мс (по умолчанию 62)
-  r?: number[]; // сила каждого импульса от настройки: 1 — как есть, меньше — тише
+  g?: number; // gap between pulses, ms (default 62)
+  r?: number[]; // strength of each pulse relative to the setting: 1 as is, less is softer
 }
 
 const HAP: Record<string, HapKind> = {
-  tap: { i: 1 }, // нажатие: один короткий импульс
-  soft: { i: 1 }, // клавиша, чип
-  tick: { i: 1, q: 1 }, // деление ползунка: самый тихий
-  type: { i: 1, q: 1 }, // буква встала
+  tap: { i: 1 }, // press: one short pulse
+  soft: { i: 1 }, // key, chip
+  tick: { i: 1, q: 1 }, // slider step: the softest
+  type: { i: 1, q: 1 }, // a letter placed
   open: { i: 1 },
   close: { i: 1 },
-  toggle: { i: 2 }, // переключение: два подряд
-  detent: { i: 2 }, // крупное деление
+  toggle: { i: 2 }, // toggle: two in a row
+  detent: { i: 2 }, // major slider step
   grab: { i: 1, s: 'Medium' },
   drop: { i: 2, s: 'Medium' },
-  ok: { i: 2 }, // верно: щёлк-щёлк
-  no: { i: 1, s: 'Medium' }, // мимо: один плотнее
-  win: { i: 3 }, // победа: три щелчка
-  boot: { i: 1 }, // запуск: курсор нажал на окно
+  ok: { i: 2 }, // correct: click-click
+  no: { i: 1, s: 'Medium' }, // wrong: one firmer pulse
+  win: { i: 3 }, // win: three clicks
+  boot: { i: 1 }, // launch: the pointer clicks the window
 };
 
 // The slider is "off" at the far left and then HAP_STEPS positions of 5, up to 100.
@@ -42,13 +42,13 @@ interface VibePlugin {
   pulse(a: { ms: number; amp: number }): Promise<void>;
 }
 
-// null until the phone has said whether it can vary the amplitude
+// null until the device reports whether it supports amplitude control
 let ampSupport: boolean | null = null;
 let probe: Promise<void> | null = null;
 
-// A pulse that comes before the answer (the first one, as the app opens) has to wait for it: the
-// length-only fallback plays at full amplitude and is much stronger than the slider says. A phone
-// that never answers is taken to have no amplitude control after a moment.
+// A pulse requested before the device has answered (the first one, at launch) waits for it: the
+// length-only fallback plays at full amplitude and is much stronger than the slider says. A device
+// that never answers is assumed to have no amplitude control after a short timeout.
 function askAmp(V: VibePlugin): Promise<void> {
   if (!probe) {
     const answer = V.info().then((r) => {
@@ -99,8 +99,8 @@ export function hapAmp(quiet?: boolean, bump?: boolean, scale = 1): number {
   return Math.max(1, Math.round((quiet ? amp * 0.45 : amp) * scale));
 }
 
-// while this runs, haptic() does nothing: the app's start plays its own signal instead of the
-// "a window opened" pulse
+// while this runs, haptic() is a no-op: the launch animation plays its own pulse instead of the
+// "window opened" one
 let muted = false;
 export function withoutHaptics(fn: () => void): void {
   muted = true;

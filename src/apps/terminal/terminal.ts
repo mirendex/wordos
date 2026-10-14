@@ -41,7 +41,7 @@ async function questJson(): Promise<any> {
 
 let spareBusy = false;
 
-// the next machine is put together while this one is being solved, so "новая машина" opens it at once
+// the next machine is generated while this one is being solved, so "new machine" opens it instantly
 export async function spareQuest(): Promise<void> {
   const t = termInit();
   if (t.spare || spareBusy || !navigator.onLine || !(S.cfg && S.cfg.key)) return;

@@ -1,4 +1,4 @@
-/* everything else system-ish is its own */
+/* system-wide basics: selection, scrollbars and the like */
 ::selection {
   background: var(--blue);
   color: #fff;

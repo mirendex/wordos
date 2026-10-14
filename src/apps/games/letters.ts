@@ -264,7 +264,7 @@ export function fwNear(a: number, b: number): boolean {
   const A = g.tiles[a];
   const B = g.tiles[b];
   if (!A || !B || A.r === undefined) return true;
-  return Math.abs(A.r - B.r) + Math.abs(A.c - B.c) === 1; // только вверх, вниз, влево, вправо
+  return Math.abs(A.r - B.r) + Math.abs(A.c - B.c) === 1; // only up, down, left or right
 }
 
 export function fwMove(x: number, y: number): void {
@@ -282,7 +282,7 @@ export function fwMove(x: number, y: number): void {
     return;
   }
   const last = g.picked[g.picked.length - 1];
-  if (last !== undefined && !fwNear(last, t.i)) return; // только соседняя клетка
+  if (last !== undefined && !fwNear(last, t.i)) return; // only an adjacent cell
   g.picked.push(t.i);
   haptic('type');
   fwPaintSeq();

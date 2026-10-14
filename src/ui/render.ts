@@ -61,7 +61,7 @@ function typing(): boolean {
 
 function paintImpl(force?: boolean): void {
   saveWins();
-  if (typing() && !force) return; // не перерисовываем под открытой клавиатурой
+  if (typing() && !force) return; // don't repaint while the on-screen keyboard is open
   document.querySelectorAll<HTMLElement>('.win').forEach((el) => {
     const b = el.querySelector('.body');
     if (b) SCROLL[el.dataset.k!] = b.scrollTop;

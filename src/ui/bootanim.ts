@@ -16,7 +16,7 @@ import {
 // back, and the logo grows over the first real window while the desk fades away, so the app seems
 // to come up out of the window that was clicked.
 
-const ICON_CSS = 288; // how wide the splash draws its icon, until the phone says where it really is
+const ICON_CSS = 288; // the splash icon's width, until the native side reports its actual box
 const PRESS_MS = 85; // the pointer going down and the window giving under it
 const PRESS_WIN = 0.97;
 const PRESS_PTR = [0.4, 0.6]; // how far the pointer sinks, in pixels of the logo
@@ -30,8 +30,8 @@ const FADE_AT = 90; // into the zoom, the desk fades away from in front of the r
 const FADE_MS = 200;
 const WIN_IN_MS = 260; // the real window settling in from a little smaller
 const WIN_FROM = 0.94;
-const GONE_MS = 2000; // if the phone never says the splash is gone, go on anyway
-const LIMIT_MS = 5000; // if the app never gets as far as playing it, the desk still shows up
+const GONE_MS = 2000; // if the native side never reports the splash is gone, go on anyway
+const LIMIT_MS = 5000; // if the animation never gets to play, the desktop still shows up
 
 interface Box {
   x: number;
@@ -97,7 +97,7 @@ function guessBox(): Box {
   return { x, y, w: BOOT_COLS * u, h: BOOT_ROWS * u };
 }
 
-// up the moment this module runs, drawing the splash's last frame under it
+// shown as soon as this module runs, drawing the splash's last frame underneath it
 function showBoot(): void {
   el = document.createElement('div');
   el.id = 'boot';

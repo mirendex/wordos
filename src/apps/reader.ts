@@ -43,9 +43,9 @@ export function textWords(body: string): { w: string; r: number }[] {
       if (!c || c.length < 3 || seen[c]) return;
       seen[c] = 1;
       const r = RANK![c];
-      if (!r) return; // вне топ-5000: слишком редкое
-      if (v.known[c] || v.srs[c]) return; // уже знаешь
-      if (r <= coursePos()) return; // курс это уже прошёл
+      if (!r) return; // outside the top 5000: too rare
+      if (v.known[c] || v.srs[c]) return; // already known
+      if (r <= coursePos()) return; // the course has already covered it
       out.push({ w: c, r });
     });
   return out.sort((a, b) => a.r - b.r).slice(0, 14);

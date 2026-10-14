@@ -12,7 +12,7 @@ import { goalState, Goal, GoalItem, GoalScene, GoalChat, GoalPhrase } from '../a
 
 // a card in the fill-in-the-blank queue needs real text around the gap, not just the gap
 // itself — a bare "___" has nothing to show, so a whole-phrase item (e.g. one pulled off
-// a finished dialogue) belongs in Слух/Произношение instead, never in Карточки
+// a finished dialogue) belongs in the listening/pronunciation drills instead, never in the cards
 function hasRealGapContext(sentence: unknown): boolean {
   return hasGapSentence(sentence) && String(sentence).replace('___', '').trim().length >= 4;
 }

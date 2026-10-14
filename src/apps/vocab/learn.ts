@@ -10,7 +10,8 @@ import { bankSplit, dealingWords } from '../../domain/cards';
 import { dealHtml } from '../../ui/deal';
 import { Win } from '../../ui/windows';
 
-// "6 слов", "1 слова": how many cards are being written, never which words, as those are the answers
+// "6 words", "1 word" (in Russian): how many cards are being written, never which words, as those
+// are the answers
 function words(n: number): string {
   return n + (n % 10 === 1 && n % 100 !== 11 ? ' слова' : ' слов');
 }

@@ -36,7 +36,7 @@ export function scheduleBankSave(): void {
         setTimeout(scheduleBankSave, 2000);
         return;
       }
-      bankOk = false; // дальше держим запас только в памяти, без спама в консоль
+      bankOk = false; // from now on keep the bank in memory only, without spamming the console
     }
   }, 1200);
 }
