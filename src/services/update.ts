@@ -4,6 +4,7 @@ import { APPVER } from '../platform/appinfo';
 import { isNewer } from '../lib/version';
 
 const LATEST = 'https://api.github.com/repos/mirendex/wordos/releases/latest';
+const RELEASES = 'https://github.com/mirendex/wordos/releases';
 const EVERY_MS = 12 * 60 * 60 * 1000;
 
 export interface Update {
@@ -26,7 +27,9 @@ function state(): UpdState {
 // the latest release, if it is newer than the installed app
 export function available(): Update | null {
   const r = state().rel;
-  return r && APPVER && isNewer(r.version, APPVER) ? r : null;
+  if (!r || !APPVER || !isNewer(r.version, APPVER)) return null;
+  // a release found by an earlier version links the APK itself; open its page instead
+  return { ...r, url: r.url.replace(/\/releases\/download\/([^/]+)\/[^/]+\.apk$/i, '/releases/tag/$1') };
 }
 
 // the same, unless the user said "later" to this very version
@@ -66,10 +69,11 @@ export async function checkUpdate(): Promise<void> {
     const d = await res.json();
     const version = String(d.tag_name || '').replace(/^v/i, '');
     if (!version) return;
-    const apk = (d.assets || []).find((a: { name?: string }) => /\.apk$/i.test(a.name || ''));
+    // the release page, not the APK itself: Chrome handed an APK link by another app shows a
+    // download sheet that can hang at 100%, while a tap on the APK on the page downloads normally
     st.rel = {
       version,
-      url: (apk && apk.browser_download_url) || d.html_url || '',
+      url: d.html_url || RELEASES + '/tag/v' + version,
       notes: String(d.body || ''),
     };
     save();

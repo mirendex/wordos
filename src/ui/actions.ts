@@ -710,7 +710,10 @@ export function installActions(): void {
       const notes = releaseNotes(u);
       dialog({
         title: 'обновление',
-        text: `Вышла версия ${u.version}, у вас ${APPVER}.` + (notes ? '\n\n' + notes : ''),
+        text:
+          `Вышла версия ${u.version}, у вас ${APPVER}.` +
+          (notes ? '\n\n' + notes : '') +
+          `\n\nОткроется страница выпуска: нажмите там на wordos-${u.version}.apk.`,
         okText: 'Скачать',
         cancelText: 'Позже',
         onok: () => openUrl(u.url),
