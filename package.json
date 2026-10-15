@@ -1,6 +1,6 @@
 {
   "name": "wordos",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "private": true,
   "description": "WordOS: an Android app for learning English, built as a tiny desktop OS in a WebView",
   "type": "module",
