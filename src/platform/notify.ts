@@ -16,16 +16,16 @@ export async function notifyPlan(): Promise<void> {
       return;
     }
     await P.LocalNotifications.cancel({ notifications: [{ id: 1 }] });
-    const at = new Date();
-    at.setHours(S.cfg.notifyHour || 19, 30, 0, 0);
-    if (at < new Date()) at.setDate(at.getDate() + 1);
+    // `on` fires at this time every day: the plugin sets the next one each time it fires. An `at`
+    // with `repeats` is not daily on Android: it repeats every (at - now), so it came every few
+    // hours, with a new gap each time the app opened
     await P.LocalNotifications.schedule({
       notifications: [
         {
           id: 1,
           title: 'English',
           body: 'Пара карточек, пока есть минута',
-          schedule: { at, repeats: true, every: 'day' },
+          schedule: { on: { hour: S.cfg.notifyHour || 19, minute: 30 }, allowWhileIdle: true },
           smallIcon: 'ic_stat_en',
           iconColor: '#3C4EA8',
         },
