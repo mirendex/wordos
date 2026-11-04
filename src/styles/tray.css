@@ -130,7 +130,7 @@
 .b-count {
   position: relative;
   margin-left: auto;
-  width: 22px;
+  width: 48px;
   height: 22px;
   font-family: var(--px);
   font-size: 22px;
@@ -243,6 +243,9 @@
 .balloon.still .b-line span,
 .balloon.still .b-week i {
   opacity: 1;
+}
+.balloon.typed .b-line span {
+  opacity: 1 !important;
 }
 .balloon.still .b-sun {
   transform: none;

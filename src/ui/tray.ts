@@ -1,5 +1,5 @@
 import { esc } from '../lib/scale';
-import { Celebration } from '../lib/today';
+import { Celebration, WEEK_GOAL } from '../lib/today';
 import { haptic, hapticPattern, Pulse } from '../platform/haptics';
 import { BOOT_POINTER } from './bootlogo';
 import { spring } from './spring';
@@ -90,6 +90,18 @@ function move(
   easing = 'linear',
   fill: FillMode = 'both',
 ): Animation {
+  // A stepped easing leaves a move one step short of its last frame when it ends exactly on the
+  // clock (the value just before the end is the one held), so the steps are set on the frames
+  // but the last, and the last frame is said twice, a hair apart, to be held at its own value
+  if (easing.startsWith('steps(')) {
+    const last = frames[frames.length - 1];
+    frames = [
+      ...frames.slice(0, -1).map((f) => ({ ...f, easing })),
+      { ...last, offset: 0.999, easing: 'linear' },
+      { ...last, offset: 1 },
+    ];
+    easing = 'linear';
+  }
   return node.animate(frames, { duration, delay, easing, fill });
 }
 
@@ -465,6 +477,7 @@ function wave(o: HTMLElement, g: Geo): Pulse[] {
       n++;
       const last = i === cells.length - 1;
       ticks.push([at + 40, last ? 1 : 0.22 + (0.5 * n) / Math.max(1, total), last, last ? 16 : undefined]);
+      // the count: each number takes the place of the last
       const num = nums[n - 1];
       if (num)
         move(
@@ -477,6 +490,8 @@ function wave(o: HTMLElement, g: Geo): Pulse[] {
           160,
           STEPS(3),
         );
+      if (nums[n - 2])
+        move(nums[n - 2], [{ opacity: 1 }, { opacity: 0 }], at, 1, 'steps(1, end)', 'forwards');
     }
   });
   const lastAt = START + (cells.length - 1) * STEP;
@@ -590,7 +605,15 @@ function sunrise(o: HTMLElement, g: Geo): Pulse[] {
   // the words, a letter at a time
   const letters = [...o.querySelectorAll<HTMLElement>('.b-line span')];
   letters.forEach((l, i) => move(l, [{ opacity: 0 }, { opacity: 1 }], 700 + i * 34, 1, 'steps(1, end)'));
-  later(() => el === o && o.querySelector('.b-line')?.classList.add('done'), 700 + letters.length * 34);
+  // whatever the animations did, the whole line is there once its time is up
+  later(
+    () => {
+      if (el !== o) return;
+      o.classList.add('typed');
+      o.querySelector('.b-line')?.classList.add('done');
+    },
+    700 + letters.length * 34 + 250,
+  );
   move(
     o,
     [{ transform: 'scale(1.03, 0.97)' }, { transform: 'scale(1)' }],
@@ -626,7 +649,7 @@ export function balloon(kind: Celebration, info: BalloonInfo): void {
     kind === 'sunrise' ? [...info.line].map((c) => `<span>${esc(c)}</span>`).join('') : esc(info.line);
   const count =
     kind === 'wave'
-      ? `<span class="b-count">${[1, 2, 3, 4, 5, 6, 7].map((k) => `<span>${k}</span>`).join('')}</span>`
+      ? `<span class="b-count">${Array.from({ length: WEEK_GOAL }, (_, k) => `<span>${k + 1}/${WEEK_GOAL}</span>`).join('')}</span>`
       : '';
   o.innerHTML = `<div class="b-shine"><i></i></div>
     <div class="b-head">${head}<b>${esc(info.title)}</b>${count}</div>
