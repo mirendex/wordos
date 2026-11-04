@@ -84,7 +84,7 @@ export function todayView(): string {
       const p = s.kind === 'read' || s.kind === 'cards' ? null : progress(s);
       const prog = p && p.did && !s.done ? ` · ${p.did}/${p.target}` : '';
       const auto = s.kind === 'cards' && s.done && cardsAllDone() ? ' · на сегодня всё' : '';
-      const cls = (s.done ? 'done' : i === active ? 'cur' : '') + (i === fresh ? ' pop' : '');
+      const cls = (s.done ? 'done' : i === active ? 'cur' : '') + (i === fresh ? ' fresh' : '');
       const why = s.done ? '' : s.kind === 'cards' ? cardsWhy() : s.why || '';
       return `<div class="tstep ${cls}">
         <div class="tmark">${s.done ? '✓' : i + 1}</div>

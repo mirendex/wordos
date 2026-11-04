@@ -3,7 +3,7 @@ import { S, save } from '../core/persist';
 import { cover, freqInit } from './frequency';
 import { dueWords, myWords, newToday, vocabState } from './vocab';
 import { newInBatch } from '../lib/srs';
-import { celebrate, stepToast } from '../ui/celebrate';
+import { balloon, pingStep } from '../ui/tray';
 import {
   TARGET,
   Counters,
@@ -200,26 +200,29 @@ function finish(r: Route, i: number): void {
       cards: sum.cards,
       right: sum.right,
     });
-    setTimeout(() => celebrate(kind, celebrationText(kind)), 450);
+    setTimeout(() => balloon(kind, celebrationText(kind)), 600);
   } else if (!all) {
-    stepToast(`✓ Шаг ${stepsDone()} из 3`);
+    pingStep(i);
   }
 }
 
-// the words under each of the marks
-export function celebrationText(kind: Celebration): { title: string; sub: string; cells?: boolean[] } {
+// the words in the balloon
+export function celebrationText(kind: Celebration): { title: string; line: string; cells?: boolean[] } {
   const sum = summary();
   const pct = sum.cards ? Math.round((sum.right / sum.cards) * 100) : 0;
-  if (kind === 'confetti') return { title: 'Чистый день', sub: `верно ${pct}% в карточках` };
+  if (kind === 'sparkle') return { title: 'Чистый день', line: `верно ${pct}% в ${sum.cards} карточках` };
   if (kind === 'wave')
     return {
       title: 'Неделя закрыта',
-      sub: `${weekCount()} дней из 7: цель в ${WEEK_GOAL} выполнена`,
+      line: `${weekCount()} дней из 7, цель в ${WEEK_GOAL} выполнена`,
       cells: weekRow().map((x) => x.done),
     };
   if (kind === 'sunrise')
-    return { title: 'Хорошо, что вернулся', sub: 'пропуски не страшны, главное продолжить' };
-  return { title: 'Маршрут пройден', sub: 'остальное по желанию, всё уже засчитано' };
+    return { title: 'Хорошо, что вернулся', line: 'Пропуски не страшны, главное продолжить.' };
+  return {
+    title: 'Маршрут пройден',
+    line: sum.cards ? `карточек ${sum.cards}, верно ${pct}%. Остальное по желанию.` : 'Остальное по желанию.',
+  };
 }
 
 // the reader's "read it" button: the reading step has no counter of its own

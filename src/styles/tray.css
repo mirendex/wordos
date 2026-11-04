@@ -1,0 +1,169 @@
+/* the day's route in the taskbar, and the balloon that comes up from it: see src/ui/tray.ts */
+#taskbar .tray {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  height: 22px;
+  padding: 0 5px;
+  border: 2px solid var(--ink);
+  background: var(--paper2);
+}
+#taskbar .tray.far {
+  margin-left: auto;
+}
+#taskbar .tray i {
+  display: block;
+  width: 9px;
+  height: 12px;
+  border: 2px solid var(--ink);
+  background: #fff;
+  box-sizing: border-box;
+  transform-origin: 50% 100%;
+}
+#taskbar .tray i.on {
+  background: repeating-linear-gradient(90deg, var(--blue) 0 2px, #5567c4 2px 4px);
+}
+#taskbar .tray.all i.on {
+  background: var(--green);
+}
+
+.balloon {
+  position: fixed;
+  right: 8px;
+  z-index: 90000;
+  width: min(264px, calc(100vw - 16px));
+  box-sizing: border-box;
+  padding: 10px 12px 11px;
+  background: #fffbe6;
+  border: 2px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+}
+.b-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.b-head b {
+  font-family: var(--px);
+  font-size: 17px;
+  line-height: 1.1;
+}
+.b-ico,
+.b-sun {
+  flex: none;
+  display: block;
+  image-rendering: pixelated;
+}
+.b-sun {
+  margin: -4px 0 -4px -4px;
+}
+.b-line {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #4a463c;
+  min-height: 15px;
+}
+.b-line.typing:after {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 11px;
+  margin-left: 2px;
+  background: var(--ink);
+  vertical-align: -1px;
+  animation: caret 0.6s steps(1) infinite;
+}
+/* a tail down to the tray icon, in two squares as the old ones were */
+.b-tail {
+  position: absolute;
+  bottom: -9px;
+  width: 12px;
+  height: 12px;
+  background: #fffbe6;
+  border-right: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  transform: rotate(45deg) scale(0.85);
+  box-shadow: 2px 2px 0 var(--ink);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+.k-sunrise {
+  background: #fdf0c8;
+}
+.k-sunrise .b-tail {
+  background: #fdf0c8;
+}
+
+.b-stamp {
+  position: absolute;
+  right: 9px;
+  bottom: 11px;
+  padding: 1px 7px;
+  border: 3px solid var(--red);
+  color: var(--red);
+  background: rgba(255, 251, 230, 0.92);
+  font-family: var(--px);
+  font-size: 17px;
+  letter-spacing: 1px;
+  transform: rotate(-8deg);
+  pointer-events: none;
+}
+
+.k-stamp .b-line {
+  padding-right: 86px;
+  min-height: 30px;
+}
+
+.b-week {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+.b-week i {
+  flex: 1;
+  height: 22px;
+  border: 2px solid var(--ink);
+  background: #fff;
+}
+.b-week i.on {
+  background: repeating-linear-gradient(90deg, var(--blue) 0 4px, #5567c4 4px 8px);
+}
+.b-week i:last-child {
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+/* things that fly about, in the app's pixels */
+.fx {
+  position: fixed;
+  z-index: 90001;
+  pointer-events: none;
+}
+.fx-star svg {
+  display: block;
+  image-rendering: pixelated;
+}
+.fx-fleck {
+  width: 5px;
+  height: 5px;
+  margin: -2px 0 0 -2px;
+  background: var(--red);
+  border: 1px solid var(--ink);
+  box-sizing: border-box;
+}
+
+/* the step just filled, in the Today window */
+.tstep.fresh .tmark {
+  animation: tpop 0.4s steps(5, end);
+}
+@keyframes tpop {
+  0% {
+    transform: scale(0.4);
+  }
+  60% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

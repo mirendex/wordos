@@ -129,8 +129,8 @@ describe('pickCelebration', () => {
   it('stamps an ordinary day', () => {
     expect(pickCelebration(base)).toBe('stamp');
   });
-  it('rains confetti on a clean day, but only from enough cards', () => {
-    expect(pickCelebration({ ...base, right: 9 })).toBe('confetti');
+  it('sparkles on a clean day, but only from enough cards', () => {
+    expect(pickCelebration({ ...base, right: 9 })).toBe('sparkle');
     expect(pickCelebration({ ...base, cards: 5, right: 5 })).toBe('stamp');
   });
   it('greets a return after days away', () => {

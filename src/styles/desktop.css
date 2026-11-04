@@ -572,12 +572,9 @@ textarea.ta {
   white-space: nowrap;
 }
 #taskbar .clock {
-  margin-left: auto;
+  margin-left: 0;
   border-left: 2px solid var(--ink);
   padding-left: 9px;
-}
-#taskbar .clock.near {
-  margin-left: 0;
 }
 .wait {
   font-family: var(--px);

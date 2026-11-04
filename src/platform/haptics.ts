@@ -37,36 +37,14 @@ const HAP: Record<string, HapKind> = {
       [75, 0.85],
     ],
   },
-  // The route done, the stamp: a tick of anticipation, a heavy thud as the stamp lands (the
-  // longest and firmest pulse there is), then an echo dying away
+  // The route done, the stamp: a tick as it is lifted, the blow as it lands (the firmest and
+  // longest pulse there is, but short, as it happens once a day), then a dying echo
   stamp: {
     seq: [
-      [0, 0.35],
-      [230, 1, true, 22],
-      [310, 0.55],
-      [385, 0.3],
-      [450, 0.15],
-    ],
-  },
-  // A clean day, the confetti: a tremor that quickens and swells while the card winds up, a blow at
-  // the burst, then a few light ticks of the pieces coming down
-  confetti: {
-    seq: [
-      [0, 0.2],
-      [100, 0.25],
-      [190, 0.3],
-      [270, 0.4],
-      [340, 0.5],
-      [400, 0.62],
-      [450, 0.75],
-      [500, 1, true, 26],
-      [600, 0.3],
-      [690, 0.2],
-      [820, 0.28],
-      [900, 0.16],
-      [1050, 0.22],
-      [1130, 0.12],
-      [1300, 0.14],
+      [160, 0.3],
+      [380, 1, true, 16],
+      [460, 0.4],
+      [530, 0.2],
     ],
   },
   // The sun coming up, a comeback: a heartbeat, two soft beats and a pause, again, and a long

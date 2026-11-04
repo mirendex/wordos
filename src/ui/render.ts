@@ -15,7 +15,7 @@ import { termView } from '../apps/terminal/terminal';
 import { vocabView } from '../apps/vocab/vocab';
 import { goalView } from '../apps/goal/goal';
 import { todayView } from '../apps/today';
-import { syncToday } from '../domain/today';
+import { route, syncToday } from '../domain/today';
 import { gamesView } from '../apps/games/games';
 import { MLOAD, MODELS, loadModels } from '../services/models';
 import { offered } from '../services/update';
@@ -37,6 +37,15 @@ function content(w: Win): string {
   if (w.app === 'read') return readView(w);
   if (w.app === 'notes') return notesView(w);
   return '';
+}
+
+// the day's route as an icon in the taskbar: a segment for each step, filled when it is done
+function trayHtml(far: boolean): string {
+  const steps = route().steps;
+  const n = steps.filter((s) => s.done).length;
+  return `<button class="tray${far ? ' far' : ''}${n === 3 ? ' all' : ''}" data-app="today" title="Маршрут дня: ${n} из 3">${steps
+    .map((s) => `<i class="${s.done ? 'on' : ''}"></i>`)
+    .join('')}</button>`;
 }
 
 function safeContent(w: Win): string {
@@ -99,7 +108,8 @@ function paintImpl(force?: boolean): void {
     (upd
       ? `<button class="upd" data-upd="1" title="Доступно обновление">↑ ${esc(upd.version)}</button>`
       : '') +
-    `<span class="clock${upd ? ' near' : ''}" id="clock" data-sys="1">${clockTxt()}</span>`;
+    trayHtml(!upd) +
+    `<span class="clock" id="clock" data-sys="1">${clockTxt()}</span>`;
   document.querySelectorAll<HTMLElement>('.win').forEach((el) => {
     const b = el.querySelector('.body') as HTMLElement | null;
     const s = SCROLL[el.dataset.k!];
