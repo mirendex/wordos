@@ -132,10 +132,8 @@
   margin-left: auto;
   width: 48px;
   height: 22px;
-  /* the pixel font draws a 5 like an S at this size, so the digits are set in the plain one */
-  font-family: var(--mo);
-  font-weight: 600;
-  font-size: 20px;
+  font-family: var(--px);
+  font-size: 22px;
   line-height: 22px;
   text-align: right;
   color: var(--blue);
