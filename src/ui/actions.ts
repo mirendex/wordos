@@ -1,4 +1,4 @@
-import { cefr } from '../lib/scale';
+import { cefr, MAX_WORDS } from '../lib/scale';
 import { checkAnswer } from '../lib/text';
 import { DAY } from '../core/util';
 import { paint } from '../core/paint';
@@ -254,7 +254,7 @@ export function installActions(): void {
     }
     if (d.tome) {
       const v = vocabState();
-      v.n = Math.min(5000, Math.round(myWords() / 25) * 25);
+      v.n = Math.min(MAX_WORDS, Math.round(myWords() / 25) * 25);
       v.touched = 1;
       save();
       paint();

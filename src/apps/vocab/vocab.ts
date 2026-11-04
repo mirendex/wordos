@@ -1,4 +1,4 @@
-import { esc, cefr, nToPct } from '../../lib/scale';
+import { esc, cefr, nToPct, SCALE_MARKS, markText } from '../../lib/scale';
 import { norm } from '../../lib/text';
 import { DAY, PLUS } from '../../core/util';
 import { BANK, S } from '../../core/persist';
@@ -53,7 +53,7 @@ export function vocabView(w: Win): string {
       <div class="pfill" style="width:${(nToPct(n) * 100).toFixed(1)}%"></div>
       <div class="pknob" style="left:${(nToPct(n) * 100).toFixed(1)}%"></div>
     </div>
-    <div class="pscale">${[0, 500, 1000, 2000, 3000, 4000, 5000].map((x) => `<i style="left:${(nToPct(x) * 100).toFixed(1)}%">${x >= 1000 ? x / 1000 + 'k' : x || '0'}</i>`).join('')}</div>
+    <div class="pscale">${SCALE_MARKS.map((x) => `<i style="left:${(nToPct(x) * 100).toFixed(1)}%">${markText(x)}</i>`).join('')}</div>
     <div class="cov" id="covtxt"><b>${n}</b> слов закрывают <b>${pct.toFixed(1)}%</b> любого текста</div>
     <p class="demolabel">так это выглядит в тексте</p>
     <div class="demo" id="demotxt">${demoHtml(n)}</div>
@@ -153,7 +153,7 @@ export function findView(): string {
     </div>`
         : ''
     }
-    ${q && !list.length ? '<p class="sub" style="margin-top:10px">В топ-5000 такого нет, значит слово редкое и его можно не трогать.</p>' : ''}
+    ${q && !list.length ? '<p class="sub" style="margin-top:10px">В словаре (10 000 самых частых слов) такого нет, значит слово редкое и его можно не трогать.</p>' : ''}
     <div style="margin-top:10px">${list
       .map((x) => {
         const ru = (BANK[x.w] && BANK[x.w][0] && BANK[x.w][0].word_ru) || S.mt[x.w] || '';

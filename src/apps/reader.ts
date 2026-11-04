@@ -44,7 +44,7 @@ export function textWords(body: string): { w: string; r: number }[] {
       if (!c || c.length < 3 || seen[c]) return;
       seen[c] = 1;
       const r = RANK![c];
-      if (!r) return; // outside the top 5000: too rare
+      if (!r) return; // outside the dictionary: too rare
       if (v.known[c] || v.srs[c]) return; // already known
       if (r <= coursePos()) return; // the course has already covered it
       out.push({ w: c, r });

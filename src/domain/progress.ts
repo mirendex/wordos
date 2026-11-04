@@ -27,7 +27,7 @@ export function chartSvg(n: number): string {
   const W = 300;
   const H = 110;
   const pts: [number, number][] = [];
-  const MAXY = 90;
+  const MAXY = 100;
   for (let i = 0; i <= 60; i++) {
     const idx = Math.round((i / 60) * FREQ!.length);
     pts.push([nToPct(idx) * W, H - (cover(idx) / MAXY) * H]);
@@ -52,7 +52,7 @@ export function chartSvg(n: number): string {
         : ''
     }
     <text x="2" y="${H + 13}" font-family="monospace" font-size="9" fill="#7C7566">0</text>
-    <text x="${W - 50}" y="${H + 13}" font-family="monospace" font-size="9" fill="#7C7566">5000 слов</text>
+    <text x="${W - 64}" y="${H + 13}" font-family="monospace" font-size="9" fill="#7C7566">${FREQ!.length} слов</text>
   </svg>`;
 }
 

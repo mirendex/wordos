@@ -1,4 +1,4 @@
-import { esc, byWordsLevel, cefr, nToPct } from '../lib/scale';
+import { esc, byWordsLevel, cefr, nToPct, SCALE_MARKS, markText } from '../lib/scale';
 import { S } from '../core/persist';
 import { APPVER } from '../platform/appinfo';
 import { available } from '../services/update';
@@ -25,7 +25,7 @@ function introView(): string {
           <div class="pfill" style="width:${(nToPct(n) * 100).toFixed(1)}%"></div>
           <div class="pknob" style="left:${(nToPct(n) * 100).toFixed(1)}%"></div>
         </div>
-        <div class="pscale">${[0, 500, 1000, 2000, 3000, 4000, 5000].map((x) => `<i style="left:${(nToPct(x) * 100).toFixed(1)}%">${x >= 1000 ? x / 1000 + 'k' : x || '0'}</i>`).join('')}</div>
+        <div class="pscale">${SCALE_MARKS.map((x) => `<i style="left:${(nToPct(x) * 100).toFixed(1)}%">${markText(x)}</i>`).join('')}</div>
         <div class="cov" id="covtxt"><b>${n}</b> слов закрывают <b>${cover(n).toFixed(1)}%</b> любого текста</div>
         <div class="demo" id="demotxt">${demoHtml(n)}</div>
         <p class="sub" id="lvlpreview" style="margin-top:8px">это примерно уровень ${cefr(byWordsLevel(n))}</p>

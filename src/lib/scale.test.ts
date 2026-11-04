@@ -12,8 +12,8 @@ describe('esc', () => {
 });
 
 describe('nToPct / pctToN', () => {
-  it('round-trips within the 0..5000 range', () => {
-    for (const n of [0, 1, 500, 2500, 5000]) {
+  it('round-trips within the 0..10000 range', () => {
+    for (const n of [0, 1, 500, 2500, 5000, 10000]) {
       expect(Math.round(pctToN(nToPct(n)))).toBe(n);
     }
   });
@@ -29,12 +29,14 @@ describe('byWordsLevel', () => {
     expect(byWordsLevel(400)).toBe(35);
     expect(byWordsLevel(1600)).toBe(58);
   });
-  it('never exceeds B2 (82), however many words', () => {
-    expect(byWordsLevel(5000)).toBe(82);
-    expect(byWordsLevel(100000)).toBe(82);
+  it('reaches B2 (82) at 3700 words and goes on, slowly, to C1 (92) at 9000', () => {
+    expect(byWordsLevel(3700)).toBe(82);
+    expect(byWordsLevel(5000)).toBe(84);
+    expect(byWordsLevel(9000)).toBe(92);
+    expect(byWordsLevel(100000)).toBe(92);
   });
   it('never goes down as the word count grows', () => {
-    const counts = [0, 50, 200, 800, 2000, 3500, 5000];
+    const counts = [0, 50, 200, 800, 2000, 3500, 5000, 9000];
     const levels = counts.map(byWordsLevel);
     expect(levels).toEqual(levels.slice().sort((a, b) => a - b));
   });
