@@ -1,0 +1,77 @@
+# Words left out of the dictionary after its first 5000: names of people, places, brands and
+# organisations, abbreviations, typos and informal spellings, and a few offensive words. They are
+# the ones found, by reading the list of the next 6000 words wordfreq has, that are not words to
+# learn. Words of the first 5000 are not touched, so that no place in the course moves.
+# Possessives ("day's") are left out by the script itself. One or more words to a line.
+
+aa aaa ab abbott aberdeen abraham abs abu ada adelaide adrian af afc afl ag ahh ahmed ak aka alaska
+albany alberta alexandria alexis alfred alison allah allan allison alot alt amanda america's
+americas amp amsterdam amy ana andre andrea andrews angela anglo annie antonio anyone's apollo apr
+ar arabia arkansas arlington armstrong arnold asap ashley ashton assholes athens atm au auburn
+auckland australia's austria ave avengers aw ba baby's bailey baldwin bangkok bangladesh barack
+barbara barnes bayern bb beatles beck beijing belfast belgium bella belle benedict benjamin bennett
+berkeley bernard bernie beth betty beverly bf bi biden bieber birmingham bitches blair blake blu bmw
+bo boeing bon boris boy's bp br brad bradford bradley brady brandon brett brexit brighton brisbane
+bristol broadway brock broncos brooke brooks bros brother's bruno brussels bryan bryant bs bt btw
+buddha bulgaria burke burton c'mon caesar cairo cal calgary calif calvin cam cambodia canada's
+canterbury capita capitol capt cardiff carey caribbean carlos carol caroline carr carrie carroll
+carson casey castro catherine cb cbs cc ce cf ch cha chad chan chandler chang chapman charleston
+chen chester chi child's chile china's chloe christie christina christine churchill cincinnati cl
+claire clara clarence clarke claude clayton clifford club's clyde cod cody cohen coke col cole
+coleman colin collins colombia columbus comp congo connecticut connor corey cornwall cos costa
+country's cox cp cpu cr craig crawford croatia cruz cs ct cuba cum cunt curtis cuz cyprus cyrus
+dad's dakota dale damon dana darren darwin das daughter's davidson davies dawson day's db dee def
+delaware dem dems denmark dennis dept der derek dev devon diana diane didnt dis dixon diy dm
+doctor's dodgers doesnt doin dom dong donna dorothy doug doyle drake driver's ds dubai dublin duncan
+dunno durham dwight dylan ea earl earth's ebay ec eddie eden edgar eds edwards einstein eleanor
+elena eli ellen elliot elliott ellis else's elvis emily emirates emmy epa ernest es espn essex est
+ethan ethiopia eugene eva evan everton fa family's fb fc fcc fda fe felix ferguson fernando ferrari
+ff fin finland finn fisher fl fletcher florence floyd flynn fm forbes fr frances franco fraser
+freddie frederick freeman friend's fu fucks ga gabriel game's gandhi garcia gardner gavin gaza gb
+gdp ge geneva gerald gettin gf ghana gi gibson gilbert girl's glasgow glen glenn gloria gm goin gov
+government's govt gp gps grammy grande greene gregory griffin group's gt guinea guy's hahaha haiti
+hammond hampshire han hank hannah hans harley harold harper harrison hart harvey hastings hayes hbo
+heath heather helen henderson herbert hes hilton hitler hiv hm holland holmes homer hon honda hooker
+hopkins hp hq hr hudson hugh hughes hugo hulk hungary husband's hyde ia ibm iceland idaho idk ie imo
+india's indianapolis ing ins int intel inter ios ip ipad ira irene irs irving isaac ish isnt iso
+istanbul itunes ivan ive ja jackie jacobs jacques jake jamaica jamie janet jared java jeep jefferson
+jeffrey jenkins jennifer jenny jeremy jerusalem jesse jessica jew ji jill jin jo joan joel joey
+john's johns johnston jonas jong joshua joyce juan judy julia julian julie jun jung ka kai kane
+kanye kardashian karen karl kashmir katherine katie kay keith ken kenneth kenny kent kenya kerry kg
+ki kindle king's kingston kirk klein knox ko kurt ky kyle lakers lambert lancaster lance lang lanka
+lauren lb lbs lebanon lebron leeds leicester leigh leon leonard les leslie lgbt liam lib libya
+life's lil lin linda lindsay linux lionel liu liz llc lloyd ln lo logan lookin lopez lou louise
+louisiana louisville lp ls lt lucas lucy luis luther lynch lynn lyon mack madison madonna maggie
+maine malcolm manhattan manila mann manning manuel mar marc marco marcus marie marilyn marion martha
+mason master's matthews maurice maxwell maya mb mc mccain mccarthy mcdonald mcdonald's md medicaid
+medicare megan mel melissa memphis mercedes messi mg mia michel michelle mick mickey miguel mil
+milan milton milwaukee minecraft minneapolis mins miranda mississippi mit mitch ml mlb mls mn modi
+mohammed molly mom's mon monica monroe montana montgomery montreal morocco morris morrison moses mph
+mps mt mtv muhammad mumbai munich murphy mvp myanmar myers nam nancy napoleon nasa nascar nash
+nashville nat natalie nate nathan nation's nato nc ncaa nd ne nebraska ned negro neil neo nepal
+netflix nevada newark newcastle newman newport newton ng nhs ni nicholas nicole nigel night's nike
+nina nintendo nixon nm noah norfolk norman norton norway nova nsa nsw nt nw nyc nz o'brien oakland
+obama's obamacare offs og oi ol olds ole olivia omar omg ontario ops oriental orlando orleans os ot
+other's ottawa ou outta owen oz pablo pac palestine palmer panama party's patricia paula paulo payne
+paypal pcs pd pdf pe pearson pedro penn person's perth peru pete peters petersburg peterson pg ph
+phd philippine phillip phillips phoenix photoshop pic pics pierre pitt pittsburgh pl playstation po
+pokemon porsche portland portugal pos potter powell pr president's preston princeton prix ps pt
+puerto putin python qatar qb que quebec queen's quinn ra rachel ralph rand randy raymond rd reagan
+rebecca reed ref reid res retarded reuters rev rex rey reynolds rhode rica richards richardson
+richmond ricky rico riley rita rm rn robbie roberts robertson robinson rochester rodgers rodriguez
+rogers rom roma romania romans romeo ronald ronaldo roosevelt rory rosa rs rt ruth sacramento sally
+salvador samantha samsung samuel sanchez sanders sandra sandy sara satan sc schmidt school's sci
+scots sd sebastian sen seo seoul sep serbia seth sf sh shah shakespeare shane shanghai shannon
+sharon shaw shawn sheffield sherlock shirley show's si sierra silva sim simmons simpson sims singh
+slut sm sofia solomon somerset son's sony soo sophie southampton sox sp spencer springfield spurs sq
+sr sri ss stan stanford stanley starbucks state's stefan stephanie stevens stockholm stuart su sudan
+sullivan superman surrey sussex sutton ta taiwan talkin tampa tate tb tbh td te team's tel tennessee
+teresa tesla th thames thee theres theresa thomson thou thru thy ti til timothy tina titans tits tl
+tn todd tommy tonnes tories tory toyota tr tracy travis trent trevor tri troy trump's tu tucker
+tumblr turner tx ty tyler uae uber uc ucla ufc uganda und university's ur url usb usc usd ussr ut
+val valentine's vancouver vanessa vatican venezuela venice vera vermont vernon vi vic victor vienna
+vii viii vince vincent vip vladimir von vp vr wa wade wagner wallace walmart walsh walt wan wang
+warner watson watts webb webster week's wellington wendy westminster wh whats wheeler whitney whore
+wi wife's wikipedia willie windsor winston woman's wont woo wright wu wwe wyoming xbox xd xi xx xxx
+yahoo yale yang yankees yemen yorkshire youre yr yu zach zimbabwe
+lego mag nbc nhl nj nottingham quo

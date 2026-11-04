@@ -143,7 +143,9 @@ text (the very first, "the", is 5.37%). The data is from the [wordfreq](https://
 project, which counts words across Wikipedia, films and series, news, books, the web and social
 media. [`scripts/gen-freq.mjs`](scripts/gen-freq.mjs) rebuilds the file from wordfreq's list and
 checks that the first 5,000 words stay exactly as they are, so a saved place in the course never
-moves.
+moves. After them, names of people and places, brands, abbreviations, typos and a few offensive
+words are left out; the list of them, [`scripts/freq-drop.txt`](scripts/freq-drop.txt), was made by
+reading the list, and is easy to extend.
 
 ## Architecture
 

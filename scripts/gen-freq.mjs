@@ -8,8 +8,10 @@
 // wordfreq ranks words by how often they are written and said in a mix of sources (Wikipedia, films
 // and series, news, books, the web, social media). Its list is kept to the words that are made of
 // letters, with at most one apostrophe inside, and that are not a single letter other than "a" and
-// "i" or a piece of a contraction ("ll", "ve", "re"): no numbers, no addresses, no emoji. The first
-// WORDS of what is left are written as "word count" pairs, the count being the share of all words
+// "i" or a piece of a contraction ("ll", "ve", "re"): no numbers, no addresses, no emoji. That is how
+// the first 5000 words were made. After them the words listed in scripts/freq-drop.txt (names, places,
+// brands, abbreviations, typos, offensive words, found by reading the list) and possessives such as
+// "day's" are left out. The first WORDS of what is left are written as "word count" pairs, the count being the share of all words
 // times 100,000,000, to three significant figures (so "the" is 5.37%, 5370000), and the pairs are
 // joined by "|". The order of the words that stand level with each other is as in the file already
 // there; this checks that the words of the file's first HEAD are the very ones this list gives, so
@@ -17,6 +19,7 @@
 //
 // wordfreq's data is licensed CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/).
 import { readFileSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
 
 const WORDS = 10000;
@@ -101,7 +104,7 @@ const sig3 = (share) => {
   const p = 10 ** (Math.floor(Math.log10(v)) - 2);
   return Math.round(v / p) * p;
 };
-const list = ranked.filter(([w]) => keep(w)).slice(0, WORDS);
+const list = ranked.filter(([w]) => keep(w));
 
 const current = readFileSync(FILE, 'utf8').split('|');
 const wordOf = (s) => s.slice(0, s.lastIndexOf(' '));
@@ -114,6 +117,22 @@ if (oldHead.length < HEAD || missing.length) {
   );
 }
 
-const out = oldHead.concat(list.slice(HEAD).map(([w, f]) => `${w} ${sig3(f)}`));
+const drop = new Set(
+  readFileSync(fileURLToPath(new URL('./freq-drop.txt', import.meta.url)), 'utf8')
+    .split('\n')
+    .filter((l) => !l.startsWith('#'))
+    .join(' ')
+    .split(/\s+/)
+    .filter(Boolean),
+);
+// the contractions with 's that are not a possessive
+const CONTRACTIONS = new Set(["where's", "how's", "when's", "why's"]);
+const tail = list
+  .slice(HEAD)
+  .filter(([w]) => !drop.has(w) && !(w.endsWith("'s") && !CONTRACTIONS.has(w)))
+  .slice(0, WORDS - HEAD);
+if (tail.length < WORDS - HEAD) throw new Error('only ' + tail.length + ' words for the tail');
+
+const out = oldHead.concat(tail.map(([w, f]) => `${w} ${sig3(f)}`));
 writeFileSync(FILE, out.join('|'));
 console.log(`${FILE}: ${HEAD} kept, ${out.length - HEAD} added, ${out.length} words`);
