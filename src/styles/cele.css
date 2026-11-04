@@ -1,0 +1,149 @@
+/* the marks of a finished day: see src/ui/celebrate.ts */
+.cele {
+  position: fixed;
+  inset: 0;
+  z-index: 90000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.cele-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(22, 21, 26, 0.55);
+}
+.cele-card {
+  position: relative;
+  width: min(300px, 84vw);
+  box-sizing: border-box;
+  padding: 22px 20px 18px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.cele-t {
+  font-family: var(--px);
+  font-size: 22px;
+  margin-top: 8px;
+}
+.cele-s {
+  font-size: 12px;
+  color: var(--grey);
+  max-width: 240px;
+}
+.cele-go {
+  margin-top: 10px;
+}
+.cele-badge {
+  display: block;
+  image-rendering: pixelated;
+}
+.cele-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 150px;
+  height: 150px;
+  box-sizing: border-box;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px var(--ink),
+    inset 0 0 0 1px var(--ink);
+  pointer-events: none;
+}
+.cele-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.cele-fx i {
+  position: absolute;
+  display: block;
+  margin: -4px 0 0 -4px;
+  border: 1px solid var(--ink);
+  box-sizing: border-box;
+}
+
+/* the week */
+.cele-week {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+.cele-week i {
+  flex: 1;
+  height: 34px;
+  border: 2px solid var(--ink);
+  background: #fff;
+}
+.cele-week i.on {
+  background: repeating-linear-gradient(90deg, var(--blue) 0 4px, #5567c4 4px 8px);
+}
+.cele-week i:last-child {
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+/* the sun */
+.cele-glow {
+  position: absolute;
+  left: 50%;
+  bottom: -35vh;
+  width: 140vmax;
+  height: 140vmax;
+  margin-left: -70vmax;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(240, 184, 74, 0.95) 0 22%,
+    rgba(240, 184, 74, 0.45) 40%,
+    rgba(240, 184, 74, 0) 62%
+  );
+  pointer-events: none;
+}
+.cele-sunbox {
+  margin: -8px 0 -2px;
+}
+.cele-sun {
+  display: block;
+  image-rendering: pixelated;
+}
+.k-sunrise .cele-card {
+  background: #f6edd2;
+}
+
+/* the note for a step */
+.cele-toast {
+  position: fixed;
+  z-index: 90001;
+  left: 50%;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  background: var(--ink);
+  color: #fff;
+  border: 2px solid #fff;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
+  font-family: var(--px);
+  font-size: 15px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* the step in the route that has just been filled */
+.tstep.pop .tmark {
+  animation: tpop 0.5s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+@keyframes tpop {
+  0% {
+    transform: scale(0.4);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

@@ -3,9 +3,11 @@ import { SLOTS, StepKind } from '../lib/today';
 import {
   cardsAllDone,
   progress,
+  recentWords,
   route,
   stepsDone,
   summary,
+  takeJustDone,
   weekCount,
   weekRow,
   WEEK_GOAL,
@@ -15,7 +17,6 @@ import { paint } from '../core/paint';
 import { loadCards } from '../domain/cards';
 import { dueWords, vocabState } from '../domain/vocab';
 import { BATCH } from '../lib/srs';
-import { recentWords } from '../domain/today';
 import { open, winByApp } from '../ui/windows';
 import { getText, randomTopic } from './reader';
 import { listenNext } from './listen/listen';
@@ -75,6 +76,7 @@ export function todayView(): string {
   const r = route();
   const n = stepsDone();
   const active = r.steps.findIndex((s) => !s.done);
+  const fresh = takeJustDone();
   const rows = r.steps
     .map((s, i) => {
       const [name, hint] = INFO[s.kind];
@@ -82,7 +84,7 @@ export function todayView(): string {
       const p = s.kind === 'read' || s.kind === 'cards' ? null : progress(s);
       const prog = p && p.did && !s.done ? ` · ${p.did}/${p.target}` : '';
       const auto = s.kind === 'cards' && s.done && cardsAllDone() ? ' · на сегодня всё' : '';
-      const cls = s.done ? 'done' : i === active ? 'cur' : '';
+      const cls = (s.done ? 'done' : i === active ? 'cur' : '') + (i === fresh ? ' pop' : '');
       const why = s.done ? '' : s.kind === 'cards' ? cardsWhy() : s.why || '';
       return `<div class="tstep ${cls}">
         <div class="tmark">${s.done ? '✓' : i + 1}</div>

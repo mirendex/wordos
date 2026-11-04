@@ -155,3 +155,30 @@ export function pickSteps(skills: Skills, today: string): Step[] {
     return { kind: p.kind, done: false, why: p.why };
   });
 }
+
+export type Celebration = 'stamp' | 'confetti' | 'wave' | 'sunrise';
+
+export const COMEBACK_DAYS = 4; // a route finished after being away this long is a comeback
+export const CLEAN_SHARE = 0.9; // the share of cards right that makes a clean day
+export const CLEAN_MIN = 8; // and the least cards it is counted from
+
+// How the finished route is marked, the most special first: the week's goal met, a return after
+// some days away, a day with nearly everything right, and otherwise the plain stamp. `gap` is the
+// days since the last finished route before today, null when there was none.
+export function pickCelebration(info: {
+  weekCount: number;
+  gap: number | null;
+  cards: number;
+  right: number;
+}): Celebration {
+  if (info.weekCount === WEEK_GOAL) return 'wave';
+  if (info.gap !== null && info.gap >= COMEBACK_DAYS) return 'sunrise';
+  if (info.cards >= CLEAN_MIN && info.right / info.cards >= CLEAN_SHARE) return 'confetti';
+  return 'stamp';
+}
+
+// days from the last of `done` before `today` to `today`; null when there is none
+export function gapSince(done: string[], today: string): number | null {
+  const before = done.filter((d) => d < today).sort();
+  return before.length ? daysBetween(before[before.length - 1], today) : null;
+}

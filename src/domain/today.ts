@@ -3,6 +3,7 @@ import { S, save } from '../core/persist';
 import { cover, freqInit } from './frequency';
 import { dueWords, myWords, newToday, vocabState } from './vocab';
 import { newInBatch } from '../lib/srs';
+import { celebrate, stepToast } from '../ui/celebrate';
 import {
   TARGET,
   Counters,
@@ -12,6 +13,9 @@ import {
   emptyCounters,
   newRoute,
   pickSteps,
+  pickCelebration,
+  gapSince,
+  Celebration,
   Skills,
   SkillInfo,
   stepDone,
@@ -83,9 +87,22 @@ export function logSkill(kind: StepKind, score?: number): void {
   save();
 }
 
+// a step found done as the day's route is made, like the cards when nothing is due, is not a
+// moment to mark
+let quietUntil = 0;
+// the step just filled, for the Today window to show it
+let justDone = -1;
+
+export function takeJustDone(): number {
+  const i = justDone;
+  justDone = -1;
+  return i;
+}
+
 export function route(): Route {
   const t = S.today as Route | undefined;
   if (t && t.day === DAY() && Array.isArray(t.steps) && t.steps.length === 3) return t;
+  quietUntil = Date.now() + 2500;
   freqInit();
   S.today = newRoute(DAY(), counters(), cover(myWords()), pickSteps(skills(), DAY()));
   if (!Array.isArray(S.daysDone)) S.daysDone = [];
@@ -147,8 +164,8 @@ export function syncToday(): void {
   const now = counters();
   const v = vocabState();
   const queueDone = v.queue.length > 0 && v.i >= v.queue.length;
-  let changed = false;
-  r.steps.forEach((s) => {
+  let filled = -1;
+  r.steps.forEach((s, i) => {
     if (s.done) return;
     const ok =
       s.kind === 'cards'
@@ -156,19 +173,57 @@ export function syncToday(): void {
         : stepDone(s.kind, now, r.base);
     if (ok) {
       s.done = true;
-      changed = true;
+      filled = i;
     }
   });
-  if (changed) finish(r);
+  if (filled >= 0) finish(r, filled);
 }
 
-function finish(r: Route): void {
+// A step has just been filled. When it was the last, the day is marked as finished and the route
+// is celebrated; otherwise the step gets its note.
+function finish(r: Route, i: number): void {
   const days = daysDone();
-  if (r.steps.every((s) => s.done) && days.indexOf(r.day) < 0) {
+  const all = r.steps.every((s) => s.done);
+  const first = all && days.indexOf(r.day) < 0;
+  if (first) {
     days.push(r.day);
     if (days.length > 30) S.daysDone = days.slice(-30);
   }
   save();
+  if (Date.now() < quietUntil) return;
+  justDone = i;
+  if (first) {
+    const sum = summary();
+    const kind: Celebration = pickCelebration({
+      weekCount: weekCount(),
+      gap: gapSince(days, r.day),
+      cards: sum.cards,
+      right: sum.right,
+    });
+    setTimeout(() => celebrate(kind, celebrationText(kind)), 450);
+  } else if (!all) {
+    stepToast(`✓ Шаг ${stepsDone()} из 3`);
+  }
+}
+
+// the words under each of the marks
+// `sample` is for showing a mark in the settings, with a made-up day instead of the real one
+export function celebrationText(
+  kind: Celebration,
+  sample = false,
+): { title: string; sub: string; cells?: boolean[] } {
+  const sum = summary();
+  const pct = sample ? 92 : sum.cards ? Math.round((sum.right / sum.cards) * 100) : 0;
+  if (kind === 'confetti') return { title: 'Чистый день', sub: `верно ${pct}% в карточках` };
+  if (kind === 'wave')
+    return {
+      title: 'Неделя закрыта',
+      sub: `${sample ? 5 : weekCount()} дней из 7: цель в ${WEEK_GOAL} выполнена`,
+      cells: sample ? [false, true, true, false, true, true, true] : weekRow().map((x) => x.done),
+    };
+  if (kind === 'sunrise')
+    return { title: 'Хорошо, что вернулся', sub: 'пропуски не страшны, главное продолжить' };
+  return { title: 'Маршрут пройден', sub: 'остальное по желанию, всё уже засчитано' };
 }
 
 // the reader's "read it" button: the reading step has no counter of its own
@@ -178,7 +233,7 @@ export function markRead(): void {
   if (!s || s.done) return;
   s.done = true;
   logSkill('read');
-  finish(r);
+  finish(r, r.steps.indexOf(s));
 }
 
 export function swap(i: number): void {

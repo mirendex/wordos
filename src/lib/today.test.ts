@@ -3,6 +3,8 @@ import {
   addDays,
   avgScore,
   emptyCounters,
+  gapSince,
+  pickCelebration,
   newRoute,
   pickKind,
   pickSteps,
@@ -119,5 +121,31 @@ describe('pickSteps', () => {
   it('moves to the diary when reading was done yesterday and the diary has not been for a week', () => {
     const steps = pickSteps({ read: used('2026-11-09'), diary: used('2026-11-03', [80, 80, 80]) }, T);
     expect(steps[1].kind).toBe('diary');
+  });
+});
+
+describe('pickCelebration', () => {
+  const base = { weekCount: 2, gap: 1, cards: 10, right: 6 };
+  it('stamps an ordinary day', () => {
+    expect(pickCelebration(base)).toBe('stamp');
+  });
+  it('rains confetti on a clean day, but only from enough cards', () => {
+    expect(pickCelebration({ ...base, right: 9 })).toBe('confetti');
+    expect(pickCelebration({ ...base, cards: 5, right: 5 })).toBe('stamp');
+  });
+  it('greets a return after days away', () => {
+    expect(pickCelebration({ ...base, gap: 4 })).toBe('sunrise');
+    expect(pickCelebration({ ...base, gap: 3 })).toBe('stamp');
+  });
+  it('marks the week goal above all', () => {
+    expect(pickCelebration({ weekCount: 5, gap: 9, cards: 10, right: 10 })).toBe('wave');
+  });
+});
+
+describe('gapSince', () => {
+  it('counts from the last finished day before today', () => {
+    expect(gapSince(['2026-11-01', '2026-11-05', '2026-11-10'], '2026-11-10')).toBe(5);
+    expect(gapSince(['2026-11-10'], '2026-11-10')).toBeNull();
+    expect(gapSince([], '2026-11-10')).toBeNull();
   });
 });

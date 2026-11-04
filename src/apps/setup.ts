@@ -52,6 +52,14 @@ export function setupView(w: Win): string {
     <div class="rowb"><button class="btn sm" data-haptest="1">Проверить</button>
       <button class="btn sm" data-hapdef="1">Сбросить</button></div>
 
+    <h3 class="h" style="margin-top:18px">Конец дня</h3>
+    <p class="sub">Так отмечается пройденный маршрут. Какой из четырёх, приложение выбирает само.</p>
+    <div class="rowb">
+      <button class="btn sm" data-cele="stamp">Печать</button>
+      <button class="btn sm" data-cele="confetti">Конфетти</button>
+      <button class="btn sm" data-cele="wave">Неделя</button>
+      <button class="btn sm" data-cele="sunrise">Рассвет</button></div>
+
     <h3 class="h" style="margin-top:18px">Напоминание</h3>
     <p class="sub">Одно напоминание в день, не больше.</p>
     <div class="rowb">
