@@ -52,6 +52,15 @@ export function setupView(w: Win): string {
     <div class="rowb"><button class="btn sm" data-haptest="1">Проверить</button>
       <button class="btn sm" data-hapdef="1">Сбросить</button></div>
 
+    <h3 class="h" style="margin-top:18px">Конец дня (временно)</h3>
+    <p class="sub">Для проверки анимаций и вибрации. Потом раздел уберём.</p>
+    <div class="rowb">
+      <button class="btn sm" data-cele="step">Шаг</button>
+      <button class="btn sm" data-cele="check">Галочка</button>
+      <button class="btn sm" data-cele="sparkle">Блеск</button>
+      <button class="btn sm" data-cele="wave">Неделя</button>
+      <button class="btn sm" data-cele="sunrise">Рассвет</button></div>
+
     <h3 class="h" style="margin-top:18px">Напоминание</h3>
     <p class="sub">Одно напоминание в день, не больше.</p>
     <div class="rowb">
