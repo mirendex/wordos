@@ -4,6 +4,7 @@ import { paint } from '../../core/paint';
 import { S, save } from '../../core/persist';
 import { ask } from '../../services/llm';
 import { recalcLevel } from '../../domain/progress';
+import { diaryScore, logSkill } from '../../domain/today';
 import { winByApp, Win } from '../../ui/windows';
 import { diaryState } from './state';
 
@@ -98,6 +99,7 @@ export async function diaryCheck(): Promise<void> {
         ? Math.max(0, Math.min(100, Math.round(r.level)))
         : null;
     d.items.push({ date: DAY(), text, n: fixes.length, level: lvl });
+    logSkill('diary', diaryScore(fixes.length));
     if (d.items.length > 40) d.items = d.items.slice(-40);
     w.data.res = { text, fixes, natural: r.natural || '' };
     d.draft = '';

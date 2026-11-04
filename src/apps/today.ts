@@ -13,7 +13,8 @@ import {
 import { DAY } from '../core/util';
 import { paint } from '../core/paint';
 import { loadCards } from '../domain/cards';
-import { vocabState } from '../domain/vocab';
+import { dueWords, vocabState } from '../domain/vocab';
+import { BATCH } from '../lib/srs';
 import { recentWords } from '../domain/today';
 import { open, winByApp } from '../ui/windows';
 import { getText, randomTopic } from './reader';
@@ -62,6 +63,14 @@ function summaryHtml(): string {
   </div>`;
 }
 
+// why the cards come first, said from what is due now
+function cardsWhy(): string {
+  const due = dueWords().length;
+  if (due > BATCH) return `повторений ${due}: сначала их, новые слова подождут`;
+  if (due) return `к повторению ${due}: пока не забылись`;
+  return cardsAllDone() ? '' : 'повторять нечего: берём новые слова';
+}
+
 export function todayView(): string {
   const r = route();
   const n = stepsDone();
@@ -74,9 +83,11 @@ export function todayView(): string {
       const prog = p && p.did && !s.done ? ` · ${p.did}/${p.target}` : '';
       const auto = s.kind === 'cards' && s.done && cardsAllDone() ? ' · на сегодня всё' : '';
       const cls = s.done ? 'done' : i === active ? 'cur' : '';
+      const why = s.done ? '' : s.kind === 'cards' ? cardsWhy() : s.why || '';
       return `<div class="tstep ${cls}">
         <div class="tmark">${s.done ? '✓' : i + 1}</div>
         <div class="tbody"><b>${name}</b><span>${esc(hint)}${prog}${auto}</span>
+          ${why ? `<span class="why">${esc(why)}</span>` : ''}
           ${
             s.done
               ? ''

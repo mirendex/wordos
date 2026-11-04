@@ -3,6 +3,7 @@ import { paint } from '../../core/paint';
 import { S, save } from '../../core/persist';
 import { ask } from '../../services/llm';
 import { haptic } from '../../platform/haptics';
+import { logSkill } from '../../domain/today';
 import { winByApp, Win } from '../../ui/windows';
 import { orderSource } from './sources';
 
@@ -87,6 +88,7 @@ export function orderTap(i: number): void {
     const said = g.picked.map((k: number) => g.words[k].t).join(' ');
     const ok = said === g.src.trim();
     g.done++;
+    logSkill('order', ok ? 100 : 0);
     if (ok) {
       g.perfect++;
       g.msg = 'Точно так';

@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, emptyCounters, newRoute, stepDone, swapStep, weekDays } from './today';
+import {
+  addDays,
+  avgScore,
+  emptyCounters,
+  newRoute,
+  pickKind,
+  pickSteps,
+  stepDone,
+  swapStep,
+  weekDays,
+} from './today';
 
 const c = (o: Partial<ReturnType<typeof emptyCounters>>) => ({ ...emptyCounters(), ...o });
 
@@ -25,6 +35,7 @@ describe('swapStep', () => {
   it('leaves the cards step and a finished step alone', () => {
     expect(swapStep({ kind: 'cards', done: false }).kind).toBe('cards');
     expect(swapStep({ kind: 'read', done: true })).toEqual({ kind: 'read', done: true });
+    expect(swapStep({ kind: 'read', done: false, why: 'x' }).why).toBe('');
   });
 });
 
@@ -56,5 +67,57 @@ describe('weekDays', () => {
   });
   it('crosses a month end', () => {
     expect(addDays('2026-11-01', -1)).toBe('2026-10-31');
+  });
+});
+
+const used = (last: string, scores: number[] = []) => ({ last, count: scores.length || 1, scores });
+const EAR = ['listen', 'echo', 'order'] as const;
+const T = '2026-11-10';
+
+describe('avgScore', () => {
+  it('says nothing from fewer than three scores and counts only the latest ten', () => {
+    expect(avgScore([90, 80])).toBeNull();
+    expect(avgScore([0, 0, 0, 0, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100])).toBe(100);
+  });
+});
+
+describe('pickKind', () => {
+  it('takes the first of a slot and says it is new when nothing is known', () => {
+    expect(pickKind([...EAR], {}, T)).toEqual({ kind: 'listen', why: 'ещё не пробовал' });
+  });
+  it('takes the one left alone longest', () => {
+    const skills = { listen: used(T), echo: used('2026-11-05'), order: used('2026-11-09') };
+    expect(pickKind([...EAR], skills, T)).toEqual({ kind: 'echo', why: 'не делал 5 дн.' });
+  });
+  it('takes the one that goes worst when all were done lately, and says how it goes', () => {
+    const skills = {
+      listen: used('2026-11-09', [60, 62, 58, 61]),
+      echo: used('2026-11-09', [90, 92, 88]),
+      order: used('2026-11-09', [80, 85, 90]),
+    };
+    const p = pickKind([...EAR], skills, T);
+    expect(p.kind).toBe('listen');
+    expect(p.why).toContain('60%');
+  });
+  it('gives no reason when nothing stands out', () => {
+    const skills = { read: used('2026-11-09'), diary: used('2026-11-09', [90, 90, 90]) };
+    const p = pickKind(['read', 'diary'], skills, T);
+    expect(p.why).toBe('');
+  });
+  it('does not count a kind as weak on fewer than three scores', () => {
+    const skills = { listen: used('2026-11-09', [10, 10]), echo: used('2026-11-09', [90, 90, 90]) };
+    expect(pickKind(['listen', 'echo'], skills, T).why).not.toContain('%');
+  });
+});
+
+describe('pickSteps', () => {
+  it('always starts with the cards and has one step for each slot', () => {
+    const steps = pickSteps({}, T);
+    expect(steps.map((x) => x.kind)).toEqual(['cards', 'read', 'listen']);
+    expect(steps.every((x) => !x.done)).toBe(true);
+  });
+  it('moves to the diary when reading was done yesterday and the diary has not been for a week', () => {
+    const steps = pickSteps({ read: used('2026-11-09'), diary: used('2026-11-03', [80, 80, 80]) }, T);
+    expect(steps[1].kind).toBe('diary');
   });
 });

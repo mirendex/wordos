@@ -11,6 +11,9 @@ import {
   StepKind,
   emptyCounters,
   newRoute,
+  pickSteps,
+  Skills,
+  SkillInfo,
   stepDone,
   swapStep,
   weekDays,
@@ -33,11 +36,58 @@ function counters(): Counters {
   };
 }
 
+// What is known of how each kind of work goes (see SkillInfo). A first look at the state fills it
+// from what the programs already kept, so the first day's choice has something to go on.
+export function skills(): Skills {
+  if (!S.skills || typeof S.skills !== 'object') {
+    const seed: Skills = {};
+    const scores = (a: unknown): number[] =>
+      Array.isArray(a) ? a.filter((x) => typeof x === 'number').slice(-20) : [];
+    const items = ((S.diary && S.diary.items) || []) as { date?: string; n?: number }[];
+    seed.listen = {
+      last: null,
+      count: scores(S.listen && S.listen.acc).length,
+      scores: scores(S.listen && S.listen.acc),
+    };
+    seed.echo = {
+      last: null,
+      count: scores(S.echo && S.echo.acc).length,
+      scores: scores(S.echo && S.echo.acc),
+    };
+    seed.diary = {
+      last: items.length ? items[items.length - 1].date || null : null,
+      count: items.length,
+      scores: items.map((x) => diaryScore(x.n || 0)),
+    };
+    S.skills = seed;
+  }
+  return S.skills;
+}
+
+// a diary entry that needed no fixes is 100, and each fix takes 15 off, down to 30
+export function diaryScore(fixes: number): number {
+  return Math.max(30, 100 - fixes * 15);
+}
+
+// Notes that a kind of work was done, with how it went when it has a score. Said by the programs
+// where the work is checked; the day's route and its reasons are built from it.
+export function logSkill(kind: StepKind, score?: number): void {
+  const all = skills();
+  const k: SkillInfo = all[kind] || (all[kind] = { last: null, count: 0, scores: [] });
+  k.last = DAY();
+  k.count++;
+  if (typeof score === 'number' && isFinite(score)) {
+    k.scores.push(Math.round(score));
+    if (k.scores.length > 20) k.scores = k.scores.slice(-20);
+  }
+  save();
+}
+
 export function route(): Route {
   const t = S.today as Route | undefined;
   if (t && t.day === DAY() && Array.isArray(t.steps) && t.steps.length === 3) return t;
   freqInit();
-  S.today = newRoute(DAY(), counters(), cover(myWords()));
+  S.today = newRoute(DAY(), counters(), cover(myWords()), pickSteps(skills(), DAY()));
   if (!Array.isArray(S.daysDone)) S.daysDone = [];
   save();
   return S.today;
@@ -127,6 +177,7 @@ export function markRead(): void {
   const s = r.steps.find((x) => x.kind === 'read');
   if (!s || s.done) return;
   s.done = true;
+  logSkill('read');
   finish(r);
 }
 

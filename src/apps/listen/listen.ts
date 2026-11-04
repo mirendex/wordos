@@ -4,6 +4,7 @@ import { paint } from '../../core/paint';
 import { BANK, S, save } from '../../core/persist';
 import { ask } from '../../services/llm';
 import { speak } from '../../platform/speech';
+import { logSkill } from '../../domain/today';
 import { winByApp, Win } from '../../ui/windows';
 import { listenState } from './state';
 
@@ -145,6 +146,7 @@ export function listenCheck(): void {
   });
   l.last = Math.round((hit / Math.max(1, b.length)) * 100);
   l.acc.push(l.last);
+  logSkill('listen', l.last);
   if (l.acc.length > 50) l.acc = l.acc.slice(-50);
   l.done++;
   save();

@@ -5,6 +5,7 @@ import { BANK, S, save } from '../../core/persist';
 import { ask } from '../../services/llm';
 import { CAPSR, SR, speak } from '../../platform/speech';
 import { haptic } from '../../platform/haptics';
+import { logSkill } from '../../domain/today';
 import { dialog } from '../../ui/modal';
 import { winByApp, Win } from '../../ui/windows';
 import { echoLen, echoState } from './state';
@@ -109,6 +110,7 @@ export async function echoSay(): Promise<void> {
       e.last = best;
       e.tries++;
       e.acc.push(best.pct);
+      logSkill('echo', best.pct);
       if (e.acc.length > 60) e.acc = e.acc.slice(-60);
       if (best.pct >= 85) {
         e.done++;
@@ -145,6 +147,7 @@ export async function echoSay(): Promise<void> {
       e.last = best;
       e.tries++;
       e.acc.push(best.pct);
+      logSkill('echo', best.pct);
       save();
       paint(true);
     };
