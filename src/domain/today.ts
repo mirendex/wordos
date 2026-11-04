@@ -206,20 +206,17 @@ function finish(r: Route, i: number): void {
   }
 }
 
-// the words in the balloon; `sample` is for trying a mark in the settings, with a made-up day
-export function celebrationText(
-  kind: Celebration,
-  sample = false,
-): { title: string; line: string; cells?: boolean[] } {
+// the words in the balloon
+export function celebrationText(kind: Celebration): { title: string; line: string; cells?: boolean[] } {
   const sum = summary();
-  const cards = sample ? 10 : sum.cards;
-  const pct = sample ? 92 : sum.cards ? Math.round((sum.right / sum.cards) * 100) : 0;
+  const cards = sum.cards;
+  const pct = sum.cards ? Math.round((sum.right / sum.cards) * 100) : 0;
   if (kind === 'sparkle') return { title: 'Чистый день', line: `верно ${pct}% в ${cards} карточках` };
   if (kind === 'wave')
     return {
       title: 'Неделя закрыта',
-      line: `${sample ? 5 : weekCount()} дней из 7, цель в ${WEEK_GOAL} выполнена`,
-      cells: sample ? [false, false, true, true, true, true, true] : weekRow().map((x) => x.done),
+      line: `${weekCount()} дней из 7, цель в ${WEEK_GOAL} выполнена`,
+      cells: weekRow().map((x) => x.done),
     };
   if (kind === 'sunrise')
     return { title: 'Хорошо, что вернулся', line: 'Пропуски не страшны, главное продолжить.' };
