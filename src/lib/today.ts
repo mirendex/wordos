@@ -18,7 +18,7 @@ export interface Route {
   day: string;
   steps: Step[];
   base: Counters; // the counters when the route was made, so only what is done after it counts
-  cover0: number; // how much of a text was understood when the day began
+  words0?: number; // the words in the stock when the day began (a route saved before this had none)
 }
 
 // the kinds a step can be swapped between, the first is the default
@@ -36,12 +36,12 @@ export const TARGET: Record<StepKind, number> = {
 
 export const WEEK_GOAL = 5;
 
-export function newRoute(day: string, base: Counters, cover0: number, steps?: Step[]): Route {
+export function newRoute(day: string, base: Counters, words0: number, steps?: Step[]): Route {
   return {
     day,
     steps: steps || SLOTS.map((s) => ({ kind: s[0], done: false })),
     base: { ...base },
-    cover0,
+    words0,
   };
 }
 

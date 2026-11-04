@@ -17,10 +17,11 @@ const c = (o: Partial<ReturnType<typeof emptyCounters>>) => ({ ...emptyCounters(
 
 describe('newRoute', () => {
   it('has a cards, a reading and an ear step, none done', () => {
-    const r = newRoute('2026-11-04', c({ listen: 5 }), 71.2);
+    const r = newRoute('2026-11-04', c({ listen: 5 }), 1243);
     expect(r.steps.map((s) => s.kind)).toEqual(['cards', 'read', 'listen']);
     expect(r.steps.every((s) => !s.done)).toBe(true);
     expect(r.base.listen).toBe(5);
+    expect(r.words0).toBe(1243);
   });
 });
 

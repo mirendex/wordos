@@ -49,18 +49,11 @@ function weekHtml(): string {
 function summaryHtml(): string {
   const s = summary();
   const pct = s.cards ? Math.round((s.right / s.cards) * 100) : 0;
-  const grew = s.cover1 - s.cover0;
-  const note =
-    grew > 0.04
-      ? ''
-      : grew < -0.04
-        ? 'слова, на которых ошибся, вернулись в повторение: так и задумано'
-        : 'растёт медленно, это нормально';
   return `<div class="note tsum">
     <span class="tt">Итог дня</span>
     ${s.cards ? `<div class="l">карточек: <u>${s.cards}</u>, верно <u>${pct}%</u></div>` : ''}
     <div class="l">слов стало выученными: <u>${s.learned}</u></div>
-    <div class="l">понятно в любом тексте: <u>${s.cover0.toFixed(1)}%</u> → <u>${s.cover1.toFixed(1)}%</u>${note ? `<br><span class="sub">${note}</span>` : ''}</div>
+    <div class="l">в запасе слов: <u>${s.words}</u>${s.added ? ` (+${s.added} сегодня)` : ''}</div>
   </div>`;
 }
 

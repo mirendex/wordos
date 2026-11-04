@@ -1,6 +1,6 @@
 import { DAY } from '../core/util';
 import { S, save } from '../core/persist';
-import { cover, freqInit } from './frequency';
+import { freqInit } from './frequency';
 import { dueWords, myWords, newToday, vocabState } from './vocab';
 import { newInBatch } from '../lib/srs';
 import { balloon, pingStep } from '../ui/tray';
@@ -104,7 +104,7 @@ export function route(): Route {
   if (t && t.day === DAY() && Array.isArray(t.steps) && t.steps.length === 3) return t;
   quietUntil = Date.now() + 2500;
   freqInit();
-  S.today = newRoute(DAY(), counters(), cover(myWords()), pickSteps(skills(), DAY()));
+  S.today = newRoute(DAY(), counters(), myWords(), pickSteps(skills(), DAY()));
   if (!Array.isArray(S.daysDone)) S.daysDone = [];
   save();
   return S.today;
@@ -255,15 +255,17 @@ export function weekCount(): number {
 }
 
 // what the day came to
-export function summary(): { cards: number; right: number; learned: number; cover0: number; cover1: number } {
+export function summary(): { cards: number; right: number; learned: number; words: number; added: number } {
   const v = vocabState();
   const l = v.log[DAY()] || { n: 0, r: 0, ok: 0, up: 0 };
+  const words = myWords();
   return {
     cards: (l.n || 0) + (l.r || 0),
     right: l.ok || 0,
     learned: l.up || 0,
-    cover0: route().cover0,
-    cover1: cover(myWords()),
+    words,
+    // a route saved before the day's first count was kept has nothing to compare with
+    added: Math.max(0, words - (route().words0 ?? words)),
   };
 }
 
