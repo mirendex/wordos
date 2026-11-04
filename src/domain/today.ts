@@ -207,19 +207,15 @@ function finish(r: Route, i: number): void {
 }
 
 // the words under each of the marks
-// `sample` is for showing a mark in the settings, with a made-up day instead of the real one
-export function celebrationText(
-  kind: Celebration,
-  sample = false,
-): { title: string; sub: string; cells?: boolean[] } {
+export function celebrationText(kind: Celebration): { title: string; sub: string; cells?: boolean[] } {
   const sum = summary();
-  const pct = sample ? 92 : sum.cards ? Math.round((sum.right / sum.cards) * 100) : 0;
+  const pct = sum.cards ? Math.round((sum.right / sum.cards) * 100) : 0;
   if (kind === 'confetti') return { title: 'Чистый день', sub: `верно ${pct}% в карточках` };
   if (kind === 'wave')
     return {
       title: 'Неделя закрыта',
-      sub: `${sample ? 5 : weekCount()} дней из 7: цель в ${WEEK_GOAL} выполнена`,
-      cells: sample ? [false, true, true, false, true, true, true] : weekRow().map((x) => x.done),
+      sub: `${weekCount()} дней из 7: цель в ${WEEK_GOAL} выполнена`,
+      cells: weekRow().map((x) => x.done),
     };
   if (kind === 'sunrise')
     return { title: 'Хорошо, что вернулся', sub: 'пропуски не страшны, главное продолжить' };
