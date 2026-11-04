@@ -31,40 +31,60 @@
   position: fixed;
   right: 8px;
   z-index: 90000;
-  width: min(264px, calc(100vw - 16px));
+  width: min(300px, calc(100vw - 16px));
   box-sizing: border-box;
-  padding: 10px 12px 11px;
+  padding: 12px 14px 13px;
   background: #fffbe6;
   border: 2px solid var(--ink);
   box-shadow: 3px 3px 0 var(--ink);
   cursor: pointer;
 }
 .b-head {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  min-height: 30px;
 }
 .b-head b {
   font-family: var(--px);
-  font-size: 17px;
+  font-size: 19px;
   line-height: 1.1;
 }
 .b-ico,
-.b-sun {
+.b-sun,
+.b-box svg {
   flex: none;
   display: block;
   image-rendering: pixelated;
 }
-.b-sun {
-  margin: -4px 0 -4px -4px;
+.b-box {
+  flex: none;
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+.b-cell,
+.b-ptr {
+  opacity: 0;
+}
+.b-ptr {
+  position: absolute;
+  left: 16px;
+  top: 15px;
+  pointer-events: none;
+  filter: drop-shadow(1px 2px 0 rgba(22, 21, 26, 0.35));
 }
 .b-line {
-  margin-top: 6px;
-  font-size: 12px;
+  margin-top: 7px;
+  font-size: 12.5px;
   color: #4a463c;
-  min-height: 15px;
+  min-height: 16px;
 }
-.b-line.typing:after {
+.b-line span {
+  opacity: 0;
+}
+.b-line.done:after {
   content: '';
   display: inline-block;
   width: 6px;
@@ -72,9 +92,10 @@
   margin-left: 2px;
   background: var(--ink);
   vertical-align: -1px;
-  animation: caret 0.6s steps(1) infinite;
+  animation: caret 0.9s steps(1) infinite;
 }
-/* a tail down to the tray icon, in two squares as the old ones were */
+
+/* a tail down to the tray icon */
 .b-tail {
   position: absolute;
   bottom: -9px;
@@ -88,43 +109,54 @@
   clip-path: polygon(100% 0, 100% 100%, 0 100%);
 }
 
-.k-sunrise {
-  background: #fdf0c8;
-}
-.k-sunrise .b-tail {
-  background: #fdf0c8;
-}
-
-.b-stamp {
+/* the shine that crosses the words on a clean day */
+.b-shine {
   position: absolute;
-  right: 9px;
-  bottom: 11px;
-  padding: 1px 7px;
-  border: 3px solid var(--red);
-  color: var(--red);
-  background: rgba(255, 251, 230, 0.92);
-  font-family: var(--px);
-  font-size: 17px;
-  letter-spacing: 1px;
-  transform: rotate(-8deg);
+  inset: 0;
+  overflow: hidden;
   pointer-events: none;
 }
+.b-shine i {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: 0;
+  width: 26px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95) 50%, transparent);
+  opacity: 0;
+}
 
-.k-stamp .b-line {
-  padding-right: 86px;
-  min-height: 30px;
+/* the count that runs up beside the title for the week */
+.b-count {
+  position: relative;
+  margin-left: auto;
+  width: 22px;
+  height: 22px;
+  font-family: var(--px);
+  font-size: 22px;
+  line-height: 22px;
+  text-align: right;
+  color: var(--blue);
+}
+.b-count span {
+  position: absolute;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  background: #fffbe6;
 }
 
 .b-week {
   display: flex;
-  gap: 4px;
-  margin-top: 8px;
+  gap: 5px;
+  margin-top: 9px;
 }
 .b-week i {
   flex: 1;
-  height: 22px;
+  height: 24px;
   border: 2px solid var(--ink);
   background: #fff;
+  opacity: 0;
 }
 .b-week i.on {
   background: repeating-linear-gradient(90deg, var(--blue) 0 4px, #5567c4 4px 8px);
@@ -133,23 +165,106 @@
   box-shadow: 2px 2px 0 var(--ink);
 }
 
+/* the dawn */
+.k-sunrise {
+  background: #fdf0c8;
+}
+.k-sunrise .b-tail {
+  background: #fdf0c8;
+}
+.b-sunwin {
+  flex: none;
+  display: block;
+  width: 40px;
+  height: 30px;
+  overflow: hidden;
+  margin: 0 -2px 0 -4px;
+}
+.b-sun {
+  transform: translateY(30px);
+  margin-top: -2px;
+}
+.fx.fx-band {
+  left: 0;
+  right: 0;
+  z-index: 89999;
+  opacity: 0;
+  background-image: repeating-linear-gradient(90deg, transparent 0 2px, rgba(255, 255, 255, 0.3) 2px 4px);
+}
+.fx-bird {
+  position: fixed;
+  width: 15px;
+  height: 9px;
+}
+.fx-bird span {
+  position: absolute;
+  inset: 0;
+}
+.fx-bird .b-bird {
+  display: block;
+  image-rendering: pixelated;
+}
+
 /* things that fly about, in the app's pixels */
 .fx {
   position: fixed;
   z-index: 90001;
   pointer-events: none;
 }
-.fx-star svg {
+.fx-star .fx-s {
   display: block;
   image-rendering: pixelated;
+}
+.fx-fleck,
+.fx-ring,
+.fx-bird {
+  opacity: 0;
 }
 .fx-fleck {
   width: 5px;
   height: 5px;
   margin: -2px 0 0 -2px;
-  background: var(--red);
   border: 1px solid var(--ink);
   box-sizing: border-box;
+}
+.fx-ring {
+  width: 70px;
+  height: 70px;
+  box-sizing: border-box;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px var(--ink),
+    inset 0 0 0 1px var(--ink);
+}
+
+/* with no motion the balloon is simply there, its parts as they end up */
+.balloon.still .b-cell,
+.balloon.still .b-line span,
+.balloon.still .b-week i {
+  opacity: 1;
+}
+.balloon.still .b-sun {
+  transform: none;
+}
+.balloon.still .b-count,
+.balloon.still .b-ptr {
+  display: none;
+}
+
+/* the step to be done next waits in the tray icon, blinking slowly */
+#taskbar .tray i.next {
+  animation: nextseg 1.6s steps(1) infinite;
+}
+@keyframes nextseg {
+  50% {
+    background: #c9ceea;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #taskbar .tray i.next {
+    animation: none;
+  }
 }
 
 /* the step just filled, in the Today window */

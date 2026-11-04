@@ -156,7 +156,7 @@ export function pickSteps(skills: Skills, today: string): Step[] {
   });
 }
 
-export type Celebration = 'stamp' | 'sparkle' | 'wave' | 'sunrise';
+export type Celebration = 'check' | 'sparkle' | 'wave' | 'sunrise';
 
 export const COMEBACK_DAYS = 4; // a route finished after being away this long is a comeback
 export const CLEAN_SHARE = 0.9; // the share of cards right that makes a clean day
@@ -174,7 +174,7 @@ export function pickCelebration(info: {
   if (info.weekCount === WEEK_GOAL) return 'wave';
   if (info.gap !== null && info.gap >= COMEBACK_DAYS) return 'sunrise';
   if (info.cards >= CLEAN_MIN && info.right / info.cards >= CLEAN_SHARE) return 'sparkle';
-  return 'stamp';
+  return 'check';
 }
 
 // days from the last of `done` before `today` to `today`; null when there is none

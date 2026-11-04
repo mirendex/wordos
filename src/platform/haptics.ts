@@ -37,27 +37,37 @@ const HAP: Record<string, HapKind> = {
       [75, 0.85],
     ],
   },
-  // The route done, the stamp: a tick as it is lifted, the blow as it lands (the firmest and
-  // longest pulse there is, but short, as it happens once a day), then a dying echo
-  stamp: {
+  // The route done, the pointer ticking its box, timed to the picture: it arrives with a tick,
+  // presses (a firm pulse), and lets go with the click (the longest pulse there is, as it happens
+  // once a day), the check draws itself in two light ticks and the last cell lands
+  check: {
     seq: [
-      [160, 0.3],
-      [380, 1, true, 16],
-      [460, 0.4],
-      [530, 0.2],
+      [640, 0.2],
+      [760, 0.55, true, 6],
+      [840, 1, true, 14],
+      [900, 0.3],
+      [980, 0.25],
+      [1160, 0.2],
+      [1230, 0.12],
     ],
   },
-  // The sun coming up, a comeback: a heartbeat, two soft beats and a pause, again, and a long
-  // light swell at the end, slow on purpose
+  // The sun coming up, a comeback, timed to the picture: a warmth creeping up in light ticks while
+  // it rises, then the heartbeat, two soft beats and a pause, again, and a long fading out
   sunrise: {
     seq: [
-      [0, 0.4],
-      [120, 0.75, false, 10],
-      [800, 0.4],
-      [920, 0.75, false, 10],
-      [1600, 0.18],
-      [1750, 0.12],
-      [1900, 0.08],
+      [200, 0.08],
+      [400, 0.1],
+      [600, 0.12],
+      [800, 0.14],
+      [1000, 0.16],
+      [1200, 0.18],
+      [1400, 0.45],
+      [1520, 0.8, false, 10],
+      [2200, 0.45],
+      [2320, 0.8, false, 10],
+      [3000, 0.16],
+      [3150, 0.1],
+      [3300, 0.06],
     ],
   },
 };

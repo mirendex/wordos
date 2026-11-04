@@ -8,6 +8,7 @@ import {
   BOOT_WIN_ROWS,
   BOOT_WINDOW,
 } from './bootlogo';
+import { spring } from './spring';
 
 // The launch animation starts in the system splash (drawable/splash_logo.xml): the window stands
 // still and the pointer glides in and comes to rest on its corner. This draws that last frame
@@ -38,21 +39,6 @@ interface Box {
   y: number;
   w: number;
   h: number;
-}
-
-// a damped spring from 0 to 1 as a CSS easing: `zeta` is the damping (less is springier), `swings`
-// how many times it goes back and forth. A browser without linear() gets an overshooting curve.
-function spring(zeta: number, swings: number, n = 48): string {
-  if (!CSS.supports('animation-timing-function', 'linear(0, 1)')) return 'cubic-bezier(0.34, 1.5, 0.64, 1)';
-  const w = 2 * Math.PI * swings;
-  const wd = w * Math.sqrt(1 - zeta * zeta);
-  const pts: string[] = [];
-  for (let i = 0; i <= n; i++) {
-    const t = i / n;
-    const v = 1 - Math.exp(-zeta * w * t) * (Math.cos(wd * t) + ((zeta * w) / wd) * Math.sin(wd * t));
-    pts.push((i === n ? 1 : v).toFixed(4));
-  }
-  return `linear(${pts.join(',')})`;
 }
 
 let el: HTMLElement | null = null;

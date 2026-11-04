@@ -127,15 +127,15 @@ describe('pickSteps', () => {
 describe('pickCelebration', () => {
   const base = { weekCount: 2, gap: 1, cards: 10, right: 6 };
   it('stamps an ordinary day', () => {
-    expect(pickCelebration(base)).toBe('stamp');
+    expect(pickCelebration(base)).toBe('check');
   });
   it('sparkles on a clean day, but only from enough cards', () => {
     expect(pickCelebration({ ...base, right: 9 })).toBe('sparkle');
-    expect(pickCelebration({ ...base, cards: 5, right: 5 })).toBe('stamp');
+    expect(pickCelebration({ ...base, cards: 5, right: 5 })).toBe('check');
   });
   it('greets a return after days away', () => {
     expect(pickCelebration({ ...base, gap: 4 })).toBe('sunrise');
-    expect(pickCelebration({ ...base, gap: 3 })).toBe('stamp');
+    expect(pickCelebration({ ...base, gap: 3 })).toBe('check');
   });
   it('marks the week goal above all', () => {
     expect(pickCelebration({ weekCount: 5, gap: 9, cards: 10, right: 10 })).toBe('wave');
