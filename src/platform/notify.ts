@@ -24,7 +24,7 @@ export async function notifyPlan(): Promise<void> {
         {
           id: 1,
           title: 'English',
-          body: 'Пара карточек, пока есть минута',
+          body: 'Маршрут дня: три шага по паре минут',
           schedule: { on: { hour: S.cfg.notifyHour || 19, minute: 30 }, allowWhileIdle: true },
           smallIcon: 'ic_stat_en',
           iconColor: '#3C4EA8',

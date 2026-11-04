@@ -23,7 +23,20 @@ export const MIN_WIN_H = 200;
 let W: Win[] = [];
 let z = 10;
 
-const APPS = ['read', 'games', 'term', 'vocab', 'goal', 'setup', 'diary', 'listen', 'echo', 'notes', 'about'];
+const APPS = [
+  'today',
+  'read',
+  'games',
+  'term',
+  'vocab',
+  'goal',
+  'setup',
+  'diary',
+  'listen',
+  'echo',
+  'notes',
+  'about',
+];
 
 // What is persisted of a window between launches: its position and display state, not its contents.
 // The app's own state lives in S, and a window's `data` only holds work in progress.
@@ -207,6 +220,7 @@ export function close(k: string): void {
 }
 
 export function title(w: Win): string {
+  if (w.app === 'today') return 'TODAY.EXE';
   if (w.app === 'read') return 'READER.EXE';
   if (w.app === 'games') return 'GAMES';
   if (w.app === 'term') return 'TERMINAL';

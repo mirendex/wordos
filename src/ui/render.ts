@@ -14,11 +14,14 @@ import { setupView } from '../apps/setup';
 import { termView } from '../apps/terminal/terminal';
 import { vocabView } from '../apps/vocab/vocab';
 import { goalView } from '../apps/goal/goal';
+import { todayView } from '../apps/today';
+import { syncToday } from '../domain/today';
 import { gamesView } from '../apps/games/games';
 import { MLOAD, MODELS, loadModels } from '../services/models';
 import { offered } from '../services/update';
 
 function content(w: Win): string {
+  if (w.app === 'today') return todayView();
   if (w.app === 'games') return gamesView(w);
   if (w.app === 'vocab') return vocabView(w);
   if (w.app === 'goal') return goalView(w);
@@ -67,6 +70,7 @@ function paintImpl(force?: boolean): void {
     const b = el.querySelector('.body');
     if (b) SCROLL[el.dataset.k!] = b.scrollTop;
   });
+  syncToday();
   renderIcons();
   const W = windows();
   const deskRect = document.getElementById('desk')?.getBoundingClientRect();

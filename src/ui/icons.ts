@@ -1,5 +1,6 @@
 import { $, DAY } from '../core/util';
 import { dueWords } from '../domain/vocab';
+import { stepsDone } from '../domain/today';
 import { freqReady } from '../domain/frequency';
 import { S, save } from '../core/persist';
 import { paint } from '../core/paint';
@@ -37,6 +38,17 @@ function pixelIcon(px: Px[]): string {
 }
 
 export const ICONS: Record<string, string> = {
+  today: pixelIcon([
+    [5, 1, 2, 4, INK],
+    [13, 1, 2, 4, INK],
+    ...box(2, 3, 16, 15, PAPER),
+    [3, 4, 14, 3, RED],
+    [5, 12, 2, 2, GREEN],
+    [7, 14, 2, 2, GREEN],
+    [9, 12, 2, 2, GREEN],
+    [11, 10, 2, 2, GREEN],
+    [13, 9, 2, 2, GREEN],
+  ]),
   vocab: pixelIcon([
     ...box(5, 1, 13, 10, GREY_LO),
     [7, 3, 5, 1, GREEN],
@@ -193,6 +205,7 @@ export const ICONS: Record<string, string> = {
 };
 
 export const APPS = [
+  { id: 'today', t: 'TODAY' },
   { id: 'vocab', t: 'WORDS.DB' },
   { id: 'goal', t: 'GOAL' },
   { id: 'read', t: 'READER' },
@@ -271,7 +284,12 @@ export function renderIcons(): void {
     const x = (idx % cols) * cw + (cw - 78) / 2;
     const y = Math.floor(idx / cols) * rh + 10;
     const n = a.id === 'vocab' && freqReady() ? dueCount() : a.id === 'goal' ? goalDueCount() : 0;
-    const badge = n ? '<b style="color:#FFD9A0">' + n + '</b>' : '';
+    const badge =
+      a.id === 'today'
+        ? '<b style="color:#FFD9A0">' + (stepsDone() === 3 ? '✓' : stepsDone() + '/3') + '</b>'
+        : n
+          ? '<b style="color:#FFD9A0">' + n + '</b>'
+          : '';
     return `<button class="ic" data-app="${a.id}" data-icon="${a.id}" style="left:${x}px;top:${y}px">${ICONS[a.id]}<b>${a.t}</b>${badge}</button>`;
   }).join('');
 }

@@ -125,11 +125,11 @@ export function newToday(): number {
   return (l && l.n) || 0;
 }
 
-export function logDay(kind: 'n' | 'r' | 'ok'): void {
+export function logDay(kind: 'n' | 'r' | 'ok' | 'up'): void {
   const v = vocabState();
   const t = DAY();
   if (!v.log[t]) v.log[t] = { n: 0, r: 0, ok: 0 };
-  v.log[t][kind]++;
+  v.log[t][kind] = (v.log[t][kind] || 0) + 1;
 }
 
 export function srsGrade(w: string, res: 'ok' | 'typo' | 'no'): void {
@@ -139,8 +139,10 @@ export function srsGrade(w: string, res: 'ok' | 'typo' | 'no'): void {
   if (myWords() >= 100) S.egg = Object.assign({}, S.egg || {}, { hundred: 1 });
   const v = vocabState();
   const s = v.srs[w] || (v.srs[w] = { b: 0, due: DAY(), reps: 0, lapses: 0, first: DAY() });
+  const b0 = s.b;
   const was = srsStep(s, res, DAY(), PLUS);
   if (res !== 'no') logDay('ok');
   logDay(was ? 'n' : 'r');
+  if (b0 < 4 && s.b >= 4) logDay('up');
   save();
 }

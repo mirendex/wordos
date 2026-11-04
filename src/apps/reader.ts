@@ -6,9 +6,10 @@ import { ask, askStream } from '../services/llm';
 import { fetchFreeTranslation } from '../services/translate';
 import { freqInit, RANK } from '../domain/frequency';
 import { coursePos, vocabState } from '../domain/vocab';
+import { readStepOpen } from '../domain/today';
 import { winByApp, Win } from '../ui/windows';
 
-const READTOPICS: [string, string][] = [
+export const READTOPICS: [string, string][] = [
   ['Путешествия', 'путешествия и жизнь в новой стране'],
   ['Здоровье', 'здоровье, сон и привычки'],
   ['Технологии', 'гаджеты и новые технологии'],
@@ -105,12 +106,21 @@ export function readView(w: Win): string {
       }
       <div class="rowb"><button class="btn sm" data-speak="${esc(t.body)}">Прочитать вслух</button>
       <button class="btn sm" data-newtext="1">Другой текст</button>
-      <button class="btn p sm" data-harvest="1">Забрать слова</button></div>
+      <button class="btn p sm" data-harvest="1">Забрать слова</button>
+      ${readStepOpen() ? '<button class="btn sm" data-tread="1">Прочитал</button>' : ''}</div>
       ${w.data.harvest ? harvestHtml(w) : ''}`;
 }
 
-function textPrompt(topic: string): string {
-  return `Напиши короткий текст на английском для того, кто учит язык. Тема: ${topic}.
+export function randomTopic(): string {
+  return READTOPICS[Math.floor(Math.random() * READTOPICS.length)][1];
+}
+
+function textPrompt(topic: string, words: string[] = []): string {
+  return `Напиши короткий текст на английском для того, кто учит язык. Тема: ${topic}.${
+    words.length
+      ? '\nЕстественно используй в тексте эти слова (все формы подойдут): ' + words.join(', ') + '.'
+      : ''
+  }
 Уровень ${cefr(S.level)}, подача: ${tone(S.level)}. Длина ${S.level < 42 ? '50-70' : S.level < 60 ? '80-110' : S.level < 75 ? '110-140' : '140-180'} слов. Интересный факт, история или наблюдение, не учебный пересказ.
 Формат ответа:
 {"title":"заголовок на английском до 5 слов","body":"текст одним абзацем"}`;
@@ -134,7 +144,7 @@ function showStream(w: Win): void {
   else paint();
 }
 
-export async function getText(topic: string): Promise<void> {
+export async function getText(topic: string, words: string[] = []): Promise<void> {
   const w = winByApp('read')!;
   w.data.err = '';
   w.data.pop = null;
@@ -143,7 +153,7 @@ export async function getText(topic: string): Promise<void> {
   w.data.stream = { title: '', body: '' };
   paint();
   try {
-    const r = await askStream(textPrompt(topic), (raw) => {
+    const r = await askStream(textPrompt(topic, words), (raw) => {
       if (!w.data.stream) return;
       w.data.stream.title = partialField(raw, 'title') || '';
       w.data.stream.body = partialField(raw, 'body') || '';
