@@ -44,7 +44,7 @@ function trayHtml(far: boolean): string {
   const steps = route().steps;
   const n = steps.filter((s) => s.done).length;
   return `<button class="tray${far ? ' far' : ''}${n === 3 ? ' all' : ''}" data-app="today" title="Маршрут дня: ${n} из 3">${steps
-    .map((s, i) => `<i class="${s.done ? 'on' : i === steps.findIndex((x) => !x.done) ? 'next' : ''}"></i>`)
+    .map((s) => `<i class="${s.done ? 'on' : ''}"></i>`)
     .join('')}</button>`;
 }
 

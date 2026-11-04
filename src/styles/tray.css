@@ -132,8 +132,10 @@
   margin-left: auto;
   width: 48px;
   height: 22px;
-  font-family: var(--px);
-  font-size: 22px;
+  /* the pixel font draws a 5 like an S at this size, so the digits are set in the plain one */
+  font-family: var(--mo);
+  font-weight: 600;
+  font-size: 20px;
   line-height: 22px;
   text-align: right;
   color: var(--blue);
@@ -253,21 +255,6 @@
 .balloon.still .b-count,
 .balloon.still .b-ptr {
   display: none;
-}
-
-/* the step to be done next waits in the tray icon, blinking slowly */
-#taskbar .tray i.next {
-  animation: nextseg 1.6s steps(1) infinite;
-}
-@keyframes nextseg {
-  50% {
-    background: #c9ceea;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  #taskbar .tray i.next {
-    animation: none;
-  }
 }
 
 /* the step just filled, in the Today window */
