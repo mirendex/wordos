@@ -22,13 +22,14 @@ import {
 } from '../lib/talk';
 import { ask } from '../services/llm';
 import { haptic } from '../platform/haptics';
-import { ChatReview, ChatTurn, chatReply, chatReview } from './chat';
+import { ChatReview, ChatTurn, attachFix, chatReply, chatReview } from './chat';
 import { showChatStream } from '../ui/chat';
 import { freqInit, RANK } from './frequency';
 import { saveBank } from './cards';
 import { srsGrade, vocabState } from './vocab';
 
 export interface TalkScene {
+  id?: string; // tells the scenes apart, also two on one day
   day: string;
   format: FormatId;
   title: string;
@@ -116,8 +117,8 @@ function pickTargets(n = 3): string[] {
 function scenePrompt(f: FormatId, name: string, traits: string, extra: string, targets: string[]): string {
   const fm = FORMATS[f];
   return `Придумай короткую ролевую сцену для разговорной практики английского. Уровень ученика ${cefr(S.level)}, подача: ${tone(S.level)}.
-${fm.brief}${extra ? '\n' + (f === 'guest' ? 'Гость: ' : 'Ситуация: ') + extra : ''}
-Персонаж: ${name}, характер: ${traits}. Характер виден в манере, но персонаж никогда не торопит и не подгоняет ученика.${
+Роль персонажа (написано ему): ${fm.brief}${extra ? '\n' + (f === 'guest' ? 'Гость: ' : 'Ситуация: ') + extra : ''}
+Персонаж: ${name}, характер: ${traits}. Он живой человек в этой ситуации, а не ведущий игры: не объясняет правил и не говорит, что можно спросить; разговор без давления.${
     targets.length
       ? `\nСитуация должна давать ученику повод самому сказать слова: ${targets.join(', ')}. Сам персонаж эти слова не произносит.`
       : ''
@@ -133,12 +134,17 @@ ${fm.brief}${extra ? '\n' + (f === 'guest' ? 'Гость: ' : 'Ситуация:
 
 function context(c: TalkScene): string {
   const f = FORMATS[c.format];
-  return `Ролевая сцена для разговорной практики английского. Уровень ученика ${cefr(S.level)}: если он ошибается или пишет коротко, говори проще.
-${f.brief}${c.extra ? '\n' + (c.format === 'guest' ? 'Гость: ' : 'Ситуация: ') + c.extra : ''}
-Ты играешь роль: ${c.name}, ${c.role}. Характер: ${c.traits}; он виден в манере, но ты никогда не торопишь и не подгоняешь ученика: ему нужно время подумать. Задача ученика: ${c.task}.${
-    c.secret ? `\nСекрет, его не выдавай прямо: ${c.secret}` : ''
-  }${c.targets.length ? `\nНе произноси сам слова, которые ученик должен сказать: ${c.targets.join(', ')}.` : ''}
-Реплики короткие, до 25 слов. Не повторяй одни и те же фразы из реплики в реплику.`;
+  return `Ты ${c.name}, ${c.role}. Собеседник учит английский, уровень ${cefr(S.level)}: говори просто, как с иностранцем, но естественно.
+${f.brief}${c.extra ? '\n' + (c.format === 'guest' ? 'Кто ты: ' : 'Где вы: ') + c.extra : ''}
+Чего хочет собеседник: ${c.task}.${c.secret ? `\nЧто знаешь только ты: ${c.secret}. Прямо не говори.` : ''}
+Как говорить:
+- ты живой человек в этой ситуации, а не ведущий, учитель или помощник; никогда не говори о правилах, задании, уроке, о том, что собеседник может спросить или сделать; не хвали и не успокаивай его;
+- реагируй по-человечески: удивление, шутка, своё мнение, встречный вопрос, иногда сам расскажи что-то своё;
+- если собеседник застрял, ушёл от темы или ответил невпопад, ответь в образе и сам продвинь разговор новой деталью;
+- характер (${c.traits}) проявляется слегка, не в каждой реплике; темп обычного разговора, без давления;
+- не повторяй свои прежние фразы; реплика короткая, до 25 слов.${
+    c.targets.length ? `\nНе произноси слова ${c.targets.join(', ')}: их собеседник скажет сам.` : ''
+  }`;
 }
 
 // the chat scrolled to its last line
@@ -172,6 +178,7 @@ async function makeScene(format: FormatId): Promise<void> {
   if (!open) throw new Error('модель не придумала сцену');
   const day = DAY();
   k.cur = {
+    id: Date.now().toString(36),
     day,
     format,
     title: r.title || FORMATS[format].name,
@@ -276,7 +283,8 @@ export async function talkSend(text: string): Promise<void> {
       showChatStream('talk:', t);
     });
     stream = null;
-    if (r.reply) c.turns.push({ who: 'them', en: r.reply, ru: r.ru, fix: r.fix });
+    attachFix(c.turns, r.fix);
+    if (r.reply) c.turns.push({ who: 'them', en: r.reply, ru: r.ru });
     if (r.done) await finishTalk(c);
   } catch (e) {
     stream = null;

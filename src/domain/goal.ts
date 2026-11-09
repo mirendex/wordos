@@ -5,7 +5,7 @@ import { DAY, PLUS } from '../core/util';
 import { paint } from '../core/paint';
 import { save } from '../core/persist';
 import { ask } from '../services/llm';
-import { chatReply, chatReview } from './chat';
+import { attachFix, chatReply, chatReview } from './chat';
 import { showChatStream } from '../ui/chat';
 import { CAPSR, SR } from '../platform/speech';
 import { haptic } from '../platform/haptics';
@@ -304,7 +304,8 @@ export async function talkTurn(text: string): Promise<void> {
       showChatStream('goal:', t);
     });
     goalStreamText = null;
-    if (r.reply) chat.turns.push({ who: 'them', en: r.reply, ru: r.ru, fix: r.fix });
+    attachFix(chat.turns, r.fix);
+    if (r.reply) chat.turns.push({ who: 'them', en: r.reply, ru: r.ru });
     if (r.done) {
       chat.done = true;
       const sum = await chatReview(`Сценарий: ${scene.en}.`, chat.turns);

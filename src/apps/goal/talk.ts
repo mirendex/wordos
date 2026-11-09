@@ -22,7 +22,7 @@ export function talkView(): string {
   const turns: GoalTalkTurn[] = g.chat.turns;
   return `<h3 class="h">${esc(scene ? scene.ru : '')}</h3>
     <p class="sub">${esc(scene ? scene.task : '')}</p>
-    ${chatLogHtml(turns, 'goal', g.busy ? goalStream() : null)}
+    ${chatLogHtml(turns, 'goal:' + g.chat.scene, g.busy ? goalStream() : null)}
     ${
       g.busy
         ? goalStream() !== null

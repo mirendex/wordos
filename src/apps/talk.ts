@@ -34,7 +34,7 @@ export function talkView(): string {
     <p class="sub"><b>${esc(c.name)}</b>${c.role ? ' · ' + esc(c.role) : ''}<br><span style="color:var(--grey)">${esc(c.traits)}</span></p>
     <p class="sub">задача: ${esc(c.task)}</p>
     ${chips}
-    ${chatLogHtml(c.turns, 'talk', k.busy ? stream : null)}
+    ${chatLogHtml(c.turns, 'talk:' + (c.id || c.day + c.title), k.busy ? stream : null)}
     ${
       k.busy
         ? stream !== null

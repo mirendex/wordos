@@ -2,21 +2,29 @@ import { cutJson } from '../lib/json';
 import { S, save } from '../core/persist';
 import { open } from '../ui/windows';
 
-function post(p: string, maxTokens: number, stream: boolean): Promise<Response> {
+// A request is a single task, or a conversation: the instructions, the turns so far as messages,
+// and how free the wording may be
+export type Prompt =
+  | string
+  | { system: string; messages: { role: 'user' | 'assistant'; content: string }[]; temperature?: number };
+
+const JSON_ONLY =
+  'Ты возвращаешь только валидный JSON. Никакого текста до или после, никаких markdown-заборов, никаких пояснений. Строго один объект JSON.';
+
+function post(p: Prompt, maxTokens: number, stream: boolean): Promise<Response> {
   const cfg = S.cfg || {};
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const body: any = {
     model: cfg.model || 'openai/gpt-4o-mini',
     max_tokens: maxTokens,
-    temperature: 0.7,
-    messages: [
-      {
-        role: 'system',
-        content:
-          'Ты возвращаешь только валидный JSON. Никакого текста до или после, никаких markdown-заборов, никаких пояснений. Строго один объект JSON.',
-      },
-      { role: 'user', content: p },
-    ],
+    temperature: typeof p === 'string' ? 0.7 : (p.temperature ?? 0.7),
+    messages:
+      typeof p === 'string'
+        ? [
+            { role: 'system', content: JSON_ONLY },
+            { role: 'user', content: p },
+          ]
+        : [{ role: 'system', content: JSON_ONLY + '\n\n' + p.system }, ...p.messages],
   };
   if (!cfg.noJsonMode) body.response_format = { type: 'json_object' };
   if (stream) body.stream = true;
@@ -32,8 +40,12 @@ function post(p: string, maxTokens: number, stream: boolean): Promise<Response> 
   });
 }
 
+function withNote(p: Prompt, note: string): Prompt {
+  return typeof p === 'string' ? p + '\n\n' + note : { ...p, system: p.system + '\n\n' + note };
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function ask(p: string, tries?: number, maxTokens = 3000): Promise<any> {
+export async function ask(p: Prompt, tries?: number, maxTokens = 3000): Promise<any> {
   const cfg = S.cfg || {};
   if (!cfg.key) {
     open('setup');
@@ -82,8 +94,10 @@ export async function ask(p: string, tries?: number, maxTokens = 3000): Promise<
       return ask(
         cut
           ? p
-          : p +
-              '\n\nВАЖНО: предыдущая попытка вернула не JSON. Ответь ТОЛЬКО объектом JSON, без единого слова вокруг.',
+          : withNote(
+              p,
+              'ВАЖНО: предыдущая попытка вернула не JSON. Ответь ТОЛЬКО объектом JSON, без единого слова вокруг.',
+            ),
         tries + 1,
         roomier,
       );
@@ -102,7 +116,7 @@ export async function ask(p: string, tries?: number, maxTokens = 3000): Promise<
 // status, a body that can't be read, a reply that doesn't parse) goes through ask() instead,
 // which knows how to report it or try again
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function askStream(p: string, onText: (raw: string) => void, maxTokens = 3000): Promise<any> {
+export async function askStream(p: Prompt, onText: (raw: string) => void, maxTokens = 3000): Promise<any> {
   if (!(S.cfg && S.cfg.key) || typeof ReadableStream === 'undefined') return ask(p, 0, maxTokens);
   let raw = '';
   try {
