@@ -1,4 +1,5 @@
-import { ask } from '../services/llm';
+import { ask, askStream } from '../services/llm';
+import { partialField } from '../lib/json';
 
 // A role-play with the model, shared by GOAL's scenarios and TALK's scene of the day: the
 // character's next line, and the review once the scene is over.
@@ -33,15 +34,20 @@ export async function chatReply(
   context: string,
   turns: ChatTurn[],
   finish = false,
+  onText?: (reply: string) => void,
 ): Promise<{ reply: string; ru: string; fix: string; done: boolean }> {
-  const r = await ask(`${context}
+  const prompt = `${context}
 История диалога:
 ${history(turns)}
 Отвечай короткой репликой в роли собеседника на английском, живой разговорной речью. Если задача уже выполнена, закончи сцену.${
     finish ? '\nСцена подходит к концу: закончи её этой репликой, done: true.' : ''
   }
 Формат ответа:
-{"reply":"реплика собеседника на английском","ru":"перевод реплики","fix":"если в реплике ученика была ошибка - короткая поправка по-русски, иначе пустая строка","done":true или false}`);
+{"reply":"реплика собеседника на английском","ru":"перевод реплики","fix":"если в реплике ученика была ошибка - короткая поправка по-русски, иначе пустая строка","done":true или false}`;
+  // the reply comes first in the answer, so it can be shown as it is written
+  const r = onText
+    ? await askStream(prompt, (raw) => onText(partialField(raw, 'reply') || ''))
+    : await ask(prompt);
   return { reply: r.reply || '', ru: r.ru || '', fix: r.fix || '', done: !!r.done || finish };
 }
 

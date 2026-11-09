@@ -1,7 +1,7 @@
 import { esc } from '../lib/scale';
-import { FORMATS } from '../lib/talk';
+import { FORMATS, titleRepeats } from '../lib/talk';
 import { S } from '../core/persist';
-import { makingScene, talkState, todayFormat, todayScene } from '../domain/talk';
+import { makingScene, talkState, talkStream, todayFormat, todayScene } from '../domain/talk';
 import { chatBusyHtml, chatInputHtml, chatLogHtml, errNoteHtml, fixesHtml } from '../ui/chat';
 
 export function talkView(): string {
@@ -26,14 +26,20 @@ export function talkView(): string {
         .map((w) => `<i class="${c.used[w] ? 'on' : ''}">${esc(w)}</i>`)
         .join('')}</div>`
     : '';
-  return `<div class="tkfmt ${f.rare ? 'rare' : ''}"><b>${esc(f.name)}</b><span>${esc(c.title)}</span></div>
-    <p class="sub"><b>${esc(c.name)}</b>, ${esc(c.role)} · ${esc(c.traits)}</p>
+  const stream = talkStream();
+  const last = c.turns[c.turns.length - 1];
+  return `<div class="tkfmt ${f.rare ? 'rare' : ''}"><b>${esc(f.name)}</b>${
+    titleRepeats(c.title, f.name) ? '' : `<span>${esc(c.title)}</span>`
+  }</div>
+    <p class="sub"><b>${esc(c.name)}</b>${c.role ? ' · ' + esc(c.role) : ''}<br><span style="color:var(--grey)">${esc(c.traits)}</span></p>
     <p class="sub">задача: ${esc(c.task)}</p>
     ${chips}
-    ${chatLogHtml(c.turns)}
+    ${chatLogHtml(c.turns, 'talk', k.busy ? stream : null)}
     ${
       k.busy
-        ? chatBusyHtml(c.done ? 'разбираю' : 'отвечает')
+        ? stream !== null
+          ? ''
+          : chatBusyHtml(c.done || (last && last.who === 'them') ? 'разбираю' : 'отвечает')
         : c.done && r
           ? `<div class="note" style="margin-top:10px"><b style="font-family:var(--px);font-size:15px">Разбор</b>
           <div class="l">${esc(r.summary)}</div>

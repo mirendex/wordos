@@ -23,6 +23,7 @@ import {
 import { ask } from '../services/llm';
 import { haptic } from '../platform/haptics';
 import { ChatReview, ChatTurn, chatReply, chatReview } from './chat';
+import { showChatStream } from '../ui/chat';
 import { freqInit, RANK } from './frequency';
 import { saveBank } from './cards';
 import { srsGrade, vocabState } from './vocab';
@@ -116,16 +117,16 @@ function scenePrompt(f: FormatId, name: string, traits: string, extra: string, t
   const fm = FORMATS[f];
   return `Придумай короткую ролевую сцену для разговорной практики английского. Уровень ученика ${cefr(S.level)}, подача: ${tone(S.level)}.
 ${fm.brief}${extra ? '\n' + (f === 'guest' ? 'Гость: ' : 'Ситуация: ') + extra : ''}
-Персонаж: ${name}, характер: ${traits}.${
+Персонаж: ${name}, характер: ${traits}. Характер виден в манере, но персонаж никогда не торопит и не подгоняет ученика.${
     targets.length
-      ? `\nПусть ситуация даёт ученику естественный повод сказать слова: ${targets.join(', ')}.`
+      ? `\nСитуация должна давать ученику повод самому сказать слова: ${targets.join(', ')}. Сам персонаж эти слова не произносит.`
       : ''
   }
 Персонаж начинает разговор: первая реплика короткая, до 25 слов, в его характере и сразу втягивает ученика${
     f === 'twenty' ? ', с правилами игры' : ''
   }.
 Формат ответа:
-{"title":"название сцены по-русски, до 5 слов","role":"кто персонаж, по-русски, до 8 слов","task":"что нужно сделать ученику, по-русски, до 14 слов","secret":"${
+{"title":"название сцены по-русски, до 4 слов, без имени персонажа и без названия формата","role":"кто персонаж, по-русски, до 6 слов, без имени и без характера","task":"что нужно сделать ученику, по-русски, до 10 слов","secret":"${
     fm.secret ? 'разгадка или загаданное слово, по-английски' : 'пустая строка'
   }","opening":{"en":"первая реплика","ru":"перевод"}}`;
 }
@@ -134,16 +135,23 @@ function context(c: TalkScene): string {
   const f = FORMATS[c.format];
   return `Ролевая сцена для разговорной практики английского. Уровень ученика ${cefr(S.level)}: если он ошибается или пишет коротко, говори проще.
 ${f.brief}${c.extra ? '\n' + (c.format === 'guest' ? 'Гость: ' : 'Ситуация: ') + c.extra : ''}
-Ты играешь роль: ${c.name}, ${c.role}. Характер: ${c.traits}, держись его. Задача ученика: ${c.task}.${
+Ты играешь роль: ${c.name}, ${c.role}. Характер: ${c.traits}; он виден в манере, но ты никогда не торопишь и не подгоняешь ученика: ему нужно время подумать. Задача ученика: ${c.task}.${
     c.secret ? `\nСекрет, его не выдавай прямо: ${c.secret}` : ''
-  }
-Реплики короткие, до 25 слов.`;
+  }${c.targets.length ? `\nНе произноси сам слова, которые ученик должен сказать: ${c.targets.join(', ')}.` : ''}
+Реплики короткие, до 25 слов. Не повторяй одни и те же фразы из реплики в реплику.`;
 }
 
 // the chat scrolled to its last line
 function toEnd(): void {
   const b = document.querySelector('.win[data-k="talk:"] .body');
   if (b) b.scrollTop = b.scrollHeight;
+}
+
+// the character's line while it is being written
+let stream: string | null = null;
+
+export function talkStream(): string | null {
+  return stream;
 }
 
 let making: Promise<void> | null = null;
@@ -261,10 +269,17 @@ export async function talkSend(text: string): Promise<void> {
   toEnd();
   try {
     const mine = c.turns.filter((t) => t.who === 'me').length;
-    const r = await chatReply(context(c), c.turns, mine >= MAX_TURNS);
+    stream = '';
+    paint();
+    const r = await chatReply(context(c), c.turns, mine >= MAX_TURNS, (t) => {
+      stream = t;
+      showChatStream('talk:', t);
+    });
+    stream = null;
     if (r.reply) c.turns.push({ who: 'them', en: r.reply, ru: r.ru, fix: r.fix });
     if (r.done) await finishTalk(c);
   } catch (e) {
+    stream = null;
     k.err = (e as Error).message || 'не вышло';
     // the line goes back to the input, to be sent again
     if (!c.done && c.turns[c.turns.length - 1]?.who === 'me') {

@@ -6,6 +6,7 @@ import { paint } from '../core/paint';
 import { save } from '../core/persist';
 import { ask } from '../services/llm';
 import { chatReply, chatReview } from './chat';
+import { showChatStream } from '../ui/chat';
 import { CAPSR, SR } from '../platform/speech';
 import { haptic } from '../platform/haptics';
 import { dialog } from '../ui/modal';
@@ -278,6 +279,13 @@ export function markGoalKnown(id: string): void {
   save();
 }
 
+// the other side's line while it is being written
+let goalStreamText: string | null = null;
+
+export function goalStream(): string | null {
+  return goalStreamText;
+}
+
 export async function talkTurn(text: string): Promise<void> {
   const g = goalState();
   if (!g.chat || !g.cur) return;
@@ -289,7 +297,13 @@ export async function talkTurn(text: string): Promise<void> {
   paint();
   try {
     const context = `Ролевой диалог для подготовки к событию. Ты играешь роль: ${scene.role}. Сценарий: ${scene.en} (${scene.ru}). Задача ученика: ${scene.task}.`;
-    const r = await chatReply(context, chat.turns);
+    goalStreamText = '';
+    paint();
+    const r = await chatReply(context, chat.turns, false, (t) => {
+      goalStreamText = t;
+      showChatStream('goal:', t);
+    });
+    goalStreamText = null;
     if (r.reply) chat.turns.push({ who: 'them', en: r.reply, ru: r.ru, fix: r.fix });
     if (r.done) {
       chat.done = true;
@@ -300,6 +314,7 @@ export async function talkTurn(text: string): Promise<void> {
       g.cur.talks[scene.id] = (g.cur.talks[scene.id] || 0) + 1;
     }
   } catch (e) {
+    goalStreamText = null;
     g.err = (e as Error).message;
   }
   g.busy = false;

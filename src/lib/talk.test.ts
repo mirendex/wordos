@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fixGap, pickFormat, Played, usedWord, wordForms } from './talk';
+import { fixGap, pickFormat, Played, titleRepeats, usedWord, wordForms } from './talk';
 import { addDays } from './today';
 
 const T = '2026-11-09';
@@ -76,5 +76,14 @@ describe('fixGap', () => {
     expect(fixGap('I go shop', 'I go to the shop', known)).toBeNull();
     expect(fixGap('see you in Monday', 'see you on Monday', () => false)).toBeNull();
     expect(fixGap('went', 'gone', known)).toBeNull();
+  });
+});
+
+describe('titleRepeats', () => {
+  it('spots a title that only names the kind again', () => {
+    expect(titleRepeats('Двадцать вопросов с Эллой', '20 вопросов')).toBe(true);
+    expect(titleRepeats('Пропавший торт', 'Детектив')).toBe(false);
+    expect(titleRepeats('Детективная история', 'Детектив')).toBe(true);
+    expect(titleRepeats('', 'Сцена')).toBe(true);
   });
 });

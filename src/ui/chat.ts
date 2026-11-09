@@ -1,21 +1,55 @@
 import { esc } from '../lib/scale';
+import { paint } from '../core/paint';
 import { errHint } from '../lib/json';
 import { ChatFix, ChatTurn } from '../domain/chat';
 
 // The pieces of a role-play window, shared by GOAL and TALK
 
-export function chatLogHtml(turns: ChatTurn[]): string {
+// the character's lines whose translation is shown, as "<chat>:<line>"; a translation always in
+// sight gets read instead of the English, so each one is opened by hand
+const OPEN = new Set<string>();
+
+export function toggleRu(id: string): void {
+  if (OPEN.has(id)) OPEN.delete(id);
+  else OPEN.add(id);
+}
+
+// `stream`: the character's next line while it is being written, null when there is none
+export function chatLogHtml(turns: ChatTurn[], key: string, stream: string | null = null): string {
   return `<div class="chatlog" style="margin-top:10px">${turns
-    .map(
-      (t) =>
-        `<div class="bubble ${t.who}">
+    .map((t, i) => {
+      const id = key + ':' + i;
+      const shown = OPEN.has(id);
+      return `<div class="bubble ${t.who}">
         <div>${esc(t.en)}</div>
-        ${t.ru ? `<div class="sub">${esc(t.ru)}</div>` : ''}
+        ${t.ru && shown ? `<div class="sub">${esc(t.ru)}</div>` : ''}
         ${t.fix ? `<div class="sub" style="color:var(--red)">${esc(t.fix)}</div>` : ''}
-        ${t.who === 'them' ? `<button class="btn sm" data-speak="${esc(t.en)}">звук</button>` : ''}
-      </div>`,
-    )
-    .join('')}</div>`;
+        ${
+          t.who === 'them'
+            ? `<div class="rowb"><button class="btn sm" data-speak="${esc(t.en)}">звук</button>${
+                t.ru
+                  ? `<button class="btn sm" data-chatru="${esc(id)}">${shown ? 'скрыть' : 'перевод'}</button>`
+                  : ''
+              }</div>`
+            : ''
+        }
+      </div>`;
+    })
+    .join('')}${
+    stream !== null
+      ? `<div class="bubble them"><div data-chatstream>${esc(stream)}<span class="caret"></span></div></div>`
+      : ''
+  }</div>`;
+}
+
+// the line being written grows in its bubble without the window being painted again
+export function showChatStream(winKey: string, text: string): void {
+  const win = document.querySelector(`.win[data-k="${CSS.escape(winKey)}"]`);
+  const el = win && win.querySelector('[data-chatstream]');
+  if (!el) return paint();
+  el.innerHTML = esc(text) + '<span class="caret"></span>';
+  const b = win!.querySelector('.body');
+  if (b) b.scrollTop = b.scrollHeight;
 }
 
 export function chatBusyHtml(label: string): string {

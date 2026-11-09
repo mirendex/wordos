@@ -139,10 +139,10 @@ export const TRAITS = [
   'ворчливый, но добрый',
   'болтливый и весёлый',
   'рассеянный',
-  'торопится и отвечает коротко',
+  'мечтательный, любит отвлекаться на детали',
   'очень вежливый и немного старомодный',
   'с сухим чувством юмора',
-  'подозрительный',
+  'любит точность и уточняет мелочи',
   'восторженный, всему радуется',
 ];
 
@@ -202,3 +202,15 @@ export function fixGap(
 }
 
 export const MAX_TURNS = 8; // the learner's lines, after which the character closes the scene
+
+// whether a scene's title only says again what its kind does: a word of the kind's name, from its
+// stem, shows up in it ("Двадцать вопросов с Эллой" under "20 вопросов")
+export function titleRepeats(title: string, name: string): boolean {
+  const stems = name
+    .toLowerCase()
+    .split(/[^a-zа-яё]+/)
+    .filter((w) => w.length > 3)
+    .map((w) => w.slice(0, 5));
+  const words = title.toLowerCase().split(/[^a-zа-яё]+/);
+  return !title.trim() || stems.some((s) => words.some((w) => w.startsWith(s)));
+}

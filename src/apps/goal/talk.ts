@@ -1,6 +1,7 @@
 import { esc } from '../../lib/scale';
 import { chatBusyHtml, chatInputHtml, chatLogHtml, errNoteHtml, fixesHtml } from '../../ui/chat';
 import { GoalScene, GoalTalkTurn, goalState } from './state';
+import { goalStream } from '../../domain/goal';
 
 export function talkView(): string {
   const g = goalState();
@@ -21,10 +22,16 @@ export function talkView(): string {
   const turns: GoalTalkTurn[] = g.chat.turns;
   return `<h3 class="h">${esc(scene ? scene.ru : '')}</h3>
     <p class="sub">${esc(scene ? scene.task : '')}</p>
-    ${chatLogHtml(turns)}
+    ${chatLogHtml(turns, 'goal', g.busy ? goalStream() : null)}
     ${
       g.busy
-        ? chatBusyHtml('отвечает')
+        ? goalStream() !== null
+          ? ''
+          : chatBusyHtml(
+              g.chat.turns.length && g.chat.turns[g.chat.turns.length - 1].who === 'them'
+                ? 'разбираю'
+                : 'отвечает',
+            )
         : g.chat.done
           ? `<div class="note" style="margin-top:10px"><b style="font-family:var(--px);font-size:15px">Разбор</b>
           <div class="l">${esc(g.chat.summary || '')}</div>
