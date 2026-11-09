@@ -15,6 +15,12 @@ export function installKeyboard(): void {
       if (b) b.click();
       return;
     }
+    if ((target.id === 'tkin' || target.id === 'gtalkin') && e.key === 'Enter') {
+      e.preventDefault();
+      const b = document.querySelector<HTMLElement>(target.id === 'tkin' ? '[data-tksend]' : '[data-gsend]');
+      if (b) b.click();
+      return;
+    }
     if (target.id === 'tin' && e.key === 'Enter') {
       const v = target.value;
       target.value = '';

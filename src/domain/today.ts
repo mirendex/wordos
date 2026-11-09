@@ -4,6 +4,7 @@ import { freqInit } from './frequency';
 import { dueWords, myWords, newToday, vocabState } from './vocab';
 import { newInBatch } from '../lib/srs';
 import { balloon, pingStep } from '../ui/tray';
+import { talkTeaser } from './talk';
 import {
   TARGET,
   Counters,
@@ -37,6 +38,7 @@ function counters(): Counters {
     echo: (S.echo && S.echo.done) || 0,
     order: (S.order && S.order.done) || 0,
     diary: ((S.diary && S.diary.items) || []).length,
+    talk: (S.talk && S.talk.done) || 0,
   };
 }
 
@@ -104,7 +106,7 @@ export function route(): Route {
   if (t && t.day === DAY() && Array.isArray(t.steps) && t.steps.length === 3) return t;
   quietUntil = Date.now() + 2500;
   freqInit();
-  S.today = newRoute(DAY(), counters(), myWords(), pickSteps(skills(), DAY()));
+  S.today = newRoute(DAY(), counters(), myWords(), pickSteps(skills(), DAY(), talkTeaser()));
   if (!Array.isArray(S.daysDone)) S.daysDone = [];
   save();
   return S.today;

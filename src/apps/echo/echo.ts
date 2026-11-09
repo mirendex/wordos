@@ -6,6 +6,7 @@ import { ask } from '../../services/llm';
 import { CAPSR, SR, speak } from '../../platform/speech';
 import { haptic } from '../../platform/haptics';
 import { logSkill } from '../../domain/today';
+import { talkLine } from '../listen/listen';
 import { dialog } from '../../ui/modal';
 import { winByApp, Win } from '../../ui/windows';
 import { echoLen, echoState } from './state';
@@ -48,7 +49,7 @@ export async function echoGen(): Promise<void> {
   paint(true);
   try {
     const r = await ask(`Придумай 8 английских фраз для тренировки произношения вслух.
-Уровень ${cefr(S.level)}. Длина ${lo}-${hi} слов. Живая разговорная речь: рабочие созвоны, быт, короткие реплики. Без редких имён и цифр.
+Уровень ${cefr(S.level)}. Длина ${lo}-${hi} слов. Живая разговорная речь: рабочие созвоны, быт, короткие реплики. Без редких имён и цифр.${talkLine()}
 Формат ответа:
 {"lines":[{"en":"фраза","ru":"перевод"}]}`);
     const lines = (Array.isArray(r.lines) ? r.lines : []).filter((x: { en?: string }) => x && x.en);

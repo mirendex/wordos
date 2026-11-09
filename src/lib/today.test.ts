@@ -16,9 +16,9 @@ import {
 const c = (o: Partial<ReturnType<typeof emptyCounters>>) => ({ ...emptyCounters(), ...o });
 
 describe('newRoute', () => {
-  it('has a cards, a reading and an ear step, none done', () => {
+  it('has a cards, a talk and an ear step, none done', () => {
     const r = newRoute('2026-11-04', c({ listen: 5 }), 1243);
-    expect(r.steps.map((s) => s.kind)).toEqual(['cards', 'read', 'listen']);
+    expect(r.steps.map((s) => s.kind)).toEqual(['cards', 'talk', 'listen']);
     expect(r.steps.every((s) => !s.done)).toBe(true);
     expect(r.base.listen).toBe(5);
     expect(r.words0).toBe(1243);
@@ -34,6 +34,7 @@ describe('swapStep', () => {
       seen.push(s.kind);
     }
     expect(seen).toEqual(['listen', 'echo', 'order', 'listen']);
+    expect(swapStep({ kind: 'talk', done: false }).kind).toBe('read');
   });
   it('leaves the cards step and a finished step alone', () => {
     expect(swapStep({ kind: 'cards', done: false }).kind).toBe('cards');
@@ -116,12 +117,16 @@ describe('pickKind', () => {
 describe('pickSteps', () => {
   it('always starts with the cards and has one step for each slot', () => {
     const steps = pickSteps({}, T);
-    expect(steps.map((x) => x.kind)).toEqual(['cards', 'read', 'listen']);
+    expect(steps.map((x) => x.kind)).toEqual(['cards', 'talk', 'listen']);
     expect(steps.every((x) => !x.done)).toBe(true);
   });
-  it('moves to the diary when reading was done yesterday and the diary has not been for a week', () => {
-    const steps = pickSteps({ read: used('2026-11-09'), diary: used('2026-11-03', [80, 80, 80]) }, T);
-    expect(steps[1].kind).toBe('diary');
+  it('puts the talk second whatever was done, with its own reason', () => {
+    const steps = pickSteps(
+      { talk: used('2026-11-09'), diary: used('2026-11-03', [80, 80, 80]) },
+      T,
+      'детектив',
+    );
+    expect(steps[1]).toEqual({ kind: 'talk', done: false, why: 'детектив' });
   });
 });
 

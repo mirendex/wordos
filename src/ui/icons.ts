@@ -38,6 +38,20 @@ function pixelIcon(px: Px[]): string {
 }
 
 export const ICONS: Record<string, string> = {
+  talk: pixelIcon([
+    ...box(1, 2, 13, 9, PAPER),
+    [3, 11, 2, 2, INK],
+    [3, 11, 1, 3, INK],
+    [3, 5, 2, 1, BLUE],
+    [6, 5, 4, 1, BLUE],
+    [3, 7, 6, 1, BLUE],
+    ...box(7, 8, 12, 8, YELLOW_HI),
+    [15, 16, 2, 1, INK],
+    [16, 16, 1, 2, INK],
+    [9, 11, 1, 1, INK],
+    [12, 11, 1, 1, INK],
+    [15, 11, 1, 1, INK],
+  ]),
   today: pixelIcon([
     [5, 1, 2, 4, INK],
     [13, 1, 2, 4, INK],
@@ -206,6 +220,7 @@ export const ICONS: Record<string, string> = {
 
 export const APPS = [
   { id: 'today', t: 'TODAY' },
+  { id: 'talk', t: 'TALK' },
   { id: 'vocab', t: 'WORDS.DB' },
   { id: 'goal', t: 'GOAL' },
   { id: 'read', t: 'READER' },

@@ -25,6 +25,7 @@ let z = 10;
 
 const APPS = [
   'today',
+  'talk',
   'read',
   'games',
   'term',
@@ -221,6 +222,7 @@ export function close(k: string): void {
 
 export function title(w: Win): string {
   if (w.app === 'today') return 'TODAY.EXE';
+  if (w.app === 'talk') return 'TALK.EXE';
   if (w.app === 'read') return 'READER.EXE';
   if (w.app === 'games') return 'GAMES';
   if (w.app === 'term') return 'TERMINAL';

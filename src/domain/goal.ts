@@ -5,6 +5,7 @@ import { DAY, PLUS } from '../core/util';
 import { paint } from '../core/paint';
 import { save } from '../core/persist';
 import { ask } from '../services/llm';
+import { chatReply, chatReview } from './chat';
 import { CAPSR, SR } from '../platform/speech';
 import { haptic } from '../platform/haptics';
 import { dialog } from '../ui/modal';
@@ -287,25 +288,15 @@ export async function talkTurn(text: string): Promise<void> {
   g.busy = true;
   paint();
   try {
-    const history = chat.turns.map((t) => (t.who === 'me' ? 'Ученик: ' : 'Собеседник: ') + t.en).join('\n');
-    const r =
-      await ask(`Ролевой диалог для подготовки к событию. Ты играешь роль: ${scene.role}. Сценарий: ${scene.en} (${scene.ru}). Задача ученика: ${scene.task}.
-История диалога:
-${history}
-Отвечай короткой репликой в роли собеседника на английском, живой разговорной речью. Если задача уже выполнена, закончи сцену.
-Формат ответа:
-{"reply":"реплика собеседника на английском","ru":"перевод реплики","fix":"если в реплике ученика была ошибка - короткая поправка по-русски, иначе пустая строка","done":true или false}`);
-    if (r.reply) chat.turns.push({ who: 'them', en: r.reply, ru: r.ru || '', fix: r.fix || '' });
+    const context = `Ролевой диалог для подготовки к событию. Ты играешь роль: ${scene.role}. Сценарий: ${scene.en} (${scene.ru}). Задача ученика: ${scene.task}.`;
+    const r = await chatReply(context, chat.turns);
+    if (r.reply) chat.turns.push({ who: 'them', en: r.reply, ru: r.ru, fix: r.fix });
     if (r.done) {
       chat.done = true;
-      const sum = await ask(`Ролевой диалог закончен. Сценарий: ${scene.en}. Полная история:
-${chat.turns.map((t) => (t.who === 'me' ? 'Ученик: ' : 'Собеседник: ') + t.en).join('\n')}
-Дай короткий разбор для ученика.
-Формат ответа:
-{"summary":"как прошло, по-русски, 1-2 предложения","fixes":[{"wrong":"цитата ученика","right":"исправление","why":"по-русски, до 8 слов"}],"phrases":[{"en":"удачная фраза из диалога","ru":"перевод"}]}`);
-      chat.summary = sum.summary || '';
-      chat.fixes = Array.isArray(sum.fixes) ? sum.fixes : [];
-      chat.phrases = Array.isArray(sum.phrases) ? sum.phrases : [];
+      const sum = await chatReview(`Сценарий: ${scene.en}.`, chat.turns);
+      chat.summary = sum.summary;
+      chat.fixes = sum.fixes;
+      chat.phrases = sum.phrases;
       g.cur.talks[scene.id] = (g.cur.talks[scene.id] || 0) + 1;
     }
   } catch (e) {

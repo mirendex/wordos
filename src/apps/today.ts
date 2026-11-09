@@ -23,9 +23,11 @@ import { listenNext } from './listen/listen';
 import { listenState } from './listen/state';
 import { echoGen, echoPick } from './echo/echo';
 import { echoState } from './echo/state';
+import { ensureScene, talkSummary } from '../domain/talk';
 
 const INFO: Record<StepKind, [string, string]> = {
   cards: ['Карточки', 'пачка слов, около 3 минут'],
+  talk: ['Разговор', 'короткий диалог с персонажем, около 4 минут'],
   read: ['Читать', 'короткий текст с твоими новыми словами, около 2 минут'],
   diary: ['Дневник', 'пара строк о дне, около 3 минут'],
   listen: ['Диктант', '3 фразы на слух, около 2 минут'],
@@ -49,9 +51,11 @@ function weekHtml(): string {
 function summaryHtml(): string {
   const s = summary();
   const pct = s.cards ? Math.round((s.right / s.cards) * 100) : 0;
+  const t = talkSummary();
   return `<div class="note tsum">
     <span class="tt">Итог дня</span>
     ${s.cards ? `<div class="l">карточек: <u>${s.cards}</u>, верно <u>${pct}%</u></div>` : ''}
+    ${t ? `<div class="l">разговор: <u>${esc(t.name.toLowerCase())}</u>${t.targets ? `, слова <u>${t.used}/${t.targets}</u>` : ''}${t.cards ? `, в карточки <u>${t.cards}</u>` : ''}</div>` : ''}
     <div class="l">слов стало выученными: <u>${s.learned}</u></div>
     <div class="l">в запасе слов: <u>${s.words}</u>${s.added ? ` (+${s.added} сегодня)` : ''}</div>
   </div>`;
@@ -113,6 +117,9 @@ export function startStep(i: number): void {
       v.tab = 'learn';
       paint();
     } else loadCards();
+  } else if (s.kind === 'talk') {
+    open('talk');
+    ensureScene();
   } else if (s.kind === 'read') {
     open('read');
     if (!winByApp('read')!.data.text) getText(randomTopic(), recentWords(5));

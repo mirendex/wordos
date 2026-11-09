@@ -103,3 +103,50 @@
   content: 'почему: ';
   color: var(--grey);
 }
+
+.tkfmt {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 4px 0 6px;
+}
+
+.tkfmt b {
+  font-family: var(--px);
+  font-size: 13px;
+  padding: 2px 6px;
+  background: var(--blue);
+  color: var(--paper);
+  border: 1px solid var(--ink);
+}
+
+.tkfmt.rare b {
+  background: #f0c94a;
+  color: var(--ink);
+}
+
+.tkwords {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--grey);
+}
+
+.tkwords i {
+  font-style: normal;
+  font-family: var(--mo);
+  color: var(--ink);
+  padding: 1px 6px;
+  border: 1px dashed var(--ink);
+}
+
+.tkwords i.on {
+  border-style: solid;
+  background: var(--green);
+  color: var(--paper);
+  text-decoration: line-through;
+}

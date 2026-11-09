@@ -46,6 +46,7 @@ function introView(): string {
 
 const APP_LIST: { id: string; name: string; desc: string }[] = [
   { id: 'today', name: 'TODAY', desc: 'маршрут дня из трёх коротких шагов и итог' },
+  { id: 'talk', name: 'TALK', desc: 'разговор дня: новый персонаж и формат каждый день' },
   { id: 'vocab', name: 'WORDS.DB', desc: 'словарь, карточки, диаграмма запаса' },
   { id: 'read', name: 'READER', desc: 'тексты под твой уровень, слово по тапу' },
   { id: 'listen', name: 'LISTEN', desc: 'диктант на слух' },

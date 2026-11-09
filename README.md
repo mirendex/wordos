@@ -45,18 +45,19 @@ of them share one vocabulary, so progress in any app counts everywhere.
 
 ## Features
 
-| App          | What it does                                                                                                                           |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **WORDS.DB** | The 10,000 most frequent English words with spaced repetition (SRS) and generated cards: example sentence, translation, word forms.    |
-| **GOAL**     | Prepare for an event by a date — a trip, an interview, a move: scenario vocabulary and phrases, a daily quota and role-play dialogues. |
-| **READER**   | Texts on a chosen topic at your level (CEFR), streamed as they are written, with tap-to-translate for any word.                        |
-| **DIARY**    | Write in English and get your text checked, corrected and explained.                                                                   |
-| **LISTEN**   | Listening dictation with text-to-speech.                                                                                               |
-| **ECHO**     | Read-aloud practice scored with speech recognition.                                                                                    |
-| **GAMES**    | Five-letter word game, word search, sentence order, pairs and hangman.                                                                 |
-| **TERMINAL** | A text adventure: explore a departed developer's laptop with `ls`, `cd` and `cat` to find the code.                                    |
-| **NOTES**    | Your saved words and the corrections collected from the diary.                                                                         |
-| **SETUP**    | OpenRouter key and model, voice, haptics strength and daily review reminders.                                                          |
+| App          | What it does                                                                                                                                                                                                  |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **WORDS.DB** | The 10,000 most frequent English words with spaced repetition (SRS) and generated cards: example sentence, translation, word forms.                                                                           |
+| **TALK**     | A short role-play every day with a new character and a new kind of scene (a detective case, persuading someone, 20 questions, now and then a strange guest), using words from your cards; slips become cards. |
+| **GOAL**     | Prepare for an event by a date — a trip, an interview, a move: scenario vocabulary and phrases, a daily quota and role-play dialogues.                                                                        |
+| **READER**   | Texts on a chosen topic at your level (CEFR), streamed as they are written, with tap-to-translate for any word.                                                                                               |
+| **DIARY**    | Write in English and get your text checked, corrected and explained.                                                                                                                                          |
+| **LISTEN**   | Listening dictation with text-to-speech.                                                                                                                                                                      |
+| **ECHO**     | Read-aloud practice scored with speech recognition.                                                                                                                                                           |
+| **GAMES**    | Five-letter word game, word search, sentence order, pairs and hangman.                                                                                                                                        |
+| **TERMINAL** | A text adventure: explore a departed developer's laptop with `ls`, `cd` and `cat` to find the code.                                                                                                           |
+| **NOTES**    | Your saved words and the corrections collected from the diary.                                                                                                                                                |
+| **SETUP**    | OpenRouter key and model, voice, haptics strength and daily review reminders.                                                                                                                                 |
 
 **Under the hood**
 

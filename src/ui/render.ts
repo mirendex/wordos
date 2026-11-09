@@ -15,6 +15,7 @@ import { termView } from '../apps/terminal/terminal';
 import { vocabView } from '../apps/vocab/vocab';
 import { goalView } from '../apps/goal/goal';
 import { todayView } from '../apps/today';
+import { talkView } from '../apps/talk';
 import { route, syncToday } from '../domain/today';
 import { gamesView } from '../apps/games/games';
 import { MLOAD, MODELS, loadModels } from '../services/models';
@@ -22,6 +23,7 @@ import { offered } from '../services/update';
 
 function content(w: Win): string {
   if (w.app === 'today') return todayView();
+  if (w.app === 'talk') return talkView();
   if (w.app === 'games') return gamesView(w);
   if (w.app === 'vocab') return vocabView(w);
   if (w.app === 'goal') return goalView(w);

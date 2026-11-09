@@ -105,6 +105,7 @@ export async function load(): Promise<void> {
     S.goal.busy = false;
     if (S.goal.pron && typeof S.goal.pron === 'object') S.goal.pron.rec = false;
   }
+  if (S.talk && typeof S.talk === 'object') S.talk.busy = false;
   if (S.vocab && S.vocab.bank) {
     Object.keys(S.vocab.bank).forEach((k) => {
       if (!BANK[k]) BANK[k] = S.vocab.bank[k];

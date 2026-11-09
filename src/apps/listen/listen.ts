@@ -5,6 +5,7 @@ import { BANK, S, save } from '../../core/persist';
 import { ask } from '../../services/llm';
 import { speak } from '../../platform/speech';
 import { logSkill } from '../../domain/today';
+import { recentTalkPhrases } from '../../domain/talk';
 import { winByApp, Win } from '../../ui/windows';
 import { listenState } from './state';
 
@@ -38,6 +39,14 @@ export function listenPick(): boolean {
   return false;
 }
 
+// lines from the last talk come back on the ear, a little changed if needed
+export function talkLine(): string {
+  const p = recentTalkPhrases();
+  return p.length
+    ? `\nДва-три предложения построй на фразах из недавнего разговора ученика: ${p.join(' | ')}.`
+    : '';
+}
+
 function listenPrompt(): string {
   const lvl = S.level;
   const len =
@@ -49,7 +58,7 @@ function listenPrompt(): string {
           ? 'по 8-12 слов'
           : "по 10-15 слов, с сокращениями вроде I'll и we're";
   return `Придумай 6 английских предложений для диктанта на слух.
-Уровень ${cefr(S.level)}, ${tone(S.level)} Длина: ${len}. Обычная речь: работа, быт, разговор с коллегой. Без редких имён и цифр.
+Уровень ${cefr(S.level)}, ${tone(S.level)} Длина: ${len}. Обычная речь: работа, быт, разговор с коллегой. Без редких имён и цифр.${talkLine()}
 Формат ответа:
 {"lines":[{"en":"предложение","ru":"перевод"}]}`;
 }

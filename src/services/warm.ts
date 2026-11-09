@@ -1,6 +1,7 @@
 import { S } from '../core/persist';
 import { prefetchAhead } from '../domain/cards';
 import { fillGoalAhead } from '../domain/goal';
+import { ensureScene } from '../domain/talk';
 import { listenTopUp } from '../apps/listen/listen';
 import { listenState } from '../apps/listen/state';
 import { spareQuest } from '../apps/terminal/terminal';
@@ -19,6 +20,7 @@ export async function warm(force?: boolean): Promise<void> {
   last = Date.now();
   try {
     await prefetchAhead();
+    await ensureScene(true);
     await fillGoalAhead();
     if (listenState().done > 0) await listenTopUp();
     const t = S.term;
